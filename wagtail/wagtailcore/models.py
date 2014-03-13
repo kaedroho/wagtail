@@ -289,25 +289,34 @@ class Page(MP_Node, ClusterableModel, Indexed):
         content_type = ContentType.objects.get_for_id(self.content_type_id)
         return content_type.model_class()
 
+    def process_request(self, request, path):
+        if path == '':
+            return self.serve(request)
+
     def route(self, request, path_components):
-        if path_components:
-            # request is for a child of this page
-            child_slug = path_components[0]
-            remaining_components = path_components[1:]
+        response = None
 
-            try:
-                subpage = self.get_children().get(slug=child_slug)
-            except Page.DoesNotExist:
-                raise Http404
+        if self.live:
+            response = self.process_request(request, '/'.join(path_components))
 
-            return subpage.specific.route(request, remaining_components)
+        if not response:
+            if path_components:
+                # request is for a child of this page
+                child_slug = path_components[0]
+                remaining_components = path_components[1:]
 
-        else:
-            # request is for this very page
-            if self.live:
-                return self.serve(request)
+                try:
+                    subpage = self.get_children().get(slug=child_slug)
+                except Page.DoesNotExist:
+                    raise Http404
+
+                return subpage.specific.route(request, remaining_components)
+
             else:
+                # Request was for this page but process_request didn't return a response
                 raise Http404
+
+        return response
 
     def save_revision(self, user=None, submitted_for_moderation=False):
         self.revisions.create(content_json=self.to_json(), user=user, submitted_for_moderation=submitted_for_moderation)
