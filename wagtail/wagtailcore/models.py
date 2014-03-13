@@ -513,24 +513,43 @@ class Page(MP_Node, ClusterableModel, Indexed):
 
 
 class SuperPage(Page):
+    """
+    This class extends Page by adding methods to allow urlconfs to be embedded inside pages
+    """
+
     @staticmethod
     def subpage_url(regex, func, kwargs={}, name=None):
+        """
+        Helper method to ease creation of subpage urls
+        """
         return RegexURLPattern(regex, func, kwargs, name)
 
     def get_subpage_urls(self):
+        """
+        Override this method to add your own subpage urls
+        """
         return [
             self.subpage_url('^$', self.serve, name='main'),
         ]
 
     def reverse_subpage(self, name, *args, **kwargs):
+        """
+        This method does the same job as Djangos' built in "urlresolvers.reverse()" function for subpage urlconfs.
+        """
         resolver = RegexURLResolver(r'^', self.get_subpage_urls())
         return self.url + resolver.reverse(name, *args, **kwargs)
 
     def resolve_subpage(self, path):
+        """
+        This finds a view method/function from a URL path.
+        """
         resolver = RegexURLResolver(r'^', self.get_subpage_urls())
         return resolver.resolve(path)
 
     def process_request(self, request, path):
+        """
+        This hooks the subpage urls into Wagtails routing.
+        """
         try:
             view, args, kwargs = self.resolve_subpage(path)
             return view(request, *args, **kwargs)
