@@ -12,6 +12,7 @@ from django.contrib.auth.models import Group
 from django.conf import settings
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
+from django.core.urlresolvers import RegexURLResolver, RegexURLPattern, Resolver404
 
 from wagtail.wagtailcore.util import camelcase_to_underscore
 
@@ -509,6 +510,37 @@ class Page(MP_Node, ClusterableModel, Indexed):
         """
         user_perms = UserPagePermissionsProxy(user)
         return user_perms.for_page(self)
+
+
+class SuperPage(Page):
+    @staticmethod
+    def subpage_url(regex, func, kwargs={}, name=None):
+        return RegexURLPattern(regex, func, kwargs, name)
+
+    def get_subpage_urls(self):
+        return [
+            self.subpage_url('^$', self.serve, name='main'),
+        ]
+
+    def reverse_subpage(self, name, *args, **kwargs):
+        resolver = RegexURLResolver(r'^', self.get_subpage_urls())
+        return self.url + resolver.reverse(name, *args, **kwargs)
+
+    def resolve_subpage(self, path):
+        resolver = RegexURLResolver(r'^', self.get_subpage_urls())
+        return resolver.resolve(path)
+
+    def process_request(self, request, path):
+        try:
+            view, args, kwargs = self.resolve_subpage(path)
+            return view(request, *args, **kwargs)
+        except Resolver404:
+            pass
+
+    is_abstract = True
+
+    class Meta:
+        abstract = True
 
 
 def get_navigation_menu_items():
