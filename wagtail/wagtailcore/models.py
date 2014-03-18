@@ -44,8 +44,25 @@ class Site(models.Model):
     def __unicode__(self):
         return self.hostname + ("" if self.port == 80 else (":%d" % self.port)) + (" [default]" if self.is_default_site else "")
 
+    def pages_on_path(self, path_components):
+        # Start with site root page
+        current_page = self.root_page.specific
+        yield current_page, path_components
+
+        while path_components:
+            # Get next child
+            child_slug = path_components[0]
+            path_components = path_components[1:]
+
+            try:
+                current_page = current_page.get_children().get(slug=child_slug).specific
+            except Page.DoesNotExist:
+                return
+
+            yield current_page, path_components
+
     def serve(self, request, path_components):
-        for page, remaining_path in self.root_page.specific.resolve_path(path_components):
+        for page, remaining_path in self.pages_on_path(path_components):
             page.process_request(request)
             view_func = page.get_view('/'.join(remaining_path))
 
@@ -56,7 +73,7 @@ class Site(models.Model):
         raise Http404
 
     def page_for_url(self, path_components):
-        for page, remaining_path in self.root_page.specific.resolve_path(path_components):
+        for page, remaining_path in self.pages_on_path(path_components):
             # Check if the page has a view for this URL
             if page.get_view('/'.join(remaining_path)):
                 return page
@@ -320,26 +337,6 @@ class Page(MP_Node, ClusterableModel, Indexed):
         for one of their child pages (and themselves)
         """
         pass
-
-    def resolve_path(self, path_components):
-        """
-        This generator yields the list of pages that make up the path
-        """
-        yield self, path_components
-
-        # Get child page
-        if path_components:
-            child_slug = path_components[0]
-            remaining_components = path_components[1:]
-
-            try:
-                subpage = self.get_children().get(slug=child_slug)
-            except Page.DoesNotExist:
-                return
-
-            # yield from subpage.specific.resolve_path(remaining_components)
-            for page, remaining_path in subpage.specific.resolve_path(remaining_components):
-                yield page, remaining_path
 
     def save_revision(self, user=None, submitted_for_moderation=False):
         self.revisions.create(content_json=self.to_json(), user=user, submitted_for_moderation=submitted_for_moderation)
