@@ -8,4 +8,4 @@ def serve(request, path):
         raise Http404
 
     path_components = [component for component in path.split('/') if component]
-    return request.site.root_page.specific.route(request, path_components)
+    return request.site.serve(request, path_components)

@@ -44,6 +44,23 @@ class Site(models.Model):
     def __unicode__(self):
         return self.hostname + ("" if self.port == 80 else (":%d" % self.port)) + (" [default]" if self.is_default_site else "")
 
+    def serve(self, request, path_components):
+        for page, remaining_path in self.root_page.specific.resolve_path(path_components):
+            page.process_request(request)
+            view_func = page.get_view('/'.join(remaining_path))
+
+            if view_func:
+                request.rendered_page = page
+                return view_func(request)
+
+        raise Http404
+
+    def page_for_url(self, path_components):
+        for page, remaining_path in self.root_page.specific.resolve_path(path_components):
+            # Check if the page has a view for this URL
+            if page.get_view('/'.join(remaining_path)):
+                return page
+
     @staticmethod
     def find_for_request(request):
         """Find the site object responsible for responding to this HTTP request object"""
@@ -290,34 +307,35 @@ class Page(MP_Node, ClusterableModel, Indexed):
         content_type = ContentType.objects.get_for_id(self.content_type_id)
         return content_type.model_class()
 
-    def process_request(self, request, path):
-        if path == '':
-            return self.serve(request)
+    def get_view(self, path):
+        """
+        Override this to add extra views to this page
+        """
+        if self.live and path == '':
+            return self.serve
 
-    def route(self, request, path_components):
-        response = None
+    def process_request(self, request):
+        pass
 
-        if self.live:
-            response = self.process_request(request, '/'.join(path_components))
+    def resolve_path(self, path_components):
+        """
+        This generator yields the list of pages that make up the path
+        """
+        yield self, path_components
 
-        if not response:
-            if path_components:
-                # request is for a child of this page
-                child_slug = path_components[0]
-                remaining_components = path_components[1:]
+        # Get child page
+        if path_components:
+            child_slug = path_components[0]
+            remaining_components = path_components[1:]
 
-                try:
-                    subpage = self.get_children().get(slug=child_slug)
-                except Page.DoesNotExist:
-                    raise Http404
+            try:
+                subpage = self.get_children().get(slug=child_slug)
+            except Page.DoesNotExist:
+                return
 
-                return subpage.specific.route(request, remaining_components)
-
-            else:
-                # Request was for this page but process_request didn't return a response
-                raise Http404
-
-        return response
+            # yield from subpage.specific.resolve_path(remaining_components)
+            for page, remaining_path in subpage.specific.resolve_path(remaining_components):
+                yield page, remaining_path
 
     def save_revision(self, user=None, submitted_for_moderation=False):
         self.revisions.create(content_json=self.to_json(), user=user, submitted_for_moderation=submitted_for_moderation)
@@ -546,13 +564,20 @@ class SuperPage(Page):
         resolver = RegexURLResolver(r'^', self.get_subpage_urls())
         return resolver.resolve(path)
 
-    def process_request(self, request, path):
+    def get_view(self, path):
         """
         This hooks the subpage urls into Wagtails routing.
         """
+        if not self.live:
+            return
+
         try:
-            view, args, kwargs = self.resolve_subpage(path)
-            return view(request, *args, **kwargs)
+            view, args, kwargs = self.resolve_subpage(path + '/')
+
+            def wrapper(request):
+                return view(request, *args, **kwargs)
+
+            return wrapper
         except Resolver404:
             pass
 
