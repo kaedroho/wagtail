@@ -315,6 +315,10 @@ class Page(MP_Node, ClusterableModel, Indexed):
             return self.serve
 
     def process_request(self, request):
+        """
+        This is a hook to allow parent pages to alter any request bound
+        for one of their child pages (and themselves)
+        """
         pass
 
     def resolve_path(self, path_components):
