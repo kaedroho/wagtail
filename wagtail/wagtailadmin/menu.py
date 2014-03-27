@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.utils.text import slugify
 from django.utils.html import format_html
 
@@ -7,10 +9,10 @@ class MenuItem(object):
         self.label = label
         self.url = url
         self.classnames = classnames
-        self.name = (name or slugify(unicode(label)))
+        self.name = (name or slugify(str(label)))
         self.order = order
 
     def render_html(self):
         return format_html(
-            u"""<li class="menu-{0}"><a href="{1}" class="{2}">{3}</a></li>""",
+            """<li class="menu-{0}"><a href="{1}" class="{2}">{3}</a></li>""",
             self.name, self.url, self.classnames, self.label)
