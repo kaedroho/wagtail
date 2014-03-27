@@ -5,13 +5,8 @@ from datetime import datetime
 from django.utils import six
 from wagtail.wagtailembeds.oembed_providers import get_oembed_provider
 from wagtail.wagtailembeds.models import Embed
-try:
-    # Python 3
-    from urllib.request import urlopen, Request, URLError
-except ImportError:
-    # Python 2
-    from urllib2 import urlopen, Request, URLError
-import json
+from six.moves.urllib.request import urlopen, Request
+from six.moves.urllib.error import URLError
 
 
 class EmbedNotFoundException(Exception): pass

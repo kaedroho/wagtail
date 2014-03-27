@@ -14,13 +14,7 @@ from wagtail.wagtailimages.backends import get_image_backend
 from wagtail.wagtailimages.backends.pillow import PillowBackend
 
 def get_test_image_file():
-    try:
-        # Python 3
-        from io import BytesIO
-    except ImportError:
-        from StringIO import StringIO
-        BytesIO = StringIO # Python3 bytes are equivilant to python 2 strings
-
+    from six import BytesIO
     from PIL import Image
     from django.core.files.images import ImageFile
 

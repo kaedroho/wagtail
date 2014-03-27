@@ -1,4 +1,5 @@
 import os.path
+from six import BytesIO
 
 from taggit.managers import TaggableManager
 
@@ -16,13 +17,6 @@ from unidecode import unidecode
 
 from wagtail.wagtailadmin.taggable import TagSearchable
 from wagtail.wagtailimages.backends import get_image_backend
-
-try:
-    # Python 3
-    from io import BytesIO
-except ImportError:
-    from StringIO import StringIO
-    BytesIO = StringIO # Python3 bytes are equivilant to python 2 strings
 
 
 class AbstractImage(models.Model, TagSearchable):

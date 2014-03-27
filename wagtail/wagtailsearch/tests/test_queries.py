@@ -3,12 +3,7 @@ from django.core import management
 from wagtail.wagtailsearch import models
 from wagtail.tests.utils import login
 import unittest
-
-try:
-    # Python 3
-    from io import StringIO
-except ImportError:
-    from StringIO import StringIO
+from six import StringIO
 
 
 class TestHitCounter(TestCase):

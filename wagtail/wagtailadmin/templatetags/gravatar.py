@@ -8,14 +8,9 @@
 ### <img src="{% gravatar_url sometemplatevariable %}">
 ### just make sure to update the "default" image path below
 
-try:
-    # Python 3
-    from urllib.parse import urlencode
-except ImportError:
-    from urllib import urlencode
-
-import hashlib
+from six.moves.urllib.parse import urlencode
 from six import b
+import hashlib
 
 from django import template
 
