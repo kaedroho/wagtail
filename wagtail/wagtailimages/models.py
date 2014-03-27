@@ -1,4 +1,3 @@
-import StringIO
 import os.path
 
 from taggit.managers import TaggableManager
@@ -17,6 +16,13 @@ from unidecode import unidecode
 
 from wagtail.wagtailadmin.taggable import TagSearchable
 from wagtail.wagtailimages.backends import get_image_backend
+
+try:
+    # Python 3
+    from io import StringIO
+except ImportError:
+    from StringIO import StringIO
+
 
 class AbstractImage(models.Model, TagSearchable):
     title = models.CharField(max_length=255, verbose_name=_('Title') )
@@ -198,7 +204,7 @@ class Filter(models.Model):
 
         image = method(image, self.method_arg)
 
-        output = StringIO.StringIO()
+        output = StringIO()
         backend.save_image(image, output, file_format)
         
 

@@ -3,7 +3,11 @@ from django.utils.translation import ugettext_lazy as _
 
 from wagtail.wagtailadmin.edit_handlers import FieldPanel, MultiFieldPanel, PageChooserPanel
 
-from urlparse import urlparse
+try:
+    # Python 3
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 
 
 class Redirect(models.Model):
