@@ -19,9 +19,10 @@ from wagtail.wagtailimages.backends import get_image_backend
 
 try:
     # Python 3
-    from io import StringIO
+    from io import BytesIO
 except ImportError:
     from StringIO import StringIO
+    BytesIO = StringIO # Python3 bytes are equivilant to python 2 strings
 
 
 class AbstractImage(models.Model, TagSearchable):
@@ -204,7 +205,7 @@ class Filter(models.Model):
 
         image = method(image, self.method_arg)
 
-        output = StringIO()
+        output = BytesIO()
         backend.save_image(image, output, file_format)
         
 
