@@ -26,22 +26,16 @@ class DBSearch(BaseSearch):
     def delete(self, obj):
         pass # Not needed
 
-    def search(self, query_string, model, fields=None, filters={}, prefetch_related=[]):
+    def search(self, query_set, query_string, fields=None):
         # Get terms
         terms = query_string.split()
         if not terms:
-            return model.objects.none()
+            return query_set.none()
 
         # Get fields
+        field_config = query_set.model.indexed_get_search_fields()
         if fields is None:
-            fields = model.indexed_get_indexed_fields().keys()
-
-        # Start will all objects
-        query = model.objects.all()
-
-        # Apply filters
-        if filters:
-            query = query.filter(**filters)
+            fields = [name for name, config in field_config.items() if config and config['type'] == 'string' and config['boost']]
 
         # Filter by terms
         for term in terms:
@@ -49,7 +43,7 @@ class DBSearch(BaseSearch):
             for field_name in fields:
                 # Check if the field exists (this will filter out indexed callables)
                 try:
-                    model._meta.get_field_by_name(field_name)
+                    query_set.model._meta.get_field_by_name(field_name)
                 except:
                     continue
 
@@ -59,13 +53,11 @@ class DBSearch(BaseSearch):
                     term_query = models.Q(**field_filter)
                 else:
                     term_query |= models.Q(**field_filter)
-            query = query.filter(term_query)
+
+            if term_query is not None:
+                query_set = query_set.filter(term_query)
 
         # Distinct
-        query = query.distinct()
+        query_set = query_set.distinct()
 
-        # Prefetch related
-        for prefetch in prefetch_related:
-            query = query.prefetch_related(prefetch)
-
-        return query
+        return query_set

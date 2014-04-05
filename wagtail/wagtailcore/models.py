@@ -180,19 +180,11 @@ class Page(MP_Node, ClusterableModel, Indexed):
     show_in_menus = models.BooleanField(default=False, help_text=_("Whether a link to this page will appear in automatically generated menus"))
     search_description = models.TextField(blank=True)
 
-    indexed_fields = {
+    search_fields = {
         'title': {
             'type': 'string',
             'analyzer': 'edgengram_analyzer',
             'boost': 100,
-        },
-        'live': {
-            'type': 'boolean',
-            'index': 'not_analyzed',
-        },
-        'path': {
-            'type': 'string',
-            'index': 'not_analyzed',
         },
     }
 
@@ -393,26 +385,6 @@ class Page(MP_Node, ClusterableModel, Indexed):
         for (id, root_path, root_url) in Site.get_site_root_paths():
             if self.url_path.startswith(root_path):
                 return ('' if current_site.id == id else root_url) + self.url_path[len(root_path) - 1:]
-
-    @classmethod
-    def search(cls, query_string, show_unpublished=False, search_title_only=False, extra_filters={}, prefetch_related=[], path=None):
-        # Filters
-        filters = extra_filters.copy()
-        if not show_unpublished:
-            filters['live'] = True
-
-        # Path
-        if path:
-            filters['path__startswith'] = path
-
-        # Fields
-        fields = None
-        if search_title_only:
-            fields = ['title']
-
-        # Search
-        s = get_search_backend()
-        return s.search(query_string, model=cls, fields=fields, filters=filters, prefetch_related=prefetch_related)
 
     @classmethod
     def clean_subpage_types(cls):

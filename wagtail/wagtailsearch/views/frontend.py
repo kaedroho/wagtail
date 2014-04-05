@@ -7,19 +7,18 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from wagtail.wagtailcore import models
 from wagtail.wagtailsearch.models import Query
+from wagtail.wagtailsearch import get_search_backend
 
 
 def search(
         request,
+        query_set=models.Page.query.live(),
+        fields=None,
         template=None,
         template_ajax=None,
         results_per_page=10,
         use_json=False,
         json_attrs=['title', 'url'],
-        show_unpublished=False,
-        search_title_only=False,
-        extra_filters={},
-        path=None,
     ):
 
     # Get default templates
@@ -41,13 +40,8 @@ def search(
 
     # Search
     if query_string != '':
-        search_results = models.Page.search(
-            query_string,
-            show_unpublished=show_unpublished,
-            search_title_only=search_title_only,
-            extra_filters=extra_filters,
-            path=path if path else request.site.root_page.path
-        )
+        backend = get_search_backend()
+        search_results = backend.search(query_set, query_string, fields=fields)
 
         # Get query object
         query = Query.get(query_string)

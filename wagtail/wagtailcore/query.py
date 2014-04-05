@@ -2,6 +2,8 @@ from django.db.models.query import QuerySet
 from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType
 
+from wagtail.wagtailsearch import get_search_backend
+
 
 class PageQuerySet(QuerySet):
     """
@@ -74,3 +76,7 @@ class PageQuerySet(QuerySet):
 
     def not_type(self, model):
         return self.exclude(self.type_q(model))
+
+    def search(self, query_string, fields=None):
+        s = get_search_backend()
+        return s.search(self, query_string, fields)

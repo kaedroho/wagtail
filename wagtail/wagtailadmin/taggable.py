@@ -34,10 +34,15 @@ class TagSearchable(Indexed):
     def search(cls, q, results_per_page=None, page=1, prefetch_tags=False, filters={}):
         # Run search query
         search_backend = get_search_backend()
+        results = search_backend.search(cls.objects.all(), q)
+
+        # Prefetch tags
         if prefetch_tags:
-            results = search_backend.search(q, cls, prefetch_related=['tagged_items__tag'], filters=filters)
-        else:
-            results = search_backend.search(q, cls, filters=filters)
+            results = results.prefetch_related('tagged_items__tag')
+
+        # Apply filters
+        if filters:
+            results = results.filter(**filters)
 
         # If results_per_page is set, return a paginator
         if results_per_page is not None:

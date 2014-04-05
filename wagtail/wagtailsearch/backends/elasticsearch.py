@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 
-from elasticutils import get_es, S
+from elasticutils import get_es, S, F
 
 from wagtail.wagtailsearch.backends.base import BaseSearch
 from wagtail.wagtailsearch.indexed import Indexed
@@ -9,12 +9,63 @@ from wagtail.wagtailsearch.indexed import Indexed
 import string
 
 
-class ElasticSearchResults(object):
-    def __init__(self, model, query, prefetch_related=[]):
-        self.model = model
-        self.query = query
-        self.count = query.count()
-        self.prefetch_related = prefetch_related
+class ElasticSearchResultsSet(object):
+    def __init__(self, backend, query_set, query_string, fields):
+        self.backend = backend
+        self.query_set = query_set
+        self.query_string = query_string
+        self.fields = fields
+
+    def _get_filters(self, node):
+        # Check if this is a leaf node
+        if isinstance(node, tuple):
+            col = node[0].col
+            lookup_type = node[1]
+            value = node[3]
+
+            if lookup_type != 'exact':
+                return F(**{col + '__' + lookup_type: value})
+            else:
+                return F(**{col: value})
+
+        # Get child filters
+        connector = node.connector
+        child_filters = [self._get_filters(child) for child in node.children]
+
+        # Connect them
+        if child_filters:
+            filters_connected = child_filters[0]
+            for extra_filter in child_filters[1:]:
+                if connector == 'AND':
+                    filters_connected &= extra_filter
+                elif connector == 'OR':
+                    filters_connected |= extra_filter
+                else:
+                    raise Exception("Unknown connector: " + connector)
+
+            return filters_connected
+        else:
+            return F()
+
+    def get_filters(self):
+        query_set_filters = self._get_filters(self.query_set.query.where)
+        content_type_filter = F(content_type__prefix=self.query_set.model.indexed_get_content_type())
+        return query_set_filters & content_type_filter
+
+    @property
+    def query(self):
+        # Start query
+        query = self.backend.s.query_raw({
+            'query_string': {
+                'query': self.query_string,
+                'fields': self.fields,
+            }
+        })
+
+        # Apply filters
+        query = query.filter(self.get_filters())
+
+        return query
 
     def __getitem__(self, key):
         if isinstance(key, slice):
@@ -30,11 +81,7 @@ class ElasticSearchResults(object):
                     pk_list.append(pk)
 
             # Get results
-            results = self.model.objects.filter(pk__in=pk_list)
-
-            # Prefetch related
-            for prefetch in self.prefetch_related:
-                results = results.prefetch_related(prefetch)
+            results = self.query_set.filter(pk__in=pk_list)
 
             # Put results into a dictionary (using primary key as the key)
             results_dict = {str(result.pk): result for result in results}
@@ -47,10 +94,40 @@ class ElasticSearchResults(object):
         else:
             # Return a single item
             pk = self.query[key]._source["pk"]
-            return self.model.objects.get(pk=pk)
+            return self.query_set.get(pk=pk)
 
     def __len__(self):
-        return self.count
+        return self.query.count()
+
+    def count(self):
+        return len(self)
+
+    def exists(self):
+        return bool(len(self))
+
+    def filter(self, *args, **kwargs):
+        return ElasticSearchResultsSet(
+            self.backend,
+            self.query_set.filter(*args, **kwargs),
+            self.query_string,
+            self.fields
+        )
+
+    def exclude(self, *args, **kwargs):
+        return ElasticSearchResultsSet(
+            self.backend,
+            self.query_set.exclude(*args, **kwargs),
+            self.query_string,
+            self.fields
+        )
+
+    def prefetch_related(self, *args, **kwargs):
+        return ElasticSearchResultsSet(
+            self.backend,
+            self.query_set.prefetch_related(*args, **kwargs),
+            self.query_string,
+            self.fields
+        )
 
 
 class ElasticSearch(BaseSearch):
@@ -124,14 +201,21 @@ class ElasticSearch(BaseSearch):
         # Get type name
         content_type = model.indexed_get_content_type()
 
-        # Get indexed fields
-        indexed_fields = model.indexed_get_indexed_fields()
-
         # Make field list
         fields = dict({
             "pk": dict(type="string", index="not_analyzed", store="yes"),
             "content_type": dict(type="string"),
-        }.items() + indexed_fields.items())
+        }.items())
+
+        # Add indexed fields
+        for field_name, config in model.indexed_get_search_fields().items():
+            if config is not None:
+                fields[field_name] = config
+            else:
+                fields[field_name] = dict(
+                    type='string',
+                    index='not_analyzed',
+                )
 
         # Put mapping
         self.es.put_mapping(self.es_index, content_type, {
@@ -193,39 +277,22 @@ class ElasticSearch(BaseSearch):
         except:
             pass  # Document doesn't exist, ignore this exception
 
-    def search(self, query_string, model, fields=None, filters={}, prefetch_related=[]):
+    def search(self, query_set, query_string, fields=None):
         # Model must be a descendant of Indexed and be a django model
-        if not issubclass(model, Indexed) or not issubclass(model, models.Model):
-            return []
+        if not issubclass(query_set.model, Indexed) or not issubclass(query_set.model, models.Model):
+            return query_set.none()
 
         # Clean up query string
         query_string = "".join([c for c in query_string if c not in string.punctuation])
 
         # Check that theres still a query string after the clean up
         if not query_string:
-            return []
+            return query_set.none()
 
-        # Query
-        if fields:
-            query = self.s.query_raw({
-                "query_string": {
-                    "query": query_string,
-                    "fields": fields,
-                }
-            })
-        else:
-            query = self.s.query_raw({
-                "query_string": {
-                    "query": query_string,
-                }
-            })
-
-        # Filter results by this content type
-        query = query.filter(content_type__prefix=model.indexed_get_content_type())
-
-        # Extra filters
-        if filters:
-            query = query.filter(**filters)
+        # Get fields
+        field_config = query_set.model.indexed_get_search_fields()
+        if fields is None:
+            fields = [name for name, config in field_config.items() if config and config['type'] == 'string' and config['boost']]
 
         # Return search results
-        return ElasticSearchResults(model, query, prefetch_related=prefetch_related)
+        return ElasticSearchResultsSet(self, query_set, query_string, fields)

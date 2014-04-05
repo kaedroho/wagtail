@@ -548,7 +548,7 @@ def search(request):
             # page number
             p = request.GET.get("p", 1)
             is_searching = True
-            pages = Page.search(q, show_unpublished=True, search_title_only=True, prefetch_related=['content_type'])
+            pages = Page.query.search(q, fields=['title']).prefetch_related('content_type')
 
             # Pagination
             paginator = Paginator(pages, 20)
