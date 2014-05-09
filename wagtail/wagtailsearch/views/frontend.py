@@ -1,6 +1,5 @@
 import json
 
-from django.conf import settings
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -22,18 +21,12 @@ def search(
         path=None,
     ):
 
-    # Get default templates
+    # Get templates
     if template is None:
-        if hasattr(settings, 'WAGTAILSEARCH_RESULTS_TEMPLATE'):
-            template = settings.WAGTAILSEARCH_RESULTS_TEMPLATE
-        else:
-            template = 'wagtailsearch/search_results.html'
+       template = 'wagtailsearch/search_results.html'
 
     if template_ajax is None:
-        if hasattr(settings, 'WAGTAILSEARCH_RESULTS_TEMPLATE_AJAX'):
-            template_ajax = settings.WAGTAILSEARCH_RESULTS_TEMPLATE_AJAX
-        else:
-            template_ajax = template
+        template_ajax = template
 
     # Get query string and page from GET paramters
     query_string = request.GET.get('q', '')
