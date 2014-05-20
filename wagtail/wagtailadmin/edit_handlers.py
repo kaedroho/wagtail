@@ -466,6 +466,17 @@ def MultiFieldPanel(children, heading="", classname=None):
     })
 
 
+class BaseFieldRowPanel(BaseCompositeEditHandler):
+    template = "wagtailadmin/edit_handlers/field_row_panel.html"
+
+
+def FieldRowPanel(children, classname=None):
+    return type('_FieldRowPanel', (BaseFieldRowPanel,), {
+        'children': children,
+        'classname': classname,
+    })
+
+
 class BaseFieldPanel(EditHandler):
     def __init__(self, instance=None, form=None):
         super(BaseFieldPanel, self).__init__(instance=instance, form=form)
