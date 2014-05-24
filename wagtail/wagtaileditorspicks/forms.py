@@ -1,5 +1,5 @@
 from django import forms
-from django.forms.models import inlineformset_factory
+from django.forms.models import modelformset_factory
 from django.utils.translation import ugettext_lazy as _
 import models
 
@@ -27,7 +27,7 @@ class EditorsPickForm(forms.ModelForm):
         }
 
 
-EditorsPickFormSetBase = inlineformset_factory(models.Query, models.EditorsPick, form=EditorsPickForm, can_order=True, can_delete=True, extra=0)
+EditorsPickFormSetBase = modelformset_factory(models.EditorsPick, form=EditorsPickForm, can_order=True, can_delete=True, extra=0)
 
 
 class EditorsPickFormSet(EditorsPickFormSetBase):
@@ -38,5 +38,5 @@ class EditorsPickFormSet(EditorsPickFormSetBase):
         form.fields['DELETE'].widget = forms.HiddenInput()
         form.fields['ORDER'].widget = forms.HiddenInput()
 
-        # Remove query field
-        del form.fields['query']
+        # Remove query string field
+        del form.fields['query_string']

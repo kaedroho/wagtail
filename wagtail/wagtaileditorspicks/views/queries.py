@@ -6,12 +6,13 @@ from wagtail.wagtailadmin.modal_workflow import render_modal_workflow
 from wagtail.wagtailadmin.forms import SearchForm
 
 from wagtail.wagtaileditorspicks import models
+from wagtail.wagtaileditorspicks.query import Query
 
 
 @permission_required('wagtailadmin.access_admin')
 def chooser(request, get_results=False):
     # Get most popular queries
-    queries = models.Query.get_most_popular()
+    queries = Query.get_most_popular()
 
     # If searching, filter results by query string
     query_string = None

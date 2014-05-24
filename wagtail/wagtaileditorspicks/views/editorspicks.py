@@ -7,6 +7,7 @@ from django.utils.translation import ugettext as _
 from django.views.decorators.vary import vary_on_headers
 
 from wagtail.wagtaileditorspicks import models, forms
+from wagtail.wagtaileditorspicks.query import Query
 from wagtail.wagtailadmin.forms import SearchForm
 
 
@@ -16,7 +17,7 @@ def index(request):
     page = request.GET.get('p', 1)
     query_string = request.GET.get('q', "")
 
-    queries = models.Query.objects.filter(editors_picks__isnull=False).distinct()
+    queries = models.EditorsPick.objects.values('query_string')
 
     # Search
     if query_string:
@@ -44,7 +45,7 @@ def index(request):
         })
 
 
-def save_editorspicks(query, new_query, editors_pick_formset):
+def save_editorspicks(query_string, new_query_string, editors_pick_formset):
     # Set sort_order
     for i, form in enumerate(editors_pick_formset.ordered_forms):
         form.instance.sort_order = i
@@ -53,9 +54,9 @@ def save_editorspicks(query, new_query, editors_pick_formset):
     if editors_pick_formset.is_valid():
         editors_pick_formset.save()
 
-        # If query was changed, move all editors picks to the new query
-        if query != new_query:
-            editors_pick_formset.get_queryset().update(query=new_query)
+        # If query string was changed, move all editors picks to the new query string
+        if query_string != new_query_string:
+            editors_pick_formset.get_queryset().update(query_string=new_query_string)
 
         return True
     else:
@@ -68,12 +69,12 @@ def add(request):
         # Get query
         query_form = forms.QueryForm(request.POST)
         if query_form.is_valid():
-            query = models.Query.get(query_form['query_string'].value())
+            query = Query.get(query_form['query_string'].value())
 
             # Save editors picks
-            editors_pick_formset = forms.EditorsPickFormSet(request.POST, instance=query)
+            editors_pick_formset = forms.EditorsPickFormSet(request.POST)
 
-            if save_editorspicks(query, query, editors_pick_formset):
+            if save_editorspicks(query.query_string, query.query_string, editors_pick_formset):
                 messages.success(request, _("Editor's picks for '{0}' created.").format(query))
                 return redirect('wagtaileditorspicks_editorspicks_index')
         else:
@@ -89,24 +90,24 @@ def add(request):
 
 
 @permission_required('wagtailadmin.access_admin')
-def edit(request, query_id):
-    query = get_object_or_404(models.Query, id=query_id)
+def edit(request, query_slug):
+    query = Query.from_slug(query_slug)
 
     if request.POST:
         # Get query
         query_form = forms.QueryForm(request.POST)
         if query_form.is_valid():
-            new_query = models.Query.get(query_form['query_string'].value())
+            new_query = Query.get(query_form['query_string'].value())
 
             # Save editors picks
-            editors_pick_formset = forms.EditorsPickFormSet(request.POST, instance=query)
+            editors_pick_formset = forms.EditorsPickFormSet(request.POST)
 
-            if save_editorspicks(query, new_query, editors_pick_formset):
+            if save_editorspicks(query.query_string, new_query.query_string, editors_pick_formset):
                 messages.success(request, _("Editor's picks for '{0}' updated.").format(new_query))
                 return redirect('wagtaileditorspicks_editorspicks_index')
     else:
         query_form = forms.QueryForm(initial=dict(query_string=query.query_string))
-        editors_pick_formset = forms.EditorsPickFormSet(instance=query)
+        editors_pick_formset = forms.EditorsPickFormSet()
 
     return render(request, 'wagtaileditorspicks/editorspicks/edit.html', {
         'query_form': query_form,
@@ -116,11 +117,11 @@ def edit(request, query_id):
 
 
 @permission_required('wagtailadmin.access_admin')
-def delete(request, query_id):
-    query = get_object_or_404(models.Query, id=query_id)
+def delete(request, query_slug):
+    query = Query.from_slug(query_slug)
 
     if request.POST:
-        query.editors_picks.all().delete()
+        query.editors_picks.delete()
         messages.success(request, _("Editor's picks deleted."))
         return redirect('wagtaileditorspicks_editorspicks_index')
 

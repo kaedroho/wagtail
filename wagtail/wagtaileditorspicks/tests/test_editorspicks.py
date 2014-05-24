@@ -1,48 +1,49 @@
 from django.test import TestCase
 from wagtail.tests.utils import login
 from wagtail.wagtaileditorspicks import models
+from wagtail.wagtaileditorspicks.query import Query
 
 
 class TestEditorsPicks(TestCase):
     def test_editors_pick_create(self):
         # Create an editors pick to the root page
         models.EditorsPick.objects.create(
-            query=models.Query.get("root page"),
+            query_string="root page",
             page_id=1,
             sort_order=0,
             description="First editors pick",
         )
 
         # Check
-        self.assertEqual(models.Query.get("root page").editors_picks.count(), 1)
-        self.assertEqual(models.Query.get("root page").editors_picks.first().page_id, 1)
+        self.assertEqual(Query.get("root page").editors_picks.count(), 1)
+        self.assertEqual(Query.get("root page").editors_picks.first().page_id, 1)
 
     def test_editors_pick_ordering(self):
         # Add 3 editors picks in a different order to their sort_order values
         # They should be ordered by their sort order values and not their insertion order
         models.EditorsPick.objects.create(
-            query=models.Query.get("root page"),
+            query_string="root page",
             page_id=1,
             sort_order=0,
             description="First editors pick",
         )
         models.EditorsPick.objects.create(
-            query=models.Query.get("root page"),
+            query_string="root page",
             page_id=1,
             sort_order=2,
             description="Last editors pick",
         )
         models.EditorsPick.objects.create(
-            query=models.Query.get("root page"),
+            query_string="root page",
             page_id=1,
             sort_order=1,
             description="Middle editors pick",
         )
 
         # Check
-        self.assertEqual(models.Query.get("root page").editors_picks.count(), 3)
-        self.assertEqual(models.Query.get("root page").editors_picks.first().description, "First editors pick")
-        self.assertEqual(models.Query.get("root page").editors_picks.last().description, "Last editors pick")
+        self.assertEqual(Query.get("root page").editors_picks.count(), 3)
+        self.assertEqual(Query.get("root page").editors_picks.first().description, "First editors pick")
+        self.assertEqual(Query.get("root page").editors_picks.last().description, "Last editors pick")
 
 
 class TestEditorsPicksIndexView(TestCase):
@@ -83,11 +84,11 @@ class TestEditorsPicksEditView(TestCase):
         login(self.client)
 
         # Create an editors pick to edit
-        self.query = models.Query.get("Hello")
-        self.query.editors_picks.create(page_id=1, description="Root page")
+        self.query = Query.get("Hello")
+        models.EditorsPick.objects.create(query_string=self.query.query_string, page_id=1, description="Root page")
 
     def get(self, params={}):
-        return self.client.get('/admin/editorspicks/' + str(self.query.id) + '/', params)
+        return self.client.get('/admin/editorspicks/' + str(self.query.slug) + '/', params)
 
     def test_status_code(self):
         self.assertEqual(self.get().status_code, 200)
@@ -98,11 +99,11 @@ class TestEditorsPicksDeleteView(TestCase):
         login(self.client)
 
         # Create an editors pick to delete
-        self.query = models.Query.get("Hello")
-        self.query.editors_picks.create(page_id=1, description="Root page")
+        self.query = Query.get("Hello")
+        models.EditorsPick.objects.create(query_string=self.query.query_string, page_id=1, description="Root page")
 
     def get(self, params={}):
-        return self.client.get('/admin/editorspicks/' + str(self.query.id) + '/delete/', params)
+        return self.client.get('/admin/editorspicks/' + str(self.query.slug) + '/delete/', params)
 
     def test_status_code(self):
         self.assertEqual(self.get().status_code, 200)
