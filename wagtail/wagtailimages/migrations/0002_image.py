@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
             fields=[
                 (u'id', models.AutoField(verbose_name=u'ID', serialize=False, auto_created=True, primary_key=True)),
                 ('title', models.CharField(max_length=255, verbose_name=u'Title')),
-                ('file', models.ImageField(upload_to=wagtail.wagtailimages.models.get_upload_to, width_field='width', height_field='height', validators=[wagtail.wagtailimages.models.file_extension_validator], verbose_name=u'File')),
+                ('file', models.ImageField(upload_to=wagtail.wagtailimages.models.get_upload_to, width_field='width', height_field='height', validators=[wagtail.wagtailimages.utils.validate_image_format], verbose_name=u'File')),
                 ('width', models.IntegerField(editable=False)),
                 ('height', models.IntegerField(editable=False)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
