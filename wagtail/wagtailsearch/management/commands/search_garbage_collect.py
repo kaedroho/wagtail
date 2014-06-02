@@ -1,6 +1,6 @@
 from django.core.management.base import NoArgsCommand
 
-from wagtail.wagtaileditorspicks import models
+from wagtail.wagtailsearch import models
 
 
 class Command(NoArgsCommand):

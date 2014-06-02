@@ -12,13 +12,9 @@ class Migration(SchemaMigration):
     )
 
     def forwards(self, orm):
-        db.rename_table('wagtailsearch_querydailyhits', 'wagtaileditorspicks_querydailyhits')
-        db.rename_table('wagtailsearch_query', 'wagtaileditorspicks_query')
         db.rename_table('wagtailsearch_editorspick', 'wagtaileditorspicks_editorspick')
 
     def backwards(self, orm):
-        db.rename_table('wagtaileditorspicks_querydailyhits', 'wagtailsearch_querydailyhits')
-        db.rename_table('wagtaileditorspicks_query', 'wagtailsearch_query')
         db.rename_table('wagtaileditorspicks_editorspick', 'wagtailsearch_editorspick')
 
     models = {
@@ -75,26 +71,19 @@ class Migration(SchemaMigration):
             'title': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'url_path': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'})
         },
+        u'wagtailsearch.query': {
+            'Meta': {'object_name': 'Query'},
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'query_string': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'})
+        },
         u'wagtaileditorspicks.editorspick': {
             'Meta': {'ordering': "('sort_order',)", 'object_name': 'EditorsPick'},
             'description': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'page': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'+'", 'to': u"orm['wagtailcore.Page']"}),
-            'query': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'editors_picks'", 'to': u"orm['wagtaileditorspicks.Query']"}),
+            'query': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'editors_picks'", 'to': u"orm['wagtailsearch.Query']"}),
             'sort_order': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'})
         },
-        u'wagtaileditorspicks.query': {
-            'Meta': {'object_name': 'Query'},
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'query_string': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'})
-        },
-        u'wagtaileditorspicks.querydailyhits': {
-            'Meta': {'unique_together': "(('query', 'date'),)", 'object_name': 'QueryDailyHits'},
-            'date': ('django.db.models.fields.DateField', [], {}),
-            'hits': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'query': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'daily_hits'", 'to': u"orm['wagtaileditorspicks.Query']"})
-        }
     }
 
     complete_apps = ['wagtaileditorspicks']
