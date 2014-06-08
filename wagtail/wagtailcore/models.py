@@ -355,26 +355,6 @@ class Page(MP_Node, ClusterableModel, Indexed):
         content_type = ContentType.objects.get_for_id(self.content_type_id)
         return content_type.model_class()
 
-    def route(self, request, path_components):
-        if path_components:
-            # request is for a child of this page
-            child_slug = path_components[0]
-            remaining_components = path_components[1:]
-
-            try:
-                subpage = self.get_children().get(slug=child_slug)
-            except Page.DoesNotExist:
-                raise Http404
-
-            return subpage.specific.route(request, remaining_components)
-
-        else:
-            # request is for this very page
-            if self.live:
-                return self.serve(request)
-            else:
-                raise Http404
-
     def save_revision(self, user=None, submitted_for_moderation=False):
         self.revisions.create(content_json=self.to_json(), user=user, submitted_for_moderation=submitted_for_moderation)
 
@@ -412,6 +392,12 @@ class Page(MP_Node, ClusterableModel, Indexed):
             self.get_template(request), 
             self.get_context(request)
         )
+
+    def process_request(self, request, path_components):
+        if self.live:
+            # Serve this page if there are no more path components
+            if len(path_components) == 0:
+                return self.serve(request)
 
     def is_navigable(self):
         """
