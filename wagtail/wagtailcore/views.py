@@ -26,7 +26,6 @@ def serve(request, path):
     path_components = [component for component in path.split('/') if component]
 
     for page, remaining_components in get_pages_for_path(request.site.root_page, path_components):
-        print page, remaining_components
         response = page.process_request(request, remaining_components)
 
         if response is not None:
