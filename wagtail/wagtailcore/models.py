@@ -394,6 +394,9 @@ class Page(MP_Node, ClusterableModel, Indexed):
         )
 
     def process_request(self, request, path_components):
+        return self.route(request, path_components)
+
+    def route(self, request, path_components):
         if self.live:
             # Serve this page if there are no more path components
             if len(path_components) == 0:
