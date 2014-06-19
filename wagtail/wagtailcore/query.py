@@ -3,7 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 
 from treebeard.mp_tree import MP_NodeQuerySet
 
-from wagtail.wagtailsearch import get_search_backend
+from wagtail.wagtailsearch.backends import get_search_backend
 
 
 class PageQuerySet(MP_NodeQuerySet):

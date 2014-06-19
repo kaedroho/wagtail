@@ -21,7 +21,7 @@ from treebeard.mp_tree import MP_Node
 from wagtail.wagtailcore.utils import camelcase_to_underscore
 from wagtail.wagtailcore.query import PageQuerySet
 
-from wagtail.wagtailsearch import Indexed
+from wagtail.wagtailsearch.indexed import Indexed
 
 
 class SiteManager(models.Manager):

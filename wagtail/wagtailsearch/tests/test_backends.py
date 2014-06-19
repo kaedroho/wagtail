@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core import management
 from django.db.models import Q
 from wagtail.tests.utils import unittest
-from wagtail.wagtailsearch import get_search_backend
+from wagtail.wagtailsearch.backends import get_search_backend
 from wagtail.tests import models
 from wagtail.wagtailsearch.backends.db import DBSearch
 from wagtail.wagtailsearch.backends import InvalidSearchBackendError

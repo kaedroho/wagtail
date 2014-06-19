@@ -4,7 +4,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-from wagtail.wagtailsearch import Indexed, get_search_backend
+from wagtail.wagtailsearch.indexed import Indexed
+from wagtail.wagtailsearch.backends import get_search_backend
 
 
 class TagSearchable(Indexed):
