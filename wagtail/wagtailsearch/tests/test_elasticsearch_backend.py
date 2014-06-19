@@ -190,9 +190,9 @@ class TestElasticSearchQuery(TestCase):
         self.assertDictEqual(query.to_es(), expected_result)
 
 
-class TestElasticSearchType(TestCase):
+class TestElasticSearchMapping(TestCase):
     """
-    This tests that the ElasticSearchType class is doing its job.
+    This tests that the ElasticSearchMapping class is doing its job.
     """
     def assertDictEqual(self, a, b):
         self.assertEqual(json.dumps(a, sort_keys=True), json.dumps(b, sort_keys=True))
@@ -201,19 +201,23 @@ class TestElasticSearchType(TestCase):
         # Import using a try-catch block to prevent crashes if the elasticsearch-py
         # module is not installed
         try:
-            from wagtail.wagtailsearch.backends.elasticsearch import ElasticSearchType
+            from wagtail.wagtailsearch.backends.elasticsearch import ElasticSearchMapping
         except ImportError:
             raise unittest.SkipTest("elasticsearch-py not installed")
 
-        # Create ES type
-        self.es_type = ElasticSearchType(models.SearchTest)
+        # Create a mapping
+        self.es_mapping = ElasticSearchMapping(models.SearchTest)
+
+        # Create an object
+        self.obj = models.SearchTest(title="Hello")
+        self.obj.save()
 
     def test_get_doc_type(self):
-        self.assertEqual(self.es_type.get_doc_type(), 'tests_searchtest')
+        self.assertEqual(self.es_mapping.get_doc_type(), 'tests_searchtest')
 
     def test_get_mapping(self):
         # Build mapping
-        mapping = self.es_type.get_mapping()
+        mapping = self.es_mapping.get_mapping()
 
         # Check
         expected_result = {
@@ -235,10 +239,34 @@ class TestElasticSearchType(TestCase):
 
         self.assertDictEqual(mapping, expected_result)
 
+    def test_get_document_id(self):
+        self.assertEqual(self.es_mapping.get_document_id(self.obj), 'tests_searchtest:' + str(self.obj.pk))
 
-class TestElasticSearchTypeInheritance(TestCase):
+    def test_get_document(self):
+        # Build document
+        document = self.es_mapping.get_document(self.obj)
+
+        # Check
+        expected_result = {
+            'pk': str(self.obj.pk),
+            'content_type': 'tests_searchtest',
+            'partials': ['Hello'],
+            'id': 'tests_searchtest:' + str(self.obj.pk),
+            'id_filter': self.obj.pk,
+            'live_filter': False,
+            'published_date_filter': None,
+            'title': 'Hello',
+            'title_filter': 'Hello',
+            'callable_indexed_field': 'Callable',
+            'content': '',
+        }
+
+        self.assertDictEqual(document, expected_result)
+
+
+class TestElasticSearchMappingInheritance(TestCase):
     """
-    This tests that the ElasticSearchType class works well with model inheritance.
+    This tests that the ElasticSearchMapping class works well with model inheritance.
     """
     def assertDictEqual(self, a, b):
         self.assertEqual(json.dumps(a, sort_keys=True), json.dumps(b, sort_keys=True))
@@ -247,19 +275,23 @@ class TestElasticSearchTypeInheritance(TestCase):
         # Import using a try-catch block to prevent crashes if the elasticsearch-py
         # module is not installed
         try:
-            from wagtail.wagtailsearch.backends.elasticsearch import ElasticSearchType
+            from wagtail.wagtailsearch.backends.elasticsearch import ElasticSearchMapping
         except ImportError:
             raise unittest.SkipTest("elasticsearch-py not installed")
 
-        # Create ES type
-        self.es_type = ElasticSearchType(models.SearchTestChild)
+        # Create mapping
+        self.es_mapping = ElasticSearchMapping(models.SearchTestChild)
+
+        # Create an object
+        self.obj = models.SearchTestChild(title="Hello", subtitle="World")
+        self.obj.save()
 
     def test_get_doc_type(self):
-        self.assertEqual(self.es_type.get_doc_type(), 'tests_searchtest_tests_searchtestchild')
+        self.assertEqual(self.es_mapping.get_doc_type(), 'tests_searchtest_tests_searchtestchild')
 
     def test_get_mapping(self):
         # Build mapping
-        mapping = self.es_type.get_mapping()
+        mapping = self.es_mapping.get_mapping()
 
         # Check
         expected_result = {
@@ -286,81 +318,15 @@ class TestElasticSearchTypeInheritance(TestCase):
 
         self.assertDictEqual(mapping, expected_result)
 
-
-class TestElasticSearchDocument(TestCase):
-    """
-    This tests that the ElasticSearchDocument class is doing its job.
-    """
-    def assertDictEqual(self, a, b):
-        self.assertEqual(json.dumps(a, sort_keys=True), json.dumps(b, sort_keys=True))
-
-    def setUp(self):
-        # Import using a try-catch block to prevent crashes if the elasticsearch-py
-        # module is not installed
-        try:
-            from wagtail.wagtailsearch.backends.elasticsearch import ElasticSearchDocument
-        except ImportError:
-            raise unittest.SkipTest("elasticsearch-py not installed")
-
-        # Create ES document
-        self.obj = models.SearchTest(title="Hello")
-        self.obj.save()
-        self.es_doc = ElasticSearchDocument(self.obj)
-
-    def test_get_id(self):
-        self.assertEqual(self.es_doc.get_id(), 'tests_searchtest:' + str(self.obj.pk))
-
-    def test_build_document(self):
-        # Build document
-        document = self.es_doc.build_document()
-
-        # Check
-        expected_result = {
-            'pk': str(self.obj.pk),
-            'content_type': 'tests_searchtest',
-            'partials': ['Hello'],
-            'id': 'tests_searchtest:' + str(self.obj.pk),
-            'id_filter': self.obj.pk,
-            'live_filter': False,
-            'published_date_filter': None,
-            'title': 'Hello',
-            'title_filter': 'Hello',
-            'callable_indexed_field': 'Callable',
-            'content': '',
-        }
-
-        self.assertDictEqual(document, expected_result)
-
-
-class TestElasticSearchDocumentInheritance(TestCase):
-    """
-    This tests that the ElasticSearchDocument class works well with model inheritance.
-    """
-    def assertDictEqual(self, a, b):
-        self.assertEqual(json.dumps(a, sort_keys=True), json.dumps(b, sort_keys=True))
-
-    def setUp(self):
-        # Import using a try-catch block to prevent crashes if the elasticsearch-py
-        # module is not installed
-        try:
-            from wagtail.wagtailsearch.backends.elasticsearch import ElasticSearchDocument
-        except ImportError:
-            raise unittest.SkipTest("elasticsearch-py not installed")
-
-        # Create ES document
-        self.obj = models.SearchTestChild(title="Hello", subtitle="World")
-        self.obj.save()
-        self.es_doc = ElasticSearchDocument(self.obj)
-
-    def test_get_id(self):
+    def test_get_document_id(self):
         # This must be tests_searchtest instead of 'tests_searchtest_tests_searchtestchild'
         # as it uses the contents base content type name.
         # This prevents the same object being accidentally indexed twice.
-        self.assertEqual(self.es_doc.get_id(), 'tests_searchtest:' + str(self.obj.pk))
+        self.assertEqual(self.es_mapping.get_document_id(self.obj), 'tests_searchtest:' + str(self.obj.pk))
 
-    def test_build_document(self):
+    def test_get_document(self):
         # Build document
-        document = self.es_doc.build_document()
+        document = self.es_mapping.get_document(self.obj)
 
         # Check
         expected_result = {

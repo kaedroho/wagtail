@@ -10,7 +10,7 @@ from wagtail.wagtailsearch.backends.base import BaseSearch, BaseSearchResults
 from wagtail.wagtailsearch.indexed import Indexed
 
 from .query import ElasticSearchQuery
-from .document import ElasticSearchField, ElasticSearchType, ElasticSearchDocument
+from .mapping import ElasticSearchField, ElasticSearchMapping
 
 
 class ElasticSearchResults(BaseSearchResults):
@@ -165,14 +165,14 @@ class ElasticSearch(BaseSearch):
         This adds a mapping for a model to ElasticSearch to allow
         objects of that model to be indexed.
         """
-        # Get ElasticSearchType object for this model
-        es_type = ElasticSearchType(model)
+        # Get mapping for this model
+        es_mapping = ElasticSearchMapping(model)
 
         # Put mapping
         self.es.indices.put_mapping(
             index=self.es_index,
-            doc_type=es_type.get_doc_type(),
-            body=es_type.get_mapping()
+            doc_type=es_mapping.get_doc_type(),
+            body=es_mapping.get_mapping()
         )
 
     def refresh_index(self):
@@ -197,15 +197,15 @@ class ElasticSearch(BaseSearch):
         if not self.object_can_be_indexed(obj):
             return
 
-        # Get document
-        es_doc = ElasticSearchDocument(obj)
+        # Get mapping for object
+        es_mapping = ElasticSearchMapping(obj.__class__)
 
         # Add to index
         self.es.index(
             self.es_index,
-            es_doc.es_type.get_doc_type(),
-            es_doc.build_document(),
-            id=es_doc.get_id()
+            es_mapping.get_doc_type(),
+            es_mapping.get_document(obj),
+            id=es_mapping.get_document_id(obj)
         )
 
     def add_bulk(self, obj_list):
@@ -231,22 +231,23 @@ class ElasticSearch(BaseSearch):
                 type_set[obj_type] = []
 
             # Add object to set
-            type_set[obj_type].append(ElasticSearchDocument(obj))
+            type_set[obj_type].append(obj)
 
         # Loop through each type and bulk add them
-        for type_name, es_docs in type_set.items():
+        for type_name, objs in type_set.items():
             # Get list of actions
             actions = []
-            for es_doc in es_docs:
+            for obj in objs:
+                es_mapping = ElasticSearchMapping(obj.__class__)
                 action = {
                     '_index': self.es_index,
                     '_type': type_name,
-                    '_id': es_doc.get_id(),
+                    '_id': es_mapping.get_document_id(obj),
                 }
-                action.update(es_doc.build_document())
+                action.update(es_mapping.get_document(obj))
                 actions.append(action)
 
-            yield type_name, len(es_docs)
+            yield type_name, len(objs)
             bulk(self.es, actions)
 
     def delete(self, obj):
@@ -260,12 +261,12 @@ class ElasticSearch(BaseSearch):
             return
 
         # Delete document
-        es_doc = ElasticSearchDocument(obj)
+        es_mapping = ElasticSearchMapping(obj.__class__)
         try:
             self.es.delete(
                 self.es_index,
-                es_doc.es_type.get_doc_type(),
-                es_doc.get_id(),
+                es_mapping.get_doc_type(),
+                es_mapping.get_document_id(obj),
             )
         except NotFoundError:
             pass  # Document doesn't exist, ignore this exception

@@ -1,4 +1,4 @@
-from .document import ElasticSearchType
+from .mapping import ElasticSearchMapping
 import json
 
 
@@ -21,7 +21,7 @@ class ElasticSearchQuery(object):
         self.queryset = queryset
         self.query_string = query_string
         self.fields = fields or ['_all', 'partials']
-        self._es_type = ElasticSearchType(self.queryset.model)
+        self._es_mapping = ElasticSearchMapping(self.queryset.model)
 
     def _get_filters_from_where(self, where_node):
         """
@@ -36,7 +36,7 @@ class ElasticSearchQuery(object):
 
             # Get field
             try:
-                es_field = self._es_type.get_field(field)
+                es_field = self._es_mapping.get_field(field)
 
                 # Make sure this field is filterable
                 assert es_field.filter_field

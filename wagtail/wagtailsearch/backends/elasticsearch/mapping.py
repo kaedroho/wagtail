@@ -111,7 +111,7 @@ class ElasticSearchField(object):
         return mappings
 
 
-class ElasticSearchType(object):
+class ElasticSearchMapping(object):
     """
     This represents a Django model which can be indexed inside ElasticSearch.
     It provides helper methods to help build ES mappings for a Django model.
@@ -198,16 +198,7 @@ class ElasticSearchType(object):
             }
         }
 
-
-class ElasticSearchDocument(object):
-    """
-    This represents a Django object to be indexed in ElasticSearch.
-    """
-    def __init__(self, obj):
-        self.obj = obj
-        self.es_type = ElasticSearchType(obj.__class__)
-
-    def get_id(self):
+    def get_document_id(self, obj):
         """
         This returns the value to be used in this documents 'id' field.
 
@@ -217,25 +208,25 @@ class ElasticSearchDocument(object):
         See the description in "wagtail.search.indexed.Indexed._get_base_content_type_name"
         for info on what the "base content type name" is.
         """
-        return self.obj._get_base_content_type_name() + ':' + str(self.obj.pk)
+        return obj._get_base_content_type_name() + ':' + str(obj.pk)
 
-    def build_document(self):
+    def get_document(self, obj):
         """
         This builds a JSON document in ElasticSearch Index API format for the object.
         """
         # Build document
         doc = {
-            'pk': str(self.obj.pk),
-            'content_type': self.obj._get_qualified_content_type_name(),
-            'id': self.get_id(),
+            'pk': str(obj.pk),
+            'content_type': obj._get_qualified_content_type_name(),
+            'id': self.get_document_id(obj),
         }
 
         # Add fields
         partials = []
-        for name, field in self.es_type.get_fields().items():
-            if hasattr(self.obj, field.attname):
+        for name, field in self.get_fields().items():
+            if hasattr(obj, field.attname):
                 # Get field value
-                value = getattr(self.obj, field.attname)
+                value = getattr(obj, field.attname)
 
                 # Check if this field is callable
                 if hasattr(value, '__call__'):
