@@ -171,7 +171,7 @@ class ElasticSearch(BaseSearch):
         # Put mapping
         self.es.indices.put_mapping(
             index=self.es_index,
-            doc_type=es_mapping.get_doc_type(),
+            doc_type=es_mapping.get_document_type(),
             body=es_mapping.get_mapping()
         )
 
@@ -203,7 +203,7 @@ class ElasticSearch(BaseSearch):
         # Add to index
         self.es.index(
             self.es_index,
-            es_mapping.get_doc_type(),
+            es_mapping.get_document_type(),
             es_mapping.get_document(obj),
             id=es_mapping.get_document_id(obj)
         )
@@ -265,7 +265,7 @@ class ElasticSearch(BaseSearch):
         try:
             self.es.delete(
                 self.es_index,
-                es_mapping.get_doc_type(),
+                es_mapping.get_document_type(),
                 es_mapping.get_document_id(obj),
             )
         except NotFoundError:

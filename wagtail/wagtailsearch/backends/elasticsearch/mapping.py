@@ -120,7 +120,7 @@ class ElasticSearchMapping(object):
         self.model = model
         self._fields = None
 
-    def get_doc_type(self):
+    def get_document_type(self):
         """
         Returns the value to use for the doc_type attribute when refering to this
         type in ElasticSearch requests.
@@ -193,7 +193,7 @@ class ElasticSearchMapping(object):
             fields.update(field.get_mapping().items())
 
         return {
-            self.get_doc_type(): {
+            self.get_document_type(): {
                 'properties': fields,
             }
         }

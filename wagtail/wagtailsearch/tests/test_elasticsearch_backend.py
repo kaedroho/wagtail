@@ -212,8 +212,8 @@ class TestElasticSearchMapping(TestCase):
         self.obj = models.SearchTest(title="Hello")
         self.obj.save()
 
-    def test_get_doc_type(self):
-        self.assertEqual(self.es_mapping.get_doc_type(), 'tests_searchtest')
+    def test_get_document_type(self):
+        self.assertEqual(self.es_mapping.get_document_type(), 'tests_searchtest')
 
     def test_get_mapping(self):
         # Build mapping
@@ -286,8 +286,8 @@ class TestElasticSearchMappingInheritance(TestCase):
         self.obj = models.SearchTestChild(title="Hello", subtitle="World")
         self.obj.save()
 
-    def test_get_doc_type(self):
-        self.assertEqual(self.es_mapping.get_doc_type(), 'tests_searchtest_tests_searchtestchild')
+    def test_get_document_type(self):
+        self.assertEqual(self.es_mapping.get_document_type(), 'tests_searchtest_tests_searchtestchild')
 
     def test_get_mapping(self):
         # Build mapping
