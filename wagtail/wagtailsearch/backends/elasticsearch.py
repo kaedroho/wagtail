@@ -10,7 +10,7 @@ from elasticsearch import Elasticsearch, NotFoundError, RequestError
 from elasticsearch.helpers import bulk
 
 from wagtail.wagtailsearch.backends.base import BaseSearch
-from wagtail.wagtailsearch.indexed import Indexed, SearchField
+from wagtail.wagtailsearch.indexed import Indexed, SearchField, FilterField
 
 
 class ElasticSearchMapping(object):

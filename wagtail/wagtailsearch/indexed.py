@@ -120,7 +120,7 @@ class BaseField(object):
         except models.fields.FieldDoesNotExist:
             return self.field_name
 
-    def get_field_index_name(self, cls):
+    def get_index_name(self, cls):
         return self.get_attname(cls) + self.suffix
 
     def __repr__(self):
