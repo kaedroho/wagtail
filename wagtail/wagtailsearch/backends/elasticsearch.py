@@ -20,12 +20,15 @@ class ElasticSearchMapping(object):
     def get_document_type(self):
         return self.model.indexed_get_content_type()
 
+    def get_field_mapping(self, field):
+        return field.get_attname(self.model), field.to_dict(self.model)
+
     def get_mapping(self):
         # Make field list
         fields = dict({
             'pk': dict(type='string', index='not_analyzed', store='yes'),
             'content_type': dict(type='string'),
-        }.items() + [(field.get_attname(self.model), field.to_dict(self.model)) for field in self.model.get_search_fields()])
+        }.items() + [self.get_field_mapping(field) for field in self.model.get_search_fields()])
 
         return {
             self.get_document_type(): {
