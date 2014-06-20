@@ -1,9 +1,11 @@
+import datetime
+import string
+
 from django.db import models
 from django.utils import timezone
 
-from indexed import Indexed
-import datetime
-import string
+from wagtail.wagtailsearch import indexed
+
 
 MAX_QUERY_STRING_LENGTH = 255
 
@@ -96,12 +98,17 @@ class EditorsPick(models.Model):
 
 # Used for tests
 
-class SearchTest(models.Model, Indexed):
+class SearchTest(models.Model, indexed.Indexed):
     title = models.CharField(max_length=255)
     content = models.TextField()
     live = models.BooleanField(default=False)
 
-    indexed_fields = ("title", "content", "callable_indexed_field", "live")
+    search_fields = (
+        indexed.SearchField('title'),
+        indexed.SearchField('content'),
+        indexed.SearchField('callable_indexed_field'),
+        indexed.SearchField('live'),
+    )
 
     def callable_indexed_field(self):
         return "Callable"
@@ -110,4 +117,6 @@ class SearchTest(models.Model, Indexed):
 class SearchTestChild(SearchTest):
     extra_content = models.TextField()
 
-    indexed_fields = "extra_content"
+    search_fields = SearchTest.search_fields + (
+        indexed.SearchField('extra_content'),
+    )

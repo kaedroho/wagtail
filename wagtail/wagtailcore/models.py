@@ -21,7 +21,8 @@ from treebeard.mp_tree import MP_Node
 from wagtail.wagtailcore.utils import camelcase_to_underscore
 from wagtail.wagtailcore.query import PageQuerySet
 
-from wagtail.wagtailsearch import Indexed, get_search_backend
+from wagtail.wagtailsearch import indexed
+from wagtail.wagtailsearch.backends import get_search_backend
 
 
 class SiteManager(models.Manager):
@@ -209,7 +210,7 @@ class PageBase(models.base.ModelBase):
             PAGE_MODEL_CLASSES.append(cls)
 
 
-class Page(MP_Node, ClusterableModel, Indexed):
+class Page(MP_Node, ClusterableModel, indexed.Indexed):
     __metaclass__ = PageBase
 
     title = models.CharField(max_length=255, help_text=_("The page title as you'd like it to be seen by the public"))
@@ -226,21 +227,11 @@ class Page(MP_Node, ClusterableModel, Indexed):
     show_in_menus = models.BooleanField(default=False, help_text=_("Whether a link to this page will appear in automatically generated menus"))
     search_description = models.TextField(blank=True)
 
-    indexed_fields = {
-        'title': {
-            'type': 'string',
-            'analyzer': 'edgengram_analyzer',
-            'boost': 100,
-        },
-        'live': {
-            'type': 'boolean',
-            'index': 'not_analyzed',
-        },
-        'path': {
-            'type': 'string',
-            'index': 'not_analyzed',
-        },
-    }
+    search_fields = (
+        indexed.SearchField('title', partial_match=True, boost=100),
+        indexed.FilterField('live'),
+        indexed.FilterField('path'),
+    )
 
     def __init__(self, *args, **kwargs):
         super(Page, self).__init__(*args, **kwargs)

@@ -11,6 +11,7 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy  as _
 
 from wagtail.wagtailadmin.taggable import TagSearchable
+from wagtail.wagtailsearch import indexed
 
 
 class Document(models.Model, TagSearchable):
@@ -21,14 +22,9 @@ class Document(models.Model, TagSearchable):
 
     tags = TaggableManager(help_text=None, blank=True, verbose_name=_('Tags'))
 
-    indexed_fields = {
-        'uploaded_by_user_id': {
-            'type': 'integer',
-            'store': 'yes',
-            'indexed': 'no',
-            'boost': 0,
-        },
-    }
+    search_fields = TagSearchable.search_fields + (
+        indexed.FilterField('uploaded_by_user'),
+    )
 
     def __unicode__(self):
         return self.title
