@@ -1,3 +1,5 @@
+import warnings
+
 from django.db import models
 
 
@@ -33,11 +35,6 @@ class Indexed(object):
 
     @classmethod
     def indexed_get_indexed_fields(cls):
-        # New way
-        if hasattr(cls, 'search_fields'):
-            return dict((field.get_attname(cls), field.to_dict(cls)) for field in cls.search_fields)
-
-        # Old way
         # Get indexed fields for this class as dictionary
         indexed_fields = cls.indexed_fields
         if isinstance(indexed_fields, tuple):
@@ -57,10 +54,57 @@ class Indexed(object):
             indexed_fields = dict(parent_indexed_fields.items() + indexed_fields.items())
         return indexed_fields
 
+    @classmethod
+    def get_search_fields(cls):
+        search_fields = []
+
+        if hasattr(cls, 'search_fields'):
+            search_fields.extend(cls.search_fields)
+
+        # Backwards compatibility with old indexed_fields setting
+
+        # Get indexed fields
+        indexed_fields = cls.indexed_get_indexed_fields()
+
+        # Display deprecation warning if indexed_fields has been used
+        if indexed_fields:
+            warnings.warn("'indexed_fields' setting is now deprecated."
+                          "Use 'search_fields' instead.", DeprecationWarning)
+
+        # Convert them into search fields
+        for field_name, _config in indexed_fields.items():
+            # Copy the config to prevent is trashing anything accidentally
+            config = _config.copy()
+
+            # Check if this is a filter field
+            if config.get('index', None) == 'not_analyzed':
+                config.pop('index')
+                search_fields.append(FilterField(field_name, es_extra=config))
+                continue
+
+            # Must be a search field, check for boosting and partial matching
+            boost = config.pop('boost', None)
+
+            partial_match = False
+            if config.get('analyzer', None) == 'edgengram_analyzer':
+                partial_match = True
+                config.pop('analyzer')
+
+            # Add the field
+            search_fields.append(SearchField(field_name, boost=boost, partial_match=partial_match, es_extra=config))
+
+        return search_fields
+
+    @classmethod
+    def get_searchable_search_fields(cls):
+        return filter(lambda field: field.searchable, cls.get_search_fields())
+
     indexed_fields = ()
 
 
 class BaseField(object):
+    searchable = False
+
     def __init__(self, field_name, **kwargs):
         self.field_name = field_name
         self.kwargs = kwargs
@@ -91,6 +135,8 @@ class BaseField(object):
 
 
 class SearchField(BaseField):
+    searchable = True
+
     def __init__(self, field_name, boost=None, partial_match=False, **kwargs):
         super(SearchField, self).__init__(field_name, **kwargs)
         self.boost = boost
