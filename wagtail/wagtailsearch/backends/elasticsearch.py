@@ -62,7 +62,7 @@ class ElasticSearchMapping(object):
                 doc[field] = getattr(obj, field)
 
                 # Check if this field is callable
-                if hasattr(doc[field], "__call__"):
+                if hasattr(doc[field], '__call__'):
                     # Call it
                     doc[field] = doc[field]()
 
@@ -335,43 +335,43 @@ class ElasticSearch(BaseSearch):
 
         # Settings
         INDEX_SETTINGS = {
-            "settings": {
-                "analysis": {
-                    "analyzer": {
-                        "ngram_analyzer": {
-                            "type": "custom",
-                            "tokenizer": "lowercase",
-                            "filter": ["ngram"]
+            'settings': {
+                'analysis': {
+                    'analyzer': {
+                        'ngram_analyzer': {
+                            'type': 'custom',
+                            'tokenizer': 'lowercase',
+                            'filter': ['ngram']
                         },
-                        "edgengram_analyzer": {
-                            "type": "custom",
-                            "tokenizer": "lowercase",
-                            "filter": ["edgengram"]
+                        'edgengram_analyzer': {
+                            'type': 'custom',
+                            'tokenizer': 'lowercase',
+                            'filter': ['edgengram']
                         }
                     },
-                    "tokenizer": {
-                        "ngram_tokenizer": {
-                            "type": "nGram",
-                            "min_gram": 3,
-                            "max_gram": 15,
+                    'tokenizer': {
+                        'ngram_tokenizer': {
+                            'type': 'nGram',
+                            'min_gram': 3,
+                            'max_gram': 15,
                         },
-                        "edgengram_tokenizer": {
-                            "type": "edgeNGram",
-                            "min_gram": 2,
-                            "max_gram": 15,
-                            "side": "front"
+                        'edgengram_tokenizer': {
+                            'type': 'edgeNGram',
+                            'min_gram': 2,
+                            'max_gram': 15,
+                            'side': 'front'
                         }
                     },
-                    "filter": {
-                        "ngram": {
-                            "type": "nGram",
-                            "min_gram": 3,
-                            "max_gram": 15
+                    'filter': {
+                        'ngram': {
+                            'type': 'nGram',
+                            'min_gram': 3,
+                            'max_gram': 15
                         },
-                        "edgengram": {
-                            "type": "edgeNGram",
-                            "min_gram": 1,
-                            "max_gram": 15
+                        'edgengram': {
+                            'type': 'edgeNGram',
+                            'min_gram': 1,
+                            'max_gram': 15
                         }
                     }
                 }
@@ -462,14 +462,14 @@ class ElasticSearch(BaseSearch):
             return []
 
         # Clean up query string
-        query_string = "".join([c for c in query_string if c not in string.punctuation])
+        query_string = ''.join([c for c in query_string if c not in string.punctuation])
 
         # Check that theres still a query string after the clean up
         if not query_string:
             return []
 
         # Give deprecation warning if prefetch_related was used
-        warnings.warn("prefetch_related on search queries is no longer implemented. ", DeprecationWarning)
+        warnings.warn("prefetch_related on search queries is no longer implemented.", DeprecationWarning)
 
         # Return search results
         return ElasticSearchResults(self, ElasticSearchQuery(model, query_string, fields=fields, filters=filters))
