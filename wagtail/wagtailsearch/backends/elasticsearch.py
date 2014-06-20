@@ -55,8 +55,11 @@ class ElasticSearchMapping(object):
 
             if field.partial_match:
                 mapping['analyzer'] = 'edgengram_analyzer'
+
+            mapping['include_in_all'] = True
         elif isinstance(field, FilterField):
             mapping['index'] = 'not_analyzed'
+            mapping['include_in_all'] = False
 
         if 'es_extra' in field.kwargs:
             for key, value in field.kwargs['es_extra'].items():
@@ -67,8 +70,8 @@ class ElasticSearchMapping(object):
     def get_mapping(self):
         # Make field list
         fields = dict({
-            'pk': dict(type='string', index='not_analyzed', store='yes'),
-            'content_type': dict(type='string', index='not_analyzed'),
+            'pk': dict(type='string', index='not_analyzed', store='yes', include_in_all=False),
+            'content_type': dict(type='string', index='not_analyzed', include_in_all=False),
         }.items() + [self.get_field_mapping(field) for field in self.model.get_search_fields()])
 
         return {
