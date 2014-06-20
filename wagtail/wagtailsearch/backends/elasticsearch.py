@@ -42,7 +42,7 @@ class ElasticSearchMapping(object):
         # Make field list
         fields = dict({
             'pk': dict(type='string', index='not_analyzed', store='yes'),
-            'content_type': dict(type='string'),
+            'content_type': dict(type='string', index='not_analyzed'),
         }.items() + [self.get_field_mapping(field) for field in self.model.get_search_fields()])
 
         return {
