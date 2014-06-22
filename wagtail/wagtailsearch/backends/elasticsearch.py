@@ -134,8 +134,6 @@ class ElasticSearchQuery(object):
                 for field in self.queryset.model.get_filterable_search_fields()
             ).get(field_name, None)
 
-            print self.queryset.model.get_filterable_search_fields()
-
             # Give error if the field doesn't exist
             if field is None:
                 raise FieldError('Cannot filter ElasticSearch results with field "' + field_name + '". Please add FilterField(\'' + field_name + '\') to ' + self.queryset.model.__name__ + '.search_fields.')
