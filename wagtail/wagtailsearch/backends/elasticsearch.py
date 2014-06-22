@@ -574,7 +574,7 @@ class ElasticSearch(BaseSearch):
         except NotFoundError:
             pass  # Document doesn't exist, ignore this exception
 
-    def search(self, query_string, model_or_queryset, fields=None, filters={}, prefetch_related=[]):
+    def search(self, query_string, model_or_queryset, fields=None, filters=None, prefetch_related=None):
         # Find model/queryset
         if isinstance(model_or_queryset, QuerySet):
             model = model_or_queryset.model
@@ -600,8 +600,9 @@ class ElasticSearch(BaseSearch):
             queryset = queryset.filter(**filters)
 
         # Prefetch related
-        for prefetch in prefetch_related:
-            queryset = queryset.prefetch_related(prefetch)
+        if prefetch_related:
+            for prefetch in prefetch_related:
+                queryset = queryset.prefetch_related(prefetch)
 
         # Return search results
         return ElasticSearchResults(self, ElasticSearchQuery(queryset, query_string, fields=fields))

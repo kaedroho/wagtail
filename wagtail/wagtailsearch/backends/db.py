@@ -28,7 +28,7 @@ class DBSearch(BaseSearch):
     def delete(self, obj):
         pass # Not needed
 
-    def search(self, query_string, model, fields=None, filters={}, prefetch_related=[]):
+    def search(self, query_string, model, fields=None, filters=None, prefetch_related=None):
         # Get fields
         if fields is None:
             fields = [field.field_name for field in model.get_searchable_search_fields()]
@@ -66,7 +66,8 @@ class DBSearch(BaseSearch):
             query = query.distinct()
 
         # Prefetch related
-        for prefetch in prefetch_related:
-            query = query.prefetch_related(prefetch)
+        if prefetch_related:
+            for prefetch in prefetch_related:
+                query = query.prefetch_related(prefetch)
 
         return query
