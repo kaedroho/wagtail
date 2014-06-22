@@ -457,7 +457,7 @@ class Page(MP_Node, ClusterableModel, indexed.Indexed):
 
         # Search
         s = get_search_backend()
-        return s.search(query_string, model=cls, fields=fields, filters=filters, prefetch_related=prefetch_related)
+        return s.search(query_string, cls, fields=fields, filters=filters, prefetch_related=prefetch_related)
 
     @classmethod
     def clean_subpage_types(cls):
