@@ -599,8 +599,9 @@ class ElasticSearch(BaseSearch):
         if filters:
             queryset = queryset.filter(**filters)
 
-        # Give deprecation warning if prefetch_related was used
-        warnings.warn("prefetch_related on search queries is no longer implemented.", DeprecationWarning)
+        # Prefetch related
+        for prefetch in prefetch_related:
+            queryset = queryset.prefetch_related(prefetch)
 
         # Return search results
         return ElasticSearchResults(self, ElasticSearchQuery(queryset, query_string, fields=fields))
