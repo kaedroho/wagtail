@@ -84,13 +84,3 @@ class QueryDailyHits(models.Model):
         unique_together = (
             ('query', 'date'),
         )
-
-
-class EditorsPick(models.Model):
-    query = models.ForeignKey(Query, db_index=True, related_name='editors_picks')
-    page = models.ForeignKey('wagtailcore.Page')
-    sort_order = models.IntegerField(null=True, blank=True, editable=False)
-    description = models.TextField(blank=True)
-
-    class Meta:
-        ordering = ('sort_order', )

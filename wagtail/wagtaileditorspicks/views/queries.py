@@ -5,13 +5,13 @@ from django.contrib.auth.decorators import permission_required
 from wagtail.wagtailadmin.modal_workflow import render_modal_workflow
 from wagtail.wagtailadmin.forms import SearchForm
 
-from wagtail.wagtailsearch import models
+from wagtail.wagtailsearch.models import Query
 
 
 @permission_required('wagtailadmin.access_admin')
 def chooser(request, get_results=False):
     # Get most popular queries
-    queries = models.Query.get_most_popular()
+    queries = Query.get_most_popular()
 
     # If searching, filter results by query string
     query_string = None
@@ -19,7 +19,7 @@ def chooser(request, get_results=False):
         searchform = SearchForm(request.GET)
         if searchform.is_valid():
             query_string = searchform.cleaned_data['q']
-            queries = queries.filter(query_string__icontains=models.Query.normalise_query_string(query_string))
+            queries = queries.filter(query_string__icontains=Query.normalise_query_string(query_string))
     else:
         searchform = SearchForm()
 
@@ -36,12 +36,12 @@ def chooser(request, get_results=False):
 
     # Render
     if get_results:
-        return render(request, "wagtailsearch/queries/chooser/results.html", {
+        return render(request, "wagtaileditorspicks/queries/chooser/results.html", {
             'queries': queries,
             'query_string': query_string,
         })
     else:
-        return render_modal_workflow(request, 'wagtailsearch/queries/chooser/chooser.html', 'wagtailsearch/queries/chooser/chooser.js', {
+        return render_modal_workflow(request, 'wagtaileditorspicks/queries/chooser/chooser.html', 'wagtaileditorspicks/queries/chooser/chooser.js', {
             'queries': queries,
             'searchform': searchform,
             'query_string': query_string,
