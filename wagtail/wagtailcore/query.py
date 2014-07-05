@@ -110,6 +110,20 @@ class PageQuerySet(MP_NodeQuerySet):
     def not_type(self, model):
         return self.exclude(self.type_q(model))
 
+    def public_q(self):
+        from wagtail.wagtailcore.models import PageViewRestriction
+
+        q = Q()
+        for restriction in PageViewRestriction.objects.all():
+            q &= ~self.descendant_of_q(restriction.page, inclusive=True)
+        return q
+
+    def public(self):
+        return self.filter(self.public_q())
+
+    def not_public(self):
+        return self.exclude(self.public_q())
+
     def search(self, query_string, fields=None, backend='default'):
         search_backend = get_search_backend(backend)
         return search_backend.search(query_string, self, fields=None)
