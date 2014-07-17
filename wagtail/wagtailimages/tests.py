@@ -20,7 +20,8 @@ from wagtail.wagtailimages.formats import (
 
 from wagtail.wagtailimages.backends import get_image_backend
 from wagtail.wagtailimages.backends.pillow import PillowBackend
-from wagtail.wagtailimages.utils import parse_filter_spec, InvalidFilterSpecError, generate_signature, verify_signature
+from wagtail.wagtailimages.utils.filter_spec import parse_filter_spec, InvalidFilterSpecError
+from wagtail.wagtailimages.utils.crypto import generate_signature, verify_signature
 
 
 def get_test_image_file():

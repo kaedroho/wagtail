@@ -1,5 +1,5 @@
 from wagtail.wagtailimages.backends import get_image_backend
-from wagtail.wagtailimages.utils import parse_filter_spec
+from wagtail.wagtailimages.utils.filter_spec import parse_filter_spec
 
 
 def process_image(input_file, output_file, filter_spec, backend_name='default'):

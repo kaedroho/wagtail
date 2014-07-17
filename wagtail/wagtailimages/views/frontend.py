@@ -3,7 +3,8 @@ from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 
 from wagtail.wagtailimages.models import get_image_model
-from wagtail.wagtailimages.utils import InvalidFilterSpecError, verify_signature
+from wagtail.wagtailimages.utils.filter_spec import InvalidFilterSpecError
+from wagtail.wagtailimages.utils.crypto import verify_signature
 from wagtail.wagtailimages import image_processor
 
 

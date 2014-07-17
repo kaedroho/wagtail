@@ -20,7 +20,7 @@ from unidecode import unidecode
 from wagtail.wagtailadmin.taggable import TagSearchable
 from wagtail.wagtailimages.backends import get_image_backend
 from wagtail.wagtailsearch import indexed
-from wagtail.wagtailimages.utils import validate_image_format
+from wagtail.wagtailimages.utils.validators import validate_image_format
 from wagtail.wagtailimages import image_processor
 
 
