@@ -20,6 +20,7 @@ def parse_filter_spec(filter_spec):
         'width': 'resize_to_width',
         'height': 'resize_to_height',
         'fill': 'resize_to_fill',
+        'smart': 'smart_crop',
         'original': 'no_operation',
     }
 
@@ -32,8 +33,8 @@ def parse_filter_spec(filter_spec):
     if match:
         return OPERATION_NAMES[match.group(1)], int(match.group(2))
 
-    # max/min/fill
-    match = re.match(r'(max|min|fill)-(\d+)x(\d+)$', filter_spec)
+    # max/min/fill/smart
+    match = re.match(r'(max|min|fill|smart)-(\d+)x(\d+)$', filter_spec)
     if match:
         width = int(match.group(2))
         height = int(match.group(3))

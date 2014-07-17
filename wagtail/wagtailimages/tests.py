@@ -484,6 +484,7 @@ class TestFilterSpecParsing(TestCase):
         'min-800x600': ('resize_to_min', (800, 600)),
         'max-800x600': ('resize_to_max', (800, 600)),
         'fill-800x600': ('resize_to_fill', (800, 600)),
+        'smart-800x600': ('smart_crop', (800, 600)),
         'width-800': ('resize_to_width', 800),
         'height-600': ('resize_to_height', 600),
     }
