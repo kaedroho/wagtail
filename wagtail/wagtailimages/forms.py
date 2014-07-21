@@ -4,7 +4,6 @@ from django.utils.translation import ugettext as _
 
 from wagtail.wagtailimages.models import get_image_model
 from wagtail.wagtailimages.formats import get_image_formats
-from wagtail.wagtailimages.utils.feature_detection import opencv_available
 
 
 def get_image_form():
@@ -28,25 +27,17 @@ class ImageInsertionForm(forms.Form):
     alt_text = forms.CharField()
 
 
-def get_available_filter_methods():
-    filter_methods = [
-        ('original', _("Original size")),
-        ('width', _("Resize to width")),
-        ('height', _("Resize to height")),
-        ('min', _("Resize to min")),
-        ('max', _("Resize to max")),
-        ('fill', _("Resize to fill")),
-    ]
-
-    if opencv_available:
-        filter_methods.append(('smart', _("Smart crop")))
-
-    return tuple(filter_methods)
-
 class URLGeneratorForm(forms.Form):
     filter_method = forms.ChoiceField(
         label=_("Filter"),
-        choices=get_available_filter_methods(),
+        choices=(
+            ('original', _("Original size")),
+            ('width', _("Resize to width")),
+            ('height', _("Resize to height")),
+            ('min', _("Resize to min")),
+            ('max', _("Resize to max")),
+            ('fill', _("Resize to fill")),
+        ),
     )
     width = forms.IntegerField(_("Width"), min_value=0)
     height = forms.IntegerField(_("Height"), min_value=0)
