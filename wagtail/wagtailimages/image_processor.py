@@ -2,7 +2,7 @@ from wagtail.wagtailimages.backends import get_image_backend
 from wagtail.wagtailimages.utils.filter_spec import parse_filter_spec
 
 
-def process_image(input_file, output_file, filter_spec, backend_name='default'):
+def process_image(input_file, output_file, filter_spec, focal_point=None, backend_name='default'):
     # Get the image backend
     backend = get_image_backend(backend_name)
 
@@ -15,7 +15,7 @@ def process_image(input_file, output_file, filter_spec, backend_name='default'):
 
     # Call method
     method = getattr(backend, method_name)
-    image = method(image, method_arg)
+    image = method(image, method_arg, focal_point=focal_point)
 
     # Save image
     backend.save_image(image, output_file, file_format) 
