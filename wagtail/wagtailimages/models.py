@@ -98,7 +98,9 @@ class AbstractImage(models.Model, TagSearchable):
 
         return focal_point
 
-    def get_rendition(self, filter):
+    def get_rendition(self, filter, focal_point=None):
+        focal_point = focal_point or self.focal_point
+
         if not hasattr(filter, 'process_image'):
             # assume we've been passed a filter spec string, rather than a Filter object
             # TODO: keep an in-memory cache of filters, to avoid a db lookup
@@ -121,7 +123,7 @@ class AbstractImage(models.Model, TagSearchable):
             # If we have a backend attribute then pass it to process
             # image - else pass 'default'
             backend_name = getattr(self, 'backend', 'default')
-            generated_image_file = filter.process_image(file_field.file, backend_name=backend_name)
+            generated_image_file = filter.process_image(file_field.file, focal_point=focal_point, backend_name=backend_name)
 
             if focal_point:
                 rendition, created = self.renditions.get_or_create(
@@ -205,7 +207,7 @@ class Filter(models.Model):
     """
     spec = models.CharField(max_length=255, db_index=True)
 
-    def process_image(self, input_file, backend_name='default'):
+    def process_image(self, input_file, focal_point=None, backend_name='default'):
         """
         Given an input image file as a django.core.files.File object,
         generate an output image with this filter applied, returning it
@@ -215,7 +217,7 @@ class Filter(models.Model):
         input_file.open('rb')
 
         # Process the image
-        output = image_processor.process_image(input_file, BytesIO(), self.spec, backend_name=backend_name)
+        output = image_processor.process_image(input_file, BytesIO(), self.spec, focal_point=focal_point, backend_name=backend_name)
 
         # and then close the input file
         input_file.close()

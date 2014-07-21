@@ -15,6 +15,6 @@ def serve(request, signature, image_id, filter_spec):
         raise PermissionDenied
 
     try:
-        return image_processor.process_image(image.file.file, HttpResponse(content_type='image/jpeg'), filter_spec)
+        return image_processor.process_image(image.file.file, HttpResponse(content_type='image/jpeg'), filter_spec, focal_point=image.focal_point)
     except InvalidFilterSpecError:
         return HttpResponse("Invalid filter spec: " + filter_spec, content_type='text/plain', status=400)
