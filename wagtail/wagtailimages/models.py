@@ -375,3 +375,8 @@ def rendition_delete(sender, instance, **kwargs):
     # Pass false so FileField doesn't save the model.
     instance.file.delete(False)
 
+
+# Check that the frontend url patterns are not being imported under /admin/images/ to prevent a URL clash
+from wagtail.wagtailimages.urls import check_url_patterns
+check_url_patterns()
+

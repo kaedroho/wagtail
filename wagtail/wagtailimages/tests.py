@@ -11,8 +11,10 @@ from django.test import TestCase
 from django import template
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
+from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.conf.urls import include, url
 
 from wagtail.tests.utils import unittest, WagtailTestUtils
 from wagtail.wagtailimages.models import get_image_model
@@ -764,6 +766,27 @@ class TestFrontendServeView(TestCase):
 
         # Check response
         self.assertEqual(response.status_code, 400)
+
+
+class TestCheckURLPatterns(TestCase):
+    """
+    The check_url_patterns function gets called on startup. Its job is to check that the frontend urls
+    are not being imported under '/admin/images/' which would cause a URL clash
+    
+    This checks that this function raises an ImproperlyConfigured exception if it spots the issue
+    """
+    def test_check_url_patterns_with_good_urlconfig(self):
+        from wagtail.wagtailimages import urls
+
+        # Test with standard tests urlconfig. This should not raise ImproperlyConfigured
+        urls.check_url_patterns()
+
+    def test_check_url_patterns_with_bad_urlconfig(self):
+        from wagtail.wagtailimages import urls
+
+        self.assertRaises(ImproperlyConfigured, urls.check_url_patterns, (
+            url(r'^admin/images/', include(urls)),
+        ))
 
 
 class TestURLGeneratorView(TestCase, WagtailTestUtils):
