@@ -776,15 +776,16 @@ class TestCheckURLPatterns(TestCase):
     This checks that this function raises an ImproperlyConfigured exception if it spots the issue
     """
     def test_check_url_patterns_with_good_urlconfig(self):
-        from wagtail.wagtailimages import urls
+        from wagtail.wagtail_hooks import check_url_patterns
 
         # Test with standard tests urlconfig. This should not raise ImproperlyConfigured
-        urls.check_url_patterns()
+        check_url_patterns()
 
     def test_check_url_patterns_with_bad_urlconfig(self):
+        from wagtail.wagtail_hooks import check_url_patterns
         from wagtail.wagtailimages import urls
 
-        self.assertRaises(ImproperlyConfigured, urls.check_url_patterns, (
+        self.assertRaises(ImproperlyConfigured, check_url_patterns, (
             url(r'^admin/images/', include(urls)),
         ))
 
