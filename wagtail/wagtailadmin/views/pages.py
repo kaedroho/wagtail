@@ -302,7 +302,7 @@ def edit(request, page_id):
                 del cleaned_data['expire_at']
 
             # Don't allow changing of locked status from users without permission to do so
-            if cleaned_data.get('locked') != page.locked and not request.user.is_superuser:
+            if cleaned_data.get('locked') != page.locked and not (request.user.is_superuser or request.user.has_perm('wagtailadmin.can_lock_pages')):
                 if page.locked:
                     form._errors['locked'] = form.error_class([_("You do not have permission to unlock this page.")])
                 else:
