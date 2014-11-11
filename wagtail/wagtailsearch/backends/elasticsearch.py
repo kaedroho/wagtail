@@ -333,7 +333,6 @@ class ElasticSearch(BaseSearch):
         self.es_hosts = params.pop('HOSTS', None)
         self.es_urls = params.pop('URLS', ['http://localhost:9200'])
         self.es_index = params.pop('INDEX', 'wagtail')
-        self.es_timeout = params.pop('TIMEOUT', 10)
 
         # If HOSTS is not set, convert URLS setting to HOSTS
         if self.es_hosts is None:
@@ -351,10 +350,11 @@ class ElasticSearch(BaseSearch):
 
         # Get ElasticSearch interface
         # Any remaining params are passed into the ElasticSearch constructor
-        self.es = Elasticsearch(
-            hosts=self.es_hosts,
-            timeout=self.es_timeout,
-            **params)
+        params.setdefault('timeout', params.pop('TIMEOUT', 10))
+        self.es = self.get_elasticsearch(hosts=self.es_hosts, **params)
+
+    def get_elasticsearch(self, hosts, **kwargs):
+        return Elasticsearch(hosts=hosts, **kwargs)
 
     def reset_index(self):
         # Delete old index
