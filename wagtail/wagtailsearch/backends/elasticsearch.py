@@ -263,7 +263,7 @@ class ElasticSearchResults(BaseSearchResults):
     def _do_search(self):
         # Params for elasticsearch query
         params = dict(
-            index=self.backend.es_index,
+            index=self.backend.index,
             body=dict(query=self.query.to_es()),
             _source=False,
             fields='pk',
@@ -330,18 +330,17 @@ class ElasticSearch(BaseSearch):
         super(ElasticSearch, self).__init__(params)
 
         # Get settings
-        self.es_hosts = params.pop('HOSTS', None)
-        self.es_urls = params.pop('URLS', ['http://localhost:9200'])
-        self.es_index = params.pop('INDEX', 'wagtail')
+        self.hosts = params.pop('HOSTS', None)
+        self.index = params.pop('INDEX', 'wagtail')
 
         # If HOSTS is not set, convert URLS setting to HOSTS
-        if self.es_hosts is None:
-            self.es_hosts = []
+        if self.hosts is None:
+            self.hosts = []
 
-            for url in self.es_urls:
+            for url in params.pop('URLS', ['http://localhost:9200']):
                 parsed_url = urlparse(url)
 
-                self.es_hosts.append({
+                self.hosts.append({
                     'host': parsed_url.hostname,
                     'port': parsed_url.port or 9200,
                     'url_prefix': parsed_url.path,
@@ -351,7 +350,7 @@ class ElasticSearch(BaseSearch):
         # Get ElasticSearch interface
         # Any remaining params are passed into the ElasticSearch constructor
         params.setdefault('timeout', params.pop('TIMEOUT', 10))
-        self.es = self.get_elasticsearch(hosts=self.es_hosts, **params)
+        self.es = self.get_elasticsearch(hosts=self.hosts, **params)
 
     def get_elasticsearch(self, hosts, **kwargs):
         return Elasticsearch(hosts=hosts, **kwargs)
@@ -359,7 +358,7 @@ class ElasticSearch(BaseSearch):
     def reset_index(self):
         # Delete old index
         try:
-            self.es.indices.delete(self.es_index)
+            self.es.indices.delete(self.index)
         except NotFoundError:
             pass
 
@@ -409,17 +408,17 @@ class ElasticSearch(BaseSearch):
         }
 
         # Create new index
-        self.es.indices.create(self.es_index, INDEX_SETTINGS)
+        self.es.indices.create(self.index, INDEX_SETTINGS)
 
     def add_type(self, model):
         # Get mapping
         mapping = ElasticSearchMapping(model)
 
         # Put mapping
-        self.es.indices.put_mapping(index=self.es_index, doc_type=mapping.get_document_type(), body=mapping.get_mapping())
+        self.es.indices.put_mapping(index=self.index, doc_type=mapping.get_document_type(), body=mapping.get_mapping())
 
     def refresh_index(self):
-        self.es.indices.refresh(self.es_index)
+        self.es.indices.refresh(self.index)
 
     def add(self, obj):
         # Make sure the object can be indexed
@@ -430,7 +429,7 @@ class ElasticSearch(BaseSearch):
         mapping = ElasticSearchMapping(obj.__class__)
 
         # Add document to index
-        self.es.index(self.es_index, mapping.get_document_type(), mapping.get_document(obj), id=mapping.get_document_id(obj))
+        self.es.index(self.index, mapping.get_document_type(), mapping.get_document(obj), id=mapping.get_document_id(obj))
 
     def add_bulk(self, model, obj_list):
         if not class_is_indexed(model):
@@ -445,7 +444,7 @@ class ElasticSearch(BaseSearch):
         for obj in obj_list:
             # Create the action
             action = {
-                '_index': self.es_index,
+                '_index': self.index,
                 '_type': doc_type,
                 '_id': mapping.get_document_id(obj),
             }
@@ -466,7 +465,7 @@ class ElasticSearch(BaseSearch):
         # Delete document
         try:
             self.es.delete(
-                self.es_index,
+                self.index,
                 mapping.get_document_type(),
                 mapping.get_document_id(obj),
             )

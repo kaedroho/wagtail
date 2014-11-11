@@ -483,13 +483,13 @@ class TestBackendConfiguration(TestCase):
     def test_default_settings(self):
         backend = self.ElasticSearch(params={})
 
-        self.assertEqual(len(backend.es_hosts), 1)
-        self.assertEqual(backend.es_hosts[0]['host'], 'localhost')
-        self.assertEqual(backend.es_hosts[0]['port'], 9200)
-        self.assertEqual(backend.es_hosts[0]['use_ssl'], False)
+        self.assertEqual(len(backend.hosts), 1)
+        self.assertEqual(backend.hosts[0]['host'], 'localhost')
+        self.assertEqual(backend.hosts[0]['port'], 9200)
+        self.assertEqual(backend.hosts[0]['use_ssl'], False)
 
     def test_hosts(self):
-        # This tests that HOSTS goes to es_hosts
+        # This tests that HOSTS goes to the hosts attribute
         backend = self.ElasticSearch(params={
             'HOSTS': [
                 {
@@ -500,10 +500,10 @@ class TestBackendConfiguration(TestCase):
             ]
         })
 
-        self.assertEqual(len(backend.es_hosts), 1)
-        self.assertEqual(backend.es_hosts[0]['host'], '127.0.0.1')
-        self.assertEqual(backend.es_hosts[0]['port'], 9300)
-        self.assertEqual(backend.es_hosts[0]['use_ssl'], True)
+        self.assertEqual(len(backend.hosts), 1)
+        self.assertEqual(backend.hosts[0]['host'], '127.0.0.1')
+        self.assertEqual(backend.hosts[0]['port'], 9300)
+        self.assertEqual(backend.hosts[0]['use_ssl'], True)
 
     def test_urls(self):
         # This test backwards compatibility with old URLS setting
@@ -511,10 +511,10 @@ class TestBackendConfiguration(TestCase):
             'URLS': ['http://localhost:12345', 'https://127.0.0.1:54321'],
         })
 
-        self.assertEqual(len(backend.es_hosts), 2)
-        self.assertEqual(backend.es_hosts[0]['host'], 'localhost')
-        self.assertEqual(backend.es_hosts[0]['port'], 12345)
-        self.assertEqual(backend.es_hosts[0]['use_ssl'], False)
-        self.assertEqual(backend.es_hosts[1]['host'], '127.0.0.1')
-        self.assertEqual(backend.es_hosts[1]['port'], 54321)
-        self.assertEqual(backend.es_hosts[1]['use_ssl'], True)
+        self.assertEqual(len(backend.hosts), 2)
+        self.assertEqual(backend.hosts[0]['host'], 'localhost')
+        self.assertEqual(backend.hosts[0]['port'], 12345)
+        self.assertEqual(backend.hosts[0]['use_ssl'], False)
+        self.assertEqual(backend.hosts[1]['host'], '127.0.0.1')
+        self.assertEqual(backend.hosts[1]['port'], 54321)
+        self.assertEqual(backend.hosts[1]['use_ssl'], True)
