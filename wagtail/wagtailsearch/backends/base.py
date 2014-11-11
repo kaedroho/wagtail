@@ -190,6 +190,9 @@ class BaseSearchResults(object):
 
 
 class BaseSearch(object):
+    search_query_class = None
+    search_results_class = None
+
     def __init__(self, params):
         pass
 
@@ -245,4 +248,4 @@ class BaseSearch(object):
                 queryset = queryset.prefetch_related(prefetch)
 
         # Search
-        return self._search(queryset, query_string, fields=fields)
+        return self.search_results_class(self, self.search_query_class(queryset, query_string, fields=fields))
