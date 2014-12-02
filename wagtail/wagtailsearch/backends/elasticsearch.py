@@ -13,7 +13,7 @@ from wagtail.wagtailsearch.backends.base import BaseSearchBackend, BaseSearchQue
 from wagtail.wagtailsearch.index import Indexed, SearchField, FilterField, class_is_indexed
 
 
-class ElasticSearchMapping(object):
+class ElasticsearchMapping(object):
     TYPE_MAP = {
         'AutoField': 'integer',
         'BinaryField': 'binary',
@@ -107,10 +107,10 @@ class ElasticSearchMapping(object):
         return doc
 
     def __repr__(self):
-        return '<ElasticSearchMapping: %s>' % (self.model.__name__, )
+        return '<ElasticsearchMapping: %s>' % (self.model.__name__, )
 
 
-class ElasticSearchQuery(BaseSearchQuery):
+class ElasticsearchQuery(BaseSearchQuery):
     def _process_lookup(self, field, lookup, value):
         # Get the name of the field in the index
         field_index_name = field.get_index_name(self.queryset.model)
@@ -259,7 +259,7 @@ class ElasticSearchQuery(BaseSearchQuery):
         return json.dumps(self.to_es())
 
 
-class ElasticSearchResults(BaseSearchResults):
+class ElasticsearchResults(BaseSearchResults):
     def _do_search(self):
         # Params for elasticsearch query
         params = dict(
@@ -274,13 +274,13 @@ class ElasticSearchResults(BaseSearchResults):
         if self.stop is not None:
             params['size'] = self.stop - self.start
 
-        # Send to ElasticSearch
+        # Send to Elasticsearch
         hits = self.backend.es.search(**params)
 
         # Get pks from results
         pks = [hit['fields']['pk'] for hit in hits['hits']['hits']]
 
-        # ElasticSearch 1.x likes to pack pks into lists, unpack them if this has happened
+        # Elasticsearch 1.x likes to pack pks into lists, unpack them if this has happened
         pks = [pk[0] if isinstance(pk, list) else pk for pk in pks]
 
         # Initialise results dictionary
@@ -291,7 +291,7 @@ class ElasticSearchResults(BaseSearchResults):
         for obj in queryset:
             results[str(obj.pk)] = obj
 
-        # Return results in order given by ElasticSearch
+        # Return results in order given by Elasticsearch
         return [results[str(pk)] for pk in pks if results[str(pk)]]
 
     def _do_count(self):
@@ -304,7 +304,7 @@ class ElasticSearchResults(BaseSearchResults):
             body=dict(query=query),
         )
 
-        # ElasticSearch 0.90.x fallback
+        # Elasticsearch 0.90.x fallback
         if not count['_shards']['successful'] and "No query registered for [query]]" in count['_shards']['failures'][0]['reason']:
             count = self.backend.es.count(
                 index=self.backend.es_index,
@@ -322,12 +322,12 @@ class ElasticSearchResults(BaseSearchResults):
         return max(hit_count, 0)
 
 
-class ElasticSearchBackend(BaseSearchBackend):
-    search_query_class = ElasticSearchQuery
-    search_results_class = ElasticSearchResults
+class ElasticsearchBackend(BaseSearchBackend):
+    search_query_class = ElasticsearchQuery
+    search_results_class = ElasticsearchResults
 
     def __init__(self, params):
-        super(ElasticSearchBackend, self).__init__(params)
+        super(ElasticsearchBackend, self).__init__(params)
 
         # Get settings
         self.hosts = params.pop('HOSTS', None)
@@ -347,8 +347,8 @@ class ElasticSearchBackend(BaseSearchBackend):
                     'use_ssl': parsed_url.scheme == 'https',
                 })
 
-        # Get ElasticSearch interface
-        # Any remaining params are passed into the ElasticSearch constructor
+        # Get Elasticsearch interface
+        # Any remaining params are passed into the Elasticsearch constructor
         params.setdefault('timeout', params.pop('TIMEOUT', 10))
         self.es = self.get_elasticsearch(hosts=self.hosts, **params)
 
@@ -412,7 +412,7 @@ class ElasticSearchBackend(BaseSearchBackend):
 
     def add_type(self, model):
         # Get mapping
-        mapping = ElasticSearchMapping(model)
+        mapping = ElasticsearchMapping(model)
 
         # Put mapping
         self.es.indices.put_mapping(index=self.index, doc_type=mapping.get_document_type(), body=mapping.get_mapping())
@@ -426,7 +426,7 @@ class ElasticSearchBackend(BaseSearchBackend):
             return
 
         # Get mapping
-        mapping = ElasticSearchMapping(obj.__class__)
+        mapping = ElasticsearchMapping(obj.__class__)
 
         # Add document to index
         self.es.index(self.index, mapping.get_document_type(), mapping.get_document(obj), id=mapping.get_document_id(obj))
@@ -436,7 +436,7 @@ class ElasticSearchBackend(BaseSearchBackend):
             return
 
         # Get mapping
-        mapping = ElasticSearchMapping(model)
+        mapping = ElasticsearchMapping(model)
         doc_type = mapping.get_document_type()
 
         # Create list of actions
@@ -460,7 +460,7 @@ class ElasticSearchBackend(BaseSearchBackend):
             return
 
         # Get mapping
-        mapping = ElasticSearchMapping(obj.__class__)
+        mapping = ElasticsearchMapping(obj.__class__)
 
         # Delete document
         try:
@@ -474,4 +474,4 @@ class ElasticSearchBackend(BaseSearchBackend):
 
 
 # Backwards compatibility
-ElasticSearch = ElasticSearchBackend
+ElasticSearch = ElasticsearchBackend
