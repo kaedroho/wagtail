@@ -1,6 +1,6 @@
 from django.db import models
 
-from wagtail.wagtailsearch.backends.base import BaseSearch, BaseSearchQuery, BaseSearchResults
+from wagtail.wagtailsearch.backends.base import BaseSearchBackend, BaseSearchQuery, BaseSearchResults
 
 
 class DatabaseQuery(BaseSearchQuery):
@@ -69,7 +69,7 @@ class DatabaseResults(BaseSearchResults):
         return self.get_queryset().count()
 
 
-class DatabaseBackend(BaseSearch):
+class DatabaseBackend(BaseSearchBackend):
     search_query_class = DatabaseQuery
     search_results_class = DatabaseResults
 

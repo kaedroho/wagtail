@@ -189,7 +189,7 @@ class BaseSearchResults(object):
         return repr(data)
 
 
-class BaseSearch(object):
+class BaseSearchBackend(object):
     search_query_class = None
     search_results_class = None
 
@@ -249,3 +249,7 @@ class BaseSearch(object):
 
         # Search
         return self.search_results_class(self, self.search_query_class(queryset, query_string, fields=fields))
+
+
+# Backwards compatibility
+BaseSearch = BaseSearchBackend

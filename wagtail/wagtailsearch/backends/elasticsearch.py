@@ -9,7 +9,7 @@ from django.db import models
 from elasticsearch import Elasticsearch, NotFoundError, RequestError
 from elasticsearch.helpers import bulk
 
-from wagtail.wagtailsearch.backends.base import BaseSearch, BaseSearchQuery, BaseSearchResults
+from wagtail.wagtailsearch.backends.base import BaseSearchBackend, BaseSearchQuery, BaseSearchResults
 from wagtail.wagtailsearch.index import Indexed, SearchField, FilterField, class_is_indexed
 
 
@@ -322,12 +322,12 @@ class ElasticSearchResults(BaseSearchResults):
         return max(hit_count, 0)
 
 
-class ElasticSearch(BaseSearch):
+class ElasticSearchBackend(BaseSearchBackend):
     search_query_class = ElasticSearchQuery
     search_results_class = ElasticSearchResults
 
     def __init__(self, params):
-        super(ElasticSearch, self).__init__(params)
+        super(ElasticSearchBackend, self).__init__(params)
 
         # Get settings
         self.hosts = params.pop('HOSTS', None)
@@ -471,3 +471,7 @@ class ElasticSearch(BaseSearch):
             )
         except NotFoundError:
             pass  # Document doesn't exist, ignore this exception
+
+
+# Backwards compatibility
+ElasticSearch = ElasticSearchBackend
