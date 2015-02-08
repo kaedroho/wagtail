@@ -47,3 +47,15 @@ def module_view(view):
         return view(request.module, request, *args, **kwargs)
 
     return wrapper
+
+
+# ModuleViewMixin for class-based views
+class ModuleViewMixin(object):
+    module = None
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(ModuleViewMixin, self).get_context_data(*args, **kwargs)
+
+        context['module'] = self.module
+        context['has_module_permission'] = self.module.has_module_permission(self.request)
+        return context
