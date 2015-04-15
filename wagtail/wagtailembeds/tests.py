@@ -114,8 +114,9 @@ class TestChooser(TestCase, WagtailTestUtils):
 
         # TODO: Test submitting
 
+
+@unittest.skipIf(no_embedly, "Embedly is not installed")
 class TestEmbedly(TestCase):
-    @unittest.skipIf(no_embedly, "Embedly is not installed")
     def test_embedly_oembed_called_with_correct_arguments(self):
         with patch('embedly.Embedly.oembed') as oembed:
             oembed.return_value = {'type': 'photo',
@@ -127,7 +128,6 @@ class TestEmbedly(TestCase):
             wagtail_embedly('http://www.example.com', max_width=100, embedly_key='foo')
             oembed.assert_called_with('http://www.example.com', maxwidth=100, better=False)
 
-    @unittest.skipIf(no_embedly, "Embedly is not installed")
     def test_embedly_401(self):
         with patch('embedly.Embedly.oembed') as oembed:
             oembed.return_value = {'type': 'photo',
@@ -137,7 +137,6 @@ class TestEmbedly(TestCase):
             self.assertRaises(AccessDeniedEmbedlyException,
                               wagtail_embedly, 'http://www.example.com', embedly_key='foo')
 
-    @unittest.skipIf(no_embedly, "Embedly is not installed")
     def test_embedly_403(self):
         with patch('embedly.Embedly.oembed') as oembed:
             oembed.return_value = {'type': 'photo',
@@ -147,7 +146,6 @@ class TestEmbedly(TestCase):
             self.assertRaises(AccessDeniedEmbedlyException,
                               wagtail_embedly, 'http://www.example.com', embedly_key='foo')
 
-    @unittest.skipIf(no_embedly, "Embedly is not installed")
     def test_embedly_404(self):
         with patch('embedly.Embedly.oembed') as oembed:
             oembed.return_value = {'type': 'photo',
@@ -157,7 +155,6 @@ class TestEmbedly(TestCase):
             self.assertRaises(EmbedNotFoundException,
                               wagtail_embedly, 'http://www.example.com', embedly_key='foo')
 
-    @unittest.skipIf(no_embedly, "Embedly is not installed")
     def test_embedly_other_error(self):
         with patch('embedly.Embedly.oembed') as oembed:
             oembed.return_value = {'type': 'photo',
@@ -167,7 +164,6 @@ class TestEmbedly(TestCase):
             self.assertRaises(EmbedlyException, wagtail_embedly,
                               'http://www.example.com', embedly_key='foo')
 
-    @unittest.skipIf(no_embedly, "Embedly is not installed")
     def test_embedly_html_conversion(self):
         with patch('embedly.Embedly.oembed') as oembed:
             oembed.return_value = {'type': 'photo',
@@ -180,7 +176,6 @@ class TestEmbedly(TestCase):
             result = wagtail_embedly('http://www.example.com', embedly_key='foo')
             self.assertEqual(result['html'], '<foo>bar</foo>')
 
-    @unittest.skipIf(no_embedly, "Embedly is not installed")
     def test_embedly_return_value(self):
         with patch('embedly.Embedly.oembed') as oembed:
             oembed.return_value = {'type': 'something else',
