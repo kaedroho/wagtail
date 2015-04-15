@@ -121,10 +121,10 @@ class TestEmbedly(TestCase):
             oembed.return_value = {'type': 'photo',
                                    'url': 'http://www.example.com'}
 
-            wagtail_embedly('http://www.example.com', key='foo')
+            wagtail_embedly('http://www.example.com', embedly_key='foo')
             oembed.assert_called_with('http://www.example.com', better=False)
 
-            wagtail_embedly('http://www.example.com', max_width=100, key='foo')
+            wagtail_embedly('http://www.example.com', max_width=100, embedly_key='foo')
             oembed.assert_called_with('http://www.example.com', maxwidth=100, better=False)
 
     @unittest.skipIf(no_embedly, "Embedly is not installed")
@@ -135,7 +135,7 @@ class TestEmbedly(TestCase):
                                    'error': True,
                                    'error_code': 401}
             self.assertRaises(AccessDeniedEmbedlyException,
-                              wagtail_embedly, 'http://www.example.com', key='foo')
+                              wagtail_embedly, 'http://www.example.com', embedly_key='foo')
 
     @unittest.skipIf(no_embedly, "Embedly is not installed")
     def test_embedly_403(self):
@@ -145,7 +145,7 @@ class TestEmbedly(TestCase):
                                    'error': True,
                                    'error_code': 403}
             self.assertRaises(AccessDeniedEmbedlyException,
-                              wagtail_embedly, 'http://www.example.com', key='foo')
+                              wagtail_embedly, 'http://www.example.com', embedly_key='foo')
 
     @unittest.skipIf(no_embedly, "Embedly is not installed")
     def test_embedly_404(self):
@@ -155,7 +155,7 @@ class TestEmbedly(TestCase):
                                    'error': True,
                                    'error_code': 404}
             self.assertRaises(EmbedNotFoundException,
-                              wagtail_embedly, 'http://www.example.com', key='foo')
+                              wagtail_embedly, 'http://www.example.com', embedly_key='foo')
 
     @unittest.skipIf(no_embedly, "Embedly is not installed")
     def test_embedly_other_error(self):
@@ -165,19 +165,19 @@ class TestEmbedly(TestCase):
                                    'error': True,
                                    'error_code': 999}
             self.assertRaises(EmbedlyException, wagtail_embedly,
-                              'http://www.example.com', key='foo')
+                              'http://www.example.com', embedly_key='foo')
 
     @unittest.skipIf(no_embedly, "Embedly is not installed")
     def test_embedly_html_conversion(self):
         with patch('embedly.Embedly.oembed') as oembed:
             oembed.return_value = {'type': 'photo',
                                    'url': 'http://www.example.com'}
-            result = wagtail_embedly('http://www.example.com', key='foo')
+            result = wagtail_embedly('http://www.example.com', embedly_key='foo')
             self.assertEqual(result['html'], '<img src="http://www.example.com" />')
 
             oembed.return_value = {'type': 'something else',
                                    'html': '<foo>bar</foo>'}
-            result = wagtail_embedly('http://www.example.com', key='foo')
+            result = wagtail_embedly('http://www.example.com', embedly_key='foo')
             self.assertEqual(result['html'], '<foo>bar</foo>')
 
     @unittest.skipIf(no_embedly, "Embedly is not installed")
@@ -185,7 +185,7 @@ class TestEmbedly(TestCase):
         with patch('embedly.Embedly.oembed') as oembed:
             oembed.return_value = {'type': 'something else',
                                    'html': '<foo>bar</foo>'}
-            result = wagtail_embedly('http://www.example.com', key='foo')
+            result = wagtail_embedly('http://www.example.com', embedly_key='foo')
             self.assertEqual(result, {
                 'title': '',
                 'author_name': '',
@@ -204,7 +204,7 @@ class TestEmbedly(TestCase):
                                    'width': 100,
                                    'height': 100,
                                    'html': '<foo>bar</foo>'}
-            result = wagtail_embedly('http://www.example.com', key='foo')
+            result = wagtail_embedly('http://www.example.com', embedly_key='foo')
             self.assertEqual(result, {'type': 'something else',
                                       'author_name': 'Alice',
                                       'provider_name': 'Bob',
