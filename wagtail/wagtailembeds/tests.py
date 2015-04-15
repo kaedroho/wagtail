@@ -19,7 +19,6 @@ from django.test import TestCase
 from wagtail.tests.utils import WagtailTestUtils
 
 from wagtail.wagtailembeds.embeds import (
-    EmbedNotFoundException,
     EmbedlyException,
     AccessDeniedEmbedlyException,
     get_embed,
@@ -152,8 +151,7 @@ class TestEmbedly(TestCase):
                                    'url': 'http://www.example.com',
                                    'error': True,
                                    'error_code': 404}
-            self.assertRaises(EmbedNotFoundException,
-                              wagtail_embedly, 'http://www.example.com', embedly_key='foo')
+            self.assertIsNone(wagtail_embedly('http://www.example.com', embedly_key='foo'))
 
     def test_embedly_other_error(self):
         with patch('embedly.Embedly.oembed') as oembed:
@@ -218,13 +216,12 @@ class TestOembed(TestCase):
         self.dummy_response = DummyResponse()
 
     def test_oembed_invalid_provider(self):
-        self.assertRaises(EmbedNotFoundException, wagtail_oembed, "foo")
+        self.assertIsNone(wagtail_oembed("foo"))
 
     def test_oembed_invalid_request(self):
         config = {'side_effect': URLError('foo')}
         with patch.object(six.moves.urllib.request, 'urlopen', **config):
-            self.assertRaises(EmbedNotFoundException, wagtail_oembed,
-                              "http://www.youtube.com/watch/")
+            self.assertIsNone(wagtail_oembed("http://www.youtube.com/watch/"))
 
     @patch('six.moves.urllib.request.urlopen')
     @patch('json.loads')

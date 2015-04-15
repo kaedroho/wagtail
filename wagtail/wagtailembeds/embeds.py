@@ -50,7 +50,7 @@ def embedly(url, **kwargs):
         if oembed['error_code'] in [401, 403]:
             raise AccessDeniedEmbedlyException
         elif oembed['error_code'] == 404:
-            raise EmbedNotFoundException
+            return
         else:
             raise EmbedlyException
 
@@ -77,7 +77,7 @@ def oembed(url, **kwargs):
     # Find provider
     provider = get_oembed_provider(url)
     if provider is None:
-        raise EmbedNotFoundException
+        return
 
     # Work out params
     params = {'url': url, 'format': 'json'}
@@ -90,7 +90,7 @@ def oembed(url, **kwargs):
     try:
         r = urllib_request.urlopen(request)
     except URLError:
-        raise EmbedNotFoundException
+        return
     oembed = json.loads(r.read().decode('utf-8'))
 
     # Convert photos into HTML
@@ -136,6 +136,10 @@ def get_embed(url, max_width=None, finder=None):
     if not finder:
         finder = get_default_finder()
     embed_dict = finder(url, max_width=max_width)
+
+    # Raise exception if embed wasn't found
+    if embed_dict is None:
+        raise EmbedNotFoundException
 
     # Make sure width and height are valid integers before inserting into database
     try:
