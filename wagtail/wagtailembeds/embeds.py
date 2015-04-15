@@ -25,19 +25,23 @@ class AccessDeniedEmbedlyException(EmbedlyException):
     pass
 
 
-def embedly(url, max_width=None, key=None):
+def embedly(url, **kwargs):
     from embedly import Embedly
 
     # Get embedly key
-    if key is None:
+    if 'embedly_key' in kwargs:
+        key = kwargs['embedly_key']
+    elif 'key' in kwargs:
+        key = kwargs['key']
+    else:
         key = settings.EMBEDLY_KEY
 
     # Get embedly client
     client = Embedly(key=key)
 
     # Call embedly
-    if max_width is not None:
-        oembed = client.oembed(url, maxwidth=max_width, better=False)
+    if 'max_width' in kwargs:
+        oembed = client.oembed(url, maxwidth=kwargs['max_width'], better=False)
     else:
         oembed = client.oembed(url, better=False)
 
@@ -69,7 +73,7 @@ def embedly(url, max_width=None, key=None):
     }
 
 
-def oembed(url, max_width=None):
+def oembed(url, **kwargs):
     # Find provider
     provider = get_oembed_provider(url)
     if provider is None:
@@ -77,8 +81,8 @@ def oembed(url, max_width=None):
 
     # Work out params
     params = {'url': url, 'format': 'json'}
-    if max_width:
-        params['maxwidth'] = max_width
+    if 'max_width' in kwargs:
+        params['maxwidth'] = kwargs['max_width']
 
     # Perform request
     request = Request(provider + '?' + urlencode(params))
@@ -131,7 +135,7 @@ def get_embed(url, max_width=None, finder=None):
     # Get/Call finder
     if not finder:
         finder = get_default_finder()
-    embed_dict = finder(url, max_width)
+    embed_dict = finder(url, max_width=max_width)
 
     # Make sure width and height are valid integers before inserting into database
     try:
