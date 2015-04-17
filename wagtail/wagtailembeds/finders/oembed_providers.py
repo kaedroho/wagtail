@@ -322,5 +322,3 @@ def get_oembed_provider(url):
         for pattern in OEMBED_ENDPOINTS_COMPILED[endpoint]:
             if re.match(pattern, url):
                 return endpoint
-
-    return

@@ -18,13 +18,10 @@ from django.test import TestCase
 
 from wagtail.tests.utils import WagtailTestUtils
 
-from wagtail.wagtailembeds.embeds import (
-    EmbedlyException,
-    AccessDeniedEmbedlyException,
-    get_embed,
-    embedly as wagtail_embedly,
-    oembed as wagtail_oembed,
-)
+from wagtail.wagtailembeds.embeds import get_embed
+
+from wagtail.wagtailembeds.finders import embedly as wagtail_embedly, oembed as wagtail_oembed
+from wagtail.wagtailembeds.finders.embedly import EmbedlyException,AccessDeniedEmbedlyException
 from wagtail.wagtailembeds.templatetags.wagtailembeds_tags import embed as embed_filter
 from wagtail.wagtailembeds.blocks import EmbedBlock
 from wagtail.wagtailembeds.models import Embed
@@ -326,7 +323,7 @@ class TestMediaEmbedHandler(TestCase):
         self.assertEqual(result,
                          {'url': 'test-url'})
 
-    @patch('wagtail.wagtailembeds.embeds.oembed')
+    @patch('wagtail.wagtailembeds.finders.oembed.oembed')
     def test_expand_db_attributes_for_editor(self, oembed):
         oembed.return_value = {
             'title': 'test title',
@@ -349,7 +346,7 @@ class TestMediaEmbedHandler(TestCase):
         self.assertIn('<p>Author: test author name</p>', result)
         self.assertIn('<img src="test thumbnail url" alt="test title">', result)
 
-    @patch('wagtail.wagtailembeds.embeds.oembed')
+    @patch('wagtail.wagtailembeds.finders.oembed.oembed')
     def test_expand_db_attributes_not_for_editor(self, oembed):
         oembed.return_value = {
             'title': 'test title',
