@@ -1,3 +1,5 @@
+import types
+
 from django.utils.module_loading import import_string
 from django.conf import settings
 
@@ -31,7 +33,15 @@ def get_finders():
         for string in finder_strings
     ]
 
-    # Import each string and return
-    return [
+    # Import each string
+    finders = [
          import_string(string) for string in finder_strings
     ]
+
+    # If the finder is a module, look for its get_embed function
+    finders = [
+        finder.get_embed if isinstance(finder, types.ModuleType) else finder
+        for finder in finders
+    ]
+
+    return finders

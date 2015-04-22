@@ -9,7 +9,7 @@ class AccessDeniedEmbedlyException(EmbedlyException):
     pass
 
 
-def embedly(url, **kwargs):
+def get_embed(url, **kwargs):
     from embedly import Embedly
 
     # Get embedly key

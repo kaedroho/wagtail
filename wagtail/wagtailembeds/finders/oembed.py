@@ -10,7 +10,7 @@ from six.moves.urllib.parse import urlencode
 from wagtail.wagtailembeds.finders.oembed_providers import get_oembed_provider
 
 
-def oembed(url, **kwargs):
+def get_embed(url, **kwargs):
     # Find provider
     provider = get_oembed_provider(url)
     if provider is None:
