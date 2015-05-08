@@ -3,7 +3,7 @@ subpages to happen within the lightbox, and returning a response to the calling 
 possibly after several navigation steps
 */
 
-function ModalWorkflow(opts) {
+function ModalWorkflow(opts){
     /* options passed in 'opts':
         'url' (required): initial
         'responses' (optional): dict of callbacks to be called when the modal content
