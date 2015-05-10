@@ -2,6 +2,7 @@ import unicodecsv
 
 from django.db import transaction
 
+from wagtail.wagtailcore.models import Site
 from wagtail.wagtailredirects import models
 
 
@@ -9,7 +10,9 @@ class InvalidRedirectCSVException(Exception):
     pass
 
 
-def import_redirect_csv(f):
+def import_redirect_csv(f, site=None):
+    site = site or Site.objects.get(is_default_site=True)
+
     try:
         reader = unicodecsv.reader(f.read().decode('UTF-8').splitlines())
     except UnicodeDecodeError:
@@ -39,8 +42,29 @@ def import_redirect_csv(f):
         if not from_path.startswith('/'):
             raise InvalidRedirectCSVException("[ROW %d] From path must begin with a '/'." % reader.line_num)
 
-        # To URL must either be an internal link or a valid URL
+        # If the URL begins with /, treat it as internal
         to_url_is_external = not to_url.startswith('/')
 
+        # External URLs must begin with http:// or https://
         if to_url_is_external:
             pass # CHECK URL IS VALID
+
+        # Check if to_url points to a page
+        if not to_url_is_external:
+            to_page = None # TODO
+        else:
+            to_page = None
+
+        # Make the redirect
+        if to_page:
+            Redirect.objects.create(
+                old_path=from_path,
+                site=site,
+                redirect_page=to_page,
+            )
+        else:
+            Redirect.objects.create(
+                old_path=from_path,
+                site=site,
+                redirect_link=to_url,
+            )
