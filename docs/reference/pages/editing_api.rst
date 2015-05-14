@@ -3,6 +3,8 @@
 Setting up the page editor interface
 ====================================
 
+.. module:: wagtail.wagtailadmin.edit_handlers
+
 Wagtail provides a highly-customizable editing interface consisting of several components:
 
   * **Fields** — built-in content types to augment the basic types provided by Django
@@ -20,21 +22,51 @@ A "panel" is the basic editing block in Wagtail. Wagtail will automatically pick
 
 There are four basic types of panels:
 
-  ``FieldPanel( field_name, classname=None, widget=None )``
-    This is the panel used for basic Django field types. ``field_name`` is the name of the class property used in your model definition. ``classname`` is a string of optional CSS classes given to the panel which are used in formatting and scripted interactivity. By default, panels are formatted as inset fields. The CSS class ``full`` can be used to format the panel so it covers the full width of the Wagtail page editor. The CSS class ``title`` can be used to mark a field as the source for auto-generated slug strings. The optional ``widget`` parameter allows you to specify a `django form widget`_ to use instead of the default widget for this field type.
+FieldPanel
+----------
+
+.. class:: FieldPanel( field_name, classname=None, widget=None )
+
+    This is the panel used for basic Django field types.
+
+    .. attribute:: FieldPanel.field_name
+
+        This is the name of the class property used in your model definition.
+
+    .. attribute:: FieldPanel.classname
+
+        This is a string of optional CSS classes given to the panel which are used in formatting and scripted interactivity. By default, panels are formatted as inset fields.
+
+        The CSS class ``full`` can be used to format the panel so it covers the full width of the Wagtail page editor. The CSS class ``title`` can be used to mark a field as the source for auto-generated slug strings.
+
+    .. attribute:: widget
+
+        This parameter allows you to specify a `django form widget`_ to use instead of the default widget for this field type.
 
 .. _django form widget: https://docs.djangoproject.com/en/dev/ref/forms/widgets/
 
-  ``MultiFieldPanel( children, heading="", classname=None )``
-    This panel condenses several ``FieldPanel`` s or choosers, from a list or tuple, under a single ``heading`` string.
+MultiFieldPanel
+---------------
 
-  ``InlinePanel( relation_name, panels=None, classname=None, label='', help_text='' )``
+.. class:: MultiFieldPanel( children, heading="", classname=None )
+
+    This panel condenses several :class:`FieldPanel` s or choosers, from a ``list`` or ``tuple``, under a single ``heading`` string.
+
+InlinePanel
+-----------
+
+.. class:: InlinePanel( relation_name, panels=None, classname=None, label='', help_text='' )
+
     This panel allows for the creation of a "cluster" of related objects over a join to a separate model, such as a list of related links or slides to an image carousel. This is a very powerful, but tricky feature which will take some space to cover, so we'll skip over it for now. For a full explanation on the usage of ``InlinePanel``, see :ref:`inline_panels`.
 
-  ``FieldRowPanel( children, classname=None )``
-    This panel is purely aesthetic. It creates a columnar layout in the editing interface, where each of the child Panels appears alongside each other rather than below. Use of FieldRowPanel particularly helps reduce the "snow-blindness" effect of seeing so many fields on the page, for complex models. It also improves the perceived association between fields of a similar nature. For example if you created a model representing an "Event" which had a starting date and ending date, it may be intuitive to find the start and end date on the same "row".
+FieldRowPanel
+-------------
 
-    FieldRowPanel should be used in combination with ``col*`` classnames added to each of the child Panels of the FieldRowPanel. The Wagtail editing interface is layed out using a grid system, in which the maximum width of the editor is 12 columns wide. Classes ``col1``-``col12`` can be applied to each child of a FieldRowPanel. The class ``col3`` will ensure that field appears 3 columns wide or a quarter the width. ``col4`` would cause the field to be 4 columns wide, or a third the width.
+.. class:: FieldRowPanel( children, classname=None )
+
+    This panel is purely aesthetic. It creates a columnar layout in the editing interface, where each of the child Panels appears alongside each other rather than below. Use of :class:`FieldRowPanel` particularly helps reduce the "snow-blindness" effect of seeing so many fields on the page, for complex models. It also improves the perceived association between fields of a similar nature. For example if you created a model representing an "Event" which had a starting date and ending date, it may be intuitive to find the start and end date on the same "row".
+
+    class:`FieldRowPanel` should be used in combination with ``col*`` classnames added to each of the child Panels of the :class:`FieldRowPanel`. The Wagtail editing interface is layed out using a grid system, in which the maximum width of the editor is 12 columns wide. Classes ``col1``-``col12`` can be applied to each child of a FieldRowPanel. The class ``col3`` will ensure that field appears 3 columns wide or a quarter the width. ``col4`` would cause the field to be 4 columns wide, or a third the width.
 
   **(In addition to these four, there are also Chooser Panels, detailed below.)**
 
@@ -77,13 +109,13 @@ Let's look at an example of a panel definition:
     MultiFieldPanel(COMMON_PANELS, "Common page configuration"),
   ]
 
-After the ``Page``-derived class definition, just add lists of panel definitions to order and organize the Wagtail page editing interface for your model.
+After the :class:`~wagtail.wagtailcore.models.Page`-derived class definition, just add lists of panel definitions to order and organize the Wagtail page editing interface for your model.
 
 
 Built-in Fields and Choosers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Django's field types are automatically recognized and provided with an appropriate widget for input. Just define that field the normal Django way and pass the field name into ``FieldPanel()`` when defining your panels. Wagtail will take care of the rest.
+Django's field types are automatically recognized and provided with an appropriate widget for input. Just define that field the normal Django way and pass the field name into :class:`FieldPanel` when defining your panels. Wagtail will take care of the rest.
 
 Here are some Wagtail-specific types that you might include as fields in your models.
 
@@ -91,53 +123,104 @@ Here are some Wagtail-specific types that you might include as fields in your mo
 Rich Text (HTML)
 ----------------
 
-Wagtail provides a general-purpose WYSIWYG editor for creating rich text content (HTML) and embedding media such as images, video, and documents. To include this in your models, use the ``RichTextField()`` function when defining a model field:
+.. class:: wagtail.wagtailcore.fields.RichTextField
 
-.. code-block:: python
+    Wagtail provides a general-purpose WYSIWYG editor for creating rich text content (HTML) and embedding media such as images, video, and documents. To include this in your models, use the :class:`RichTextField` function when defining a model field:
 
-  from wagtail.wagtailcore.fields import RichTextField
-  from wagtail.wagtailadmin.edit_handlers import FieldPanel
-  # ...
-  class BookPage(Page):
-    book_text = RichTextField()
+    .. code-block:: python
 
-  BookPage.content_panels = [
-    FieldPanel('body', classname="full"),
-    # ...
-  ]
+        from wagtail.wagtailcore.fields import RichTextField
+        from wagtail.wagtailadmin.edit_handlers import FieldPanel
 
-``RichTextField`` inherits from Django's basic ``TextField`` field, so you can pass any field parameters into ``RichTextField`` as if using a normal Django field. This field does not need a special panel and can be defined with ``FieldPanel``.
 
-However, template output from ``RichTextField`` is special and need to be filtered to preserve embedded content. See :ref:`rich-text-filter`.
+        class BookPage(Page):
+            book_text = RichTextField()
+
+
+            content_panels = [
+                FieldPanel('body', classname="full"),
+            ]
+
+:class:`RichTextField` inherits from Django's basic :class:`TextField` field, so you can pass any field parameters into :class:`RichTextField` as if using a normal Django field. This field does not need a special panel and can be defined with :class:`FieldPanel`.
+
+However, template output from :class:`RichTextField` is special and need to be filtered to preserve embedded content. See :ref:`rich-text-filter`.
 
 If you're interested in extending the capabilities of the Wagtail WYSIWYG editor (hallo.js), See :ref:`extending_wysiwyg`.
 
+PageChooserPanel
+----------------
+
+.. class:: PageChooserPanel( field_name, model=None )
+
+    You can explicitly link :class:`~wagtail.wagtailcore.models.Page`-derived models together using the :class:`~wagtail.wagtailcore.models.Page` model and :class:`PageChooserPanel`.
+
+    .. attribute:: PageChooserPanel.field_name
+
+        This is the name of the class property used in your model definition.
+
+    .. attribute:: PageChooserPanel.model (optional)
+
+        A model class or a dotted path (``app_name.ModelName``) to a model class.
+
+        When set, the chooser will only show pages of the specified type.
+
+    .. code-block:: python
+
+        from wagtail.wagtailcore.models import Page
+        from wagtail.wagtailadmin.edit_handlers import PageChooserPanel
+
+
+        class BookPage(Page):
+            publisher = models.ForeignKey(
+                'wagtailcore.Page',
+                null=True,
+                blank=True,
+                on_delete=models.SET_NULL,
+                related_name='+',
+          )
+
+        BookPage.content_panels = [
+            PageChooserPanel('related_page', 'demo.PublisherPage'),
+        ]
 
 Images
 ------
 
-One of the features of Wagtail is a unified image library, which you can access in your models through the ``Image`` model and the ``ImageChooserPanel`` chooser. Here's how:
+.. module:: wagtail.wagtailimages.edit_handlers
 
-.. code-block:: python
+.. class:: ImageChooserPanel( field_name )
 
-  from wagtail.wagtailimages.models import Image
-  from wagtail.wagtailimages.edit_handlers import ImageChooserPanel
-  # ...
-  class BookPage(Page):
-    cover = models.ForeignKey(
-      'wagtailimages.Image',
-      null=True,
-      blank=True,
-      on_delete=models.SET_NULL,
-      related_name='+'
-    )
+    One of the features of Wagtail is a unified image library, which you can access in your models through the :class:`~wagtail.wagtailimages.models.Image` model and the :class:`ImageChooserPanel` chooser.
 
-  BookPage.content_panels = [
-    ImageChooserPanel('cover'),
-    # ...
-  ]
+    .. attribute:: ImageChooserPanel.field_name
 
-Django's default behavior is to "cascade" deletions through a ForeignKey relationship, which is probably not what you want happening. This is why the ``null``, ``blank``, and ``on_delete`` parameters should be set to allow for an empty field. (See `Django model field reference (on_delete)`_ ). ``ImageChooserPanel`` takes only one argument: the name of the field.
+        This is the name of the class property used in your model definition.
+
+    Example:
+
+    .. code-block:: python
+
+      from wagtail.wagtailimages.models import Image
+      from wagtail.wagtailimages.edit_handlers import ImageChooserPanel
+
+
+      class BookPage(Page):
+          cover = models.ForeignKey(
+              'wagtailimages.Image',
+              null=True,
+              blank=True,
+              on_delete=models.SET_NULL,
+              related_name='+'
+          )
+
+      BookPage.content_panels = [
+          ImageChooserPanel('cover'),
+      ]
+
+.. warning::
+
+    Django's default behavior is to "cascade" deletions through a :class:`ForeignKey` relationship, which is probably not what you want happening. This is why the :attr:`~ForeignKey.null`, :attr:`~ForeignKey.blank`, and :attr:`~ForeignKey.on_delete` parameters should be set to allow for an empty field. (See `Django model field reference (on_delete)`_ ).
+
 
 .. _Django model field reference (on_delete): https://docs.djangoproject.com/en/dev/ref/models/fields/#django.db.models.ForeignKey.on_delete
 
@@ -147,28 +230,35 @@ Displaying ``Image`` objects in a template requires the use of a template tag. S
 Documents
 ---------
 
-For files in other formats, Wagtail provides a generic file store through the ``Document`` model:
+.. module:: wagtail.wagtaildocs.edit_handlers
 
-.. code-block:: python
+.. class:: DocumentChooserPanel( field_name )
 
-  from wagtail.wagtaildocs.models import Document
-  from wagtail.wagtaildocs.edit_handlers import DocumentChooserPanel
-  # ...
-  class BookPage(Page):
-    book_file = models.ForeignKey(
-      'wagtaildocs.Document',
-      null=True,
-      blank=True,
-      on_delete=models.SET_NULL,
-      related_name='+'
-    )
+    For files in other formats, Wagtail provides a generic file store through the :class:`Document` model:
 
-  BookPage.content_panels = [
-    DocumentChooserPanel('book_file'),
-    # ...
-  ]
+    .. attribute:: DocumentChooserPanel.field_name
 
-As with images, Wagtail documents should also have the appropriate extra parameters to prevent cascade deletions across a ForeignKey relationship. ``DocumentChooserPanel`` takes only one argument: the name of the field.
+        This is the name of the class property used in your model definition.
+
+    .. code-block:: python
+
+        from wagtail.wagtaildocs.models import Document
+        from wagtail.wagtaildocs.edit_handlers import DocumentChooserPanel
+
+        class BookPage(Page):
+            book_file = models.ForeignKey(
+                'wagtaildocs.Document',
+                null=True,
+                blank=True,
+                on_delete=models.SET_NULL,
+                related_name='+'
+            )
+
+        BookPage.content_panels = [
+            DocumentChooserPanel('book_file'),
+        ]
+
+As with images, Wagtail documents should also have the appropriate extra parameters to prevent cascade deletions across a :class:`ForeignKey` relationship. :class:`DocumentChooserPanel` takes only one argument: the name of the field.
 
 Documents can be used directly in templates without tags or filters. Its properties are:
 
@@ -193,33 +283,6 @@ Documents can be used directly in templates without tags or filters. Its propert
     A ``TaggableManager`` which keeps track of tags associated with the document (uses the ``django-taggit`` module).
 
 
-Pages and Page-derived Models
------------------------------
-
-You can explicitly link ``Page``-derived models together using the ``Page`` model and ``PageChooserPanel``.
-
-.. code-block:: python
-
-  from wagtail.wagtailcore.models import Page
-  from wagtail.wagtailadmin.edit_handlers import PageChooserPanel
-  # ...
-  class BookPage(Page):
-    publisher = models.ForeignKey(
-      'wagtailcore.Page',
-      null=True,
-      blank=True,
-      on_delete=models.SET_NULL,
-      related_name='+',
-    )
-
-  BookPage.content_panels = [
-    PageChooserPanel('related_page', 'demo.PublisherPage'),
-    # ...
-  ]
-
-``PageChooserPanel`` takes two arguments: a field name and an optional page type. Specifying a page type (in the form of an ``"appname.modelname"`` string) will filter the chooser to display only pages of that type.
-
-
 Snippets
 --------
 
@@ -227,21 +290,21 @@ Snippets are vanilla Django models you create yourself without a Wagtail-provide
 
 .. code-block:: python
 
-  from wagtail.wagtailsnippets.edit_handlers import SnippetChooserPanel
-  # ...
-  class BookPage(Page):
-    advert = models.ForeignKey(
-      'demo.Advert',
-      null=True,
-      blank=True,
-      on_delete=models.SET_NULL,
-      related_name='+'
-    )
+    from wagtail.wagtailsnippets.edit_handlers import SnippetChooserPanel
 
-  BookPage.content_panels = [
-    SnippetChooserPanel('advert', Advert),
-    # ...
-  ]
+
+    class BookPage(Page):
+        advert = models.ForeignKey(
+            'demo.Advert',
+            null=True,
+            blank=True,
+            on_delete=models.SET_NULL,
+            related_name='+'
+        )
+
+    BookPage.content_panels = [
+        SnippetChooserPanel('advert', Advert),
+    ]
 
 See :ref:`snippets` for more information.
 
