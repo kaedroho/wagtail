@@ -101,7 +101,6 @@ INSTALLED_APPS = (
     'wagtail.contrib.wagtailapi',
     'wagtail.tests.testapp',
     'wagtail.tests.demosite',
-    'wagtail.tests.customuser',
     'wagtail.tests.snippets',
     'wagtail.tests.routablepage',
     'wagtail.tests.search',
@@ -135,8 +134,6 @@ WAGTAILSEARCH_BACKENDS = {
         'BACKEND': 'wagtail.wagtailsearch.backends.db.DBSearch',
     }
 }
-
-AUTH_USER_MODEL = 'customuser.CustomUser'
 
 try:
     # Only add Elasticsearch backend if the elasticsearch-py library is installed
