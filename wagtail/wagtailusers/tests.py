@@ -2,8 +2,9 @@ from __future__ import unicode_literals
 
 import unittest
 import six
+import datetime
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.core.urlresolvers import reverse
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
@@ -14,11 +15,25 @@ from wagtail.wagtailusers.models import UserProfile
 from wagtail.wagtailcore.models import Page, GroupPagePermission
 
 
+def create_user(**kwargs):
+    User = get_user_model()
+
+    if User.USERNAME_FIELD == 'email':  # Custom user
+        # No username field
+        kwargs.pop('username')
+
+        # Required date_of_birth field
+        kwargs.setdefault('date_of_birth', datetime.date(1993, 8, 19))
+
+    return User._default_manager.create_user(**kwargs)
+
+
 class TestUserIndexView(TestCase, WagtailTestUtils):
     def setUp(self):
         # create a user that should be visible in the listing
-        self.test_user = get_user_model().objects.create_user(username='testuser', email='testuser@email.com', password='password')
+        self.test_user = create_user(username='testuser', email='testuser@email.com', password='password')
         self.login()
+        print(get_user_model())
 
     def get(self, params={}):
         return self.client.get(reverse('wagtailusers_users_index'), params)
@@ -31,7 +46,7 @@ class TestUserIndexView(TestCase, WagtailTestUtils):
 
     def test_allows_negative_ids(self):
         # see https://github.com/torchbox/wagtail/issues/565
-        get_user_model().objects.create_user('guardian', 'guardian@example.com', 'gu@rd14n', id=-1)
+        create_user(username='guardian', email='guardian@example.com', password='gu@rd14n', id=-1)
         response = self.get()
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'testuser')
@@ -86,7 +101,7 @@ class TestUserCreateView(TestCase, WagtailTestUtils):
 class TestUserEditView(TestCase, WagtailTestUtils):
     def setUp(self):
         # Create a user to edit
-        self.test_user = get_user_model().objects.create_user(username='testuser', email='testuser@email.com', password='password')
+        self.test_user = create_user(username='testuser', email='testuser@email.com', password='password')
 
         # Login
         self.login()
@@ -140,7 +155,7 @@ class TestUserEditView(TestCase, WagtailTestUtils):
 class TestUserProfileCreation(TestCase, WagtailTestUtils):
     def setUp(self):
         # Create a user
-        self.test_user = get_user_model().objects.create_user(username='testuser', email='testuser@email.com', password='password')
+        self.test_user = create_user(username='testuser', email='testuser@email.com', password='password')
 
     def test_user_created_without_profile(self):
         self.assertEqual(UserProfile.objects.filter(user=self.test_user).count(), 0)
@@ -434,3 +449,18 @@ class TestGroupEditView(TestCase, WagtailTestUtils):
         # See that the non-registered permission is still there
         self.assertEqual(self.test_group.permissions.count(), 1)
         self.assertEqual(self.test_group.permissions.all()[0], self.non_registered_perm)
+
+
+@override_settings(AUTH_USER_MODEL='customuser.CustomUser')
+class TestUserIndexViewWithCustomUser(TestUserIndexView):
+    pass
+
+
+@override_settings(AUTH_USER_MODEL='customuser.CustomUser')
+class TestUserCreateViewWithCustomUser(TestUserIndexView):
+    pass
+
+
+@override_settings(AUTH_USER_MODEL='customuser.CustomUser')
+class TestUserEditViewWithCustomUser(TestUserIndexView):
+    pass

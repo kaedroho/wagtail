@@ -1,47 +1,111 @@
+# Pinched from: https://github.com/django/django/blob/5ab327a3894c26f57baabe14084bcce2a71b8af8/django/contrib/auth/tests/custom_user.py
+
+from django.contrib.auth.models import (
+    AbstractBaseUser, AbstractUser, BaseUserManager, Group, Permission,
+    PermissionsMixin, UserManager,
+)
 from django.db import models
 
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 
-
+# The custom User uses email as the unique identifier, and requires
+# that every user provide a date of birth. This lets us test
+# changes in username datatype, and non-text required fields.
 class CustomUserManager(BaseUserManager):
-    def _create_user(self, username, email, password,
-                     is_staff, is_superuser, **extra_fields):
+    def create_user(self, email, date_of_birth, password=None):
         """
-        Creates and saves a User with the given username, email and password.
+        Creates and saves a User with the given email and password.
         """
-        if not username:
-            raise ValueError('The given username must be set')
-        email = self.normalize_email(email)
-        user = self.model(username=username, email=email,
-                          is_staff=is_staff, is_active=True,
-                          is_superuser=is_superuser, **extra_fields)
+        if not email:
+            raise ValueError('Users must have an email address')
+
+        user = self.model(
+            email=self.normalize_email(email),
+            date_of_birth=date_of_birth,
+        )
+
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_user(self, username, email=None, password=None, **extra_fields):
-        return self._create_user(username, email, password, False, False,
-                                 **extra_fields)
-
-    def create_superuser(self, username, email, password, **extra_fields):
-        return self._create_user(username, email, password, True, True,
-                                 **extra_fields)
+    def create_superuser(self, email, password, date_of_birth):
+        u = self.create_user(email, password=password, date_of_birth=date_of_birth)
+        u.is_superuser = True
+        u.save(using=self._db)
+        return u
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
-    username = models.CharField(max_length=100, unique=True)
-    email = models.EmailField(max_length=255, blank=True)
-    is_staff = models.BooleanField(default=True)
+    email = models.EmailField(verbose_name='email address', max_length=255, unique=True)
     is_active = models.BooleanField(default=True)
-    first_name = models.CharField(max_length=50, blank=True)
-    last_name = models.CharField(max_length=50, blank=True)
+    date_of_birth = models.DateField()
 
-    USERNAME_FIELD = 'username'
+    custom_objects = CustomUserManager()
 
-    objects = CustomUserManager()
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['date_of_birth']
 
     def get_full_name(self):
-        return self.first_name + ' ' + self.last_name
+        return self.email
 
     def get_short_name(self):
-        return self.first_name
+        return self.email
+
+    def __unicode__(self):
+        return self.email
+
+    # Maybe required?
+    def get_group_permissions(self, obj=None):
+        return set()
+
+    def get_all_permissions(self, obj=None):
+        return set()
+
+    def has_perm(self, perm, obj=None):
+        return True
+
+    def has_perms(self, perm_list, obj=None):
+        return True
+
+    def has_module_perms(self, app_label):
+        return True
+
+    # Admin required fields
+    @property
+    def is_staff(self):
+        return self.is_superuser
+
+    class Meta:
+        swappable = 'AUTH_USER_MODEL'
+
+
+class RemoveGroupsAndPermissions(object):
+    """
+    A context manager to temporarily remove the groups and user_permissions M2M
+    fields from the AbstractUser class, so they don't clash with the
+    related_name sets.
+    """
+    def __enter__(self):
+        self._old_au_local_m2m = AbstractUser._meta.local_many_to_many
+        self._old_pm_local_m2m = PermissionsMixin._meta.local_many_to_many
+        groups = models.ManyToManyField(Group, blank=True)
+        groups.contribute_to_class(PermissionsMixin, "groups")
+        user_permissions = models.ManyToManyField(Permission, blank=True)
+        user_permissions.contribute_to_class(PermissionsMixin, "user_permissions")
+        PermissionsMixin._meta.local_many_to_many = [groups, user_permissions]
+        AbstractUser._meta.local_many_to_many = [groups, user_permissions]
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        AbstractUser._meta.local_many_to_many = self._old_au_local_m2m
+        PermissionsMixin._meta.local_many_to_many = self._old_pm_local_m2m
+
+
+# The extension user is a simple extension of the built-in user class,
+# adding a required date_of_birth field. This allows us to check for
+# any hard references to the name "User" in forms/handlers etc.
+with RemoveGroupsAndPermissions():
+    class ExtensionUser(AbstractUser):
+        date_of_birth = models.DateField()
+
+        custom_objects = UserManager()
+
+        REQUIRED_FIELDS = AbstractUser.REQUIRED_FIELDS + ['date_of_birth']

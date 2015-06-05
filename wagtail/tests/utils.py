@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 import warnings
 import sys
+import datetime
 
 from django.contrib.auth import get_user_model
 from django.utils import six
@@ -8,11 +9,17 @@ from django.utils import six
 
 class WagtailTestUtils(object):
     def login(self):
-        # Create a user
-        user = get_user_model().objects.create_superuser(username='test', email='test@email.com', password='password')
+        User = get_user_model()
 
-        # Login
-        self.client.login(username='test', password='password')
+        # Create user and login
+        if User.USERNAME_FIELD == 'username':
+            # Normal user
+            user = User._default_manager.create_superuser(username='test', email='test@email.com', password='password')
+            self.client.login(username='test', password='password')
+        else:
+            # Custom user
+            user = User._default_manager.create_superuser(email='test@email.com', password='password', date_of_birth=datetime.date(2005, 7, 1))
+            self.client.login(username='test@email.com', password='password')
 
         return user
 
