@@ -12,7 +12,6 @@ from wagtail.wagtailadmin.forms import SearchForm
 from wagtail.wagtailusers.forms import get_user_creation_form, get_user_edit_form
 from wagtail.wagtailcore.compat import AUTH_USER_APP_LABEL, AUTH_USER_MODEL_NAME
 
-User = get_user_model()
 
 # Typically we would check the permission 'auth.change_user' for user
 # management actions, but this may vary according to the AUTH_USER_MODEL
@@ -23,6 +22,8 @@ change_user_perm = "{0}.change_{1}".format(AUTH_USER_APP_LABEL, AUTH_USER_MODEL_
 @permission_required(change_user_perm)
 @vary_on_headers('X-Requested-With')
 def index(request):
+    User = get_user_model()
+
     q = None
     p = request.GET.get("p", 1)
     is_searching = False
@@ -79,6 +80,7 @@ def index(request):
 
 @permission_required(change_user_perm)
 def create(request):
+    User = get_user_model()
     UserCreationForm = get_user_creation_form(User)
 
     if request.POST:
@@ -101,6 +103,7 @@ def create(request):
 
 @permission_required(change_user_perm)
 def edit(request, user_id):
+    User = get_user_model()
     UserEditForm = get_user_edit_form(User)
 
     user = get_object_or_404(User, id=user_id)
