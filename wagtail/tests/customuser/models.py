@@ -29,15 +29,14 @@ class CustomUserManager(BaseUserManager):
 
     def create_superuser(self, email, password, date_of_birth):
         u = self.create_user(email, password=password, date_of_birth=date_of_birth)
-        u.is_admin = True
+        u.is_superuser = True
         u.save(using=self._db)
         return u
 
 
-class CustomUser(AbstractBaseUser):
+class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(verbose_name='email address', max_length=255, unique=True)
     is_active = models.BooleanField(default=True)
-    is_admin = models.BooleanField(default=False)
     date_of_birth = models.DateField()
 
     custom_objects = CustomUserManager()
@@ -73,7 +72,10 @@ class CustomUser(AbstractBaseUser):
     # Admin required fields
     @property
     def is_staff(self):
-        return self.is_admin
+        return self.is_superuser
+
+    class Meta:
+        swappable = 'AUTH_USER_MODEL'
 
 
 class RemoveGroupsAndPermissions(object):
