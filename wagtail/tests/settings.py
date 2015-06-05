@@ -100,6 +100,7 @@ INSTALLED_APPS = (
     'wagtail.contrib.wagtailfrontendcache',
     'wagtail.contrib.wagtailapi',
     'wagtail.tests.testapp',
+    'wagtail.tests.customuser',
     'wagtail.tests.demosite',
     'wagtail.tests.snippets',
     'wagtail.tests.routablepage',
