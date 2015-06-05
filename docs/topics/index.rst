@@ -5,7 +5,7 @@ Topics
 .. toctree::
     :maxdepth: 2
 
-    theory
+    overview
     creating_pages
     writing_templates
     images/index
