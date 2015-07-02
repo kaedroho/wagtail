@@ -71,6 +71,8 @@ class AbstractImage(models.Model, TagSearchable):
     focal_point_width = models.PositiveIntegerField(null=True, blank=True)
     focal_point_height = models.PositiveIntegerField(null=True, blank=True)
 
+    file_sha = models.CharField(max_length=40, default='', editable=False)
+
     def get_usage(self):
         return get_object_usage(self)
 
