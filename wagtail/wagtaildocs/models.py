@@ -16,16 +16,7 @@ from django.utils.encoding import python_2_unicode_compatible
 from wagtail.wagtailadmin.taggable import TagSearchable
 from wagtail.wagtailadmin.utils import get_object_usage
 from wagtail.wagtailsearch import index
-from wagtail.wagtailsearch.backends import get_search_backend
-
-
-class DocumentQuerySet(models.QuerySet):
-    def search(self, query_string, fields=None, backend='default'):
-        """
-        This runs a search query on all the documents in the QuerySet
-        """
-        search_backend = get_search_backend(backend)
-        return search_backend.search(query_string, self, fields=fields)
+from wagtail.wagtailsearch.query import SearchableQuerySet
 
 
 @python_2_unicode_compatible
@@ -37,7 +28,7 @@ class Document(models.Model, TagSearchable):
 
     tags = TaggableManager(help_text=None, blank=True, verbose_name=_('Tags'))
 
-    objects = DocumentQuerySet.as_manager()
+    objects = SearchableQuerySet.as_manager()
 
     search_fields = TagSearchable.search_fields + (
         index.FilterField('uploaded_by_user'),
