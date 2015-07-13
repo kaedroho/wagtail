@@ -91,10 +91,15 @@ class RelatedDjangoAPIField(DjangoAPIField):
 
 
 class APIFields(OrderedDict):
-    def get_api_data(self, obj, fields):
+    def get_api_data(self, obj, field_names=None):
+        if field_names is not None:
+            fields = [self[field_name] for field_name in field_names]
+        else:
+            fields = self.values()
+
         return OrderedDict([
             (field.field_name, field.get_api_data(obj))
-            for field in self.values()
+            for field in fields
         ])
 
 
