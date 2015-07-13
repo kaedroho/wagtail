@@ -131,7 +131,7 @@ def get_api_fields(model, fields):
         except models.fields.FieldDoesNotExist:
             pass
 
-        api_fields[field] = APIField(model, field_name)
+        api_fields[field_name] = APIField(model, field_name)
 
     return api_fields
 
