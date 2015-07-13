@@ -68,7 +68,7 @@ class ChildRelationAPIField(APIField):
 
 class DjangoAPIField(APIField):
     def __init__(self, model, field_name, field):
-        super(ChildRelationAPIField, self).__init__(model, field_name)
+        super(DjangoAPIField, self).__init__(model, field_name)
         self.field = field
 
     def get_api_data(self, obj):
