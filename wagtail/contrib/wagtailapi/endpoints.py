@@ -96,8 +96,10 @@ class APIField(object):
 
 class APIFields(OrderedDict):
     def get_api_data(self, obj, fields):
-        for field in fields:
-            yield field, self[field].get_api_data(obj)
+        return OrderedDict([
+            (field.field_name, field.get_api_data(obj))
+            for field in self.values()
+        ])
 
 
 def get_api_fields(model, fields):
@@ -110,7 +112,7 @@ def get_api_fields(model, fields):
 
 
 def get_api_data(obj, fields):
-    yield from get_api_fields(obj.__class__, fields).get_api_data(obj, fields)
+    yield from get_api_fields(obj.__class__, fields).get_api_data(obj, fields).items()
 
 
 class BaseAPIEndpoint(object):
