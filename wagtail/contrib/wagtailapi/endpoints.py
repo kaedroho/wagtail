@@ -94,18 +94,29 @@ class APIField(object):
             return force_text(value, strings_only=True)
 
 
+class APIFields(object):
+    def __init__(self, fields):
+        self.fields_dict = {
+            field.field_name: field
+            for field in fields
+        }
+
+    def get_api_data(self, obj, fields):
+        for field in fields:
+            yield field, self.fields_dict[field].get_api_data(obj)
+
+
 def get_api_fields(model, fields):
     api_fields = []
 
     for field in fields:
         api_fields.append(APIField(model, field))
 
-    return api_fields
+    return APIFields(api_fields)
 
 
 def get_api_data(obj, fields):
-    for field in get_api_fields(obj.__class__, fields):
-        yield field.field_name, field.get_api_data(obj)
+    yield from get_api_fields(obj.__class__, fields).get_api_data(obj, fields)
 
 
 class BaseAPIEndpoint(object):
