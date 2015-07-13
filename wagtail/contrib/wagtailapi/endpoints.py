@@ -49,49 +49,45 @@ class APIField(object):
         self.field_name = field_name
 
     def get_api_data(self, obj):
-        # Check child relations
-        child_relations = {}
-        if isinstance(obj, Page):
-            child_relations = {
-                child_relation.field.rel.related_name: get_related_model(child_relation)
-                for child_relation in get_all_child_relations(type(obj))
-            }
-
-        if self.field_name in child_relations and hasattr(child_relations[self.field_name], 'api_fields'):
-            return [
-                dict(get_api_data(child_object, child_relations[self.field_name].api_fields))
-                for child_object in getattr(obj, self.field_name).all()
-            ]
-
-        # Check django fields
-        try:
-            field = obj._meta.get_field(self.field_name)
-
-            if field.rel and isinstance(field.rel, models.ManyToOneRel):
-                # Foreign key
-                val = field._get_val_from_obj(obj)
-
-                if val:
-                    return OrderedDict([
-                        ('id', field._get_val_from_obj(obj)),
-                        ('meta', OrderedDict([
-                             ('type', field.rel.to._meta.app_label + '.' + field.rel.to.__name__),
-                             ('detail_url', ObjectDetailURL(field.rel.to, val)),
-                        ])),
-                    ])
-                else:
-                    return
-            else:
-                return field._get_val_from_obj(obj)
-
-            return
-        except models.fields.FieldDoesNotExist:
-            pass
-
-        # Check attributes
         if hasattr(obj, self.field_name):
             value = getattr(obj, self.field_name)
             return force_text(value, strings_only=True)
+
+
+class ChildRelationAPIField(APIField):
+    def __init__(self, model, field_name, related_model):
+        super(ChildRelationAPIField, self).__init__(model, field_name)
+        self.related_model = related_model
+
+    def get_api_data(self, obj):
+        return [
+            dict(get_api_data(child_object, self.related_model.api_fields))
+            for child_object in getattr(obj, self.field_name).all()
+        ]
+
+
+class DjangoAPIField(APIField):
+    def __init__(self, model, field_name, field):
+        super(ChildRelationAPIField, self).__init__(model, field_name)
+        self.field = field
+
+    def get_api_data(self, obj):
+        return self.field._get_val_from_obj(obj)
+
+
+class RelatedDjangoAPIField(DjangoAPIField):
+    def get_api_data(self, obj):
+        # Foreign key
+        val = self.field._get_val_from_obj(obj)
+
+        if val:
+            return OrderedDict([
+                ('id', val),
+                ('meta', OrderedDict([
+                     ('type', self.field.rel.to._meta.app_label + '.' + self.field.rel.to.__name__),
+                     ('detail_url', ObjectDetailURL(self.field.rel.to, val)),
+                ])),
+            ])
 
 
 class APIFields(OrderedDict):
@@ -105,8 +101,32 @@ class APIFields(OrderedDict):
 def get_api_fields(model, fields):
     api_fields = APIFields()
 
-    for field in fields:
-        api_fields[field] = APIField(model, field)
+    for field_name in fields:
+        # Check if the field is a child relation
+        child_relations = {}
+        if issubclass(model, Page):
+            child_relations = {
+                child_relation.field.rel.related_name: get_related_model(child_relation)
+                for child_relation in get_all_child_relations(model)
+            }
+
+        if field_name in child_relations and hasattr(child_relations[field_name], 'api_fields'):
+            api_fields[field_name] = ChildRelationAPIField(model, field_name, child_relations[field_name])
+            continue
+
+        # Check if the field is a django field
+        try:
+            field = model._meta.get_field(field_name)
+
+            if field.rel and isinstance(field.rel, models.ManyToOneRel):
+                api_fields[field_name] = RelatedDjangoAPIField(model, field_name, field)
+            else:
+                api_fields[field_name] = DjangoAPIField(model, field_name, field)
+            continue
+        except models.fields.FieldDoesNotExist:
+            pass
+
+        api_fields[field] = APIField(model, field_name)
 
     return api_fields
 
