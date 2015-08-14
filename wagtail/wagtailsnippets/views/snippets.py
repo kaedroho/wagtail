@@ -100,7 +100,9 @@ def list(request, content_type_app_name, content_type_model_name):
     # Search
     is_searchable = class_is_indexed(model)
     if is_searchable and 'q' in request.GET:
-        search_form = SearchForm(request.GET, placeholder=_("Search"))
+        search_form = SearchForm(request.GET, placeholder=_("Search %(snippet_type_name)s") % {
+            'snippet_type_name': snippet_type_name_plural
+        })
 
         if search_form.is_valid():
             search_query = search_form.cleaned_data['q']
@@ -109,7 +111,9 @@ def list(request, content_type_app_name, content_type_model_name):
             items = search_backend.search(search_query, items)
 
     else:
-        search_form = SearchForm(placeholder=_("Search"))
+        search_form = SearchForm(placeholder=_("Search %(snippet_type_name)s") % {
+            'snippet_type_name': snippet_type_name_plural
+        })
 
     # Pagination
     p = request.GET.get('p', 1)
