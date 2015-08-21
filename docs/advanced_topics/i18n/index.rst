@@ -14,7 +14,7 @@ Wagtail uses Django's `Internationalisation framework <https://docs.djangoprojec
 Wagtail admin translations
 ==========================
 
-The Wagtail admin backend has been translated into many different languages. You can find a list of currently available translations on Wagtails `Transifex page <https://www.transifex.com/torchbox/wagtail/>`_. (Note: if you're using an old version of Wagtail, this page may not accurately reflect what languages you have available).
+The Wagtail admin backend has been translated into many different languages. You can find a list of currently available translations on Wagtail's `Transifex page <https://www.transifex.com/torchbox/wagtail/>`_. (Note: if you're using an old version of Wagtail, this page may not accurately reflect what languages you have available).
 
 If your language isn't listed on that page, you can easily contribute new languages or correct mistakes. Sign up and submit changes to `Transifex <https://www.transifex.com/torchbox/wagtail/>`_. Translation updates are typically merged into an official release within one month of being submitted.
 
@@ -53,19 +53,19 @@ To enable multi-language support, add ``django.middleware.i18n.LocaleMiddleware`
         'django.middleware.i18n.LocaleMiddleware',
     )
 
-This middleware class looks at the users browser language and sets the `language of the site accordingly <https://docs.djangoproject.com/en/1.8/topics/i18n/translation/#how-django-discovers-language-preference>`_.
+This middleware class looks at the user's browser language and sets the `language of the site accordingly <https://docs.djangoproject.com/en/1.8/topics/i18n/translation/#how-django-discovers-language-preference>`_.
 
 
 Serving different languages from different URLs
 -----------------------------------------------
 
-The above will make Django switch to the language that the users browser is set to.
+The above will make Django switch to the language that the user's browser is set to.
 
 This has a couple of shortcomings:
  - You can't switch language without changing your browser settings
  - It may not work well with various caching setups (as content varies based on browser settings)
 
-If you need any of these, you can use Djangos ``i18n_patterns`` in your ``urls.py`` which puts the language code at the beginning of each URL (eg ``/en/about-us``):
+If you need any of these, you can use Django's ``i18n_patterns`` in your ``urls.py`` which puts the language code at the beginning of each URL (eg ``/en/about-us``):
 
 .. code-block:: python
 
@@ -103,9 +103,9 @@ You can implement switching between languages by changing the part at the beginn
 Translating templates
 ---------------------
 
-Static text in templates needs to be marked up in a way that allows Djangos ``makemessages`` command to find and export the strings for translators and also allow them to switch to translated versions on the fly.
+Static text in templates needs to be marked up in a way that allows Django's ``makemessages`` command to find and export the strings for translators and also allow them to switch to translated versions on the fly.
 
-As Wagtail uses Djangos templates, inserting this markup and the workflow for exporting and translating the strings is the same as any other Django project.
+As Wagtail uses Django's templates, inserting this markup and the workflow for exporting and translating the strings is the same as any other Django project.
 
 See: https://docs.djangoproject.com/en/1.8/topics/i18n/translation/#internationalization-in-template-code
 
@@ -113,9 +113,9 @@ See: https://docs.djangoproject.com/en/1.8/topics/i18n/translation/#internationa
 Translating content
 -------------------
 
-The most common approach for translating content in Wagtail to duplicate each translatable text field, providing a seprate field for each language.
+The most common approach for translating content in Wagtail is to duplicate each translatable text field, providing a separate field for each language.
 
-This section will descibe how to implement this method manually but there is a third party module you can use, `wagtail modeltranslation <https://github.com/infoportugal/wagtail-modeltranslation>`_, which may be quicker if it meets your needs.
+This section will describe how to implement this method manually but there is a third party module you can use, `wagtail modeltranslation <https://github.com/infoportugal/wagtail-modeltranslation>`_, which may be quicker if it meets your needs.
 
 
 **Duplicating the fields in your model**
