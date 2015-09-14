@@ -52,7 +52,10 @@ class DBSearchQuery(BaseSearchQuery):
                     # Filter on this field
                     term_query |= models.Q(**{'%s__icontains' % field_name: term})
 
-                q &= term_query
+                if self.operator == 'or':
+                    q |= term_query
+                elif self.operator == 'and':
+                    q &= term_query
 
         return q
 

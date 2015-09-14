@@ -16,10 +16,11 @@ class FieldError(Exception):
 
 
 class BaseSearchQuery(object):
-    def __init__(self, queryset, query_string, fields=None):
+    def __init__(self, queryset, query_string, fields=None, operator='or'):
         self.queryset = queryset
         self.query_string = query_string
         self.fields = fields
+        self.operator = operator
 
     def _get_searchable_field(self, field_attname):
         # Get field
@@ -200,7 +201,7 @@ class BaseSearch(object):
     def delete(self, obj):
         raise NotImplementedError
 
-    def search(self, query_string, model_or_queryset, fields=None, filters=None, prefetch_related=None):
+    def search(self, query_string, model_or_queryset, fields=None, filters=None, prefetch_related=None, operator='or'):
         # Find model/queryset
         if isinstance(model_or_queryset, QuerySet):
             model = model_or_queryset.model
@@ -226,6 +227,11 @@ class BaseSearch(object):
             for prefetch in prefetch_related:
                 queryset = queryset.prefetch_related(prefetch)
 
+        # Check operator
+        operator = operator.lower()
+        if operator not in ['or', 'and']:
+            raise ValueError("operator must be either 'or' or 'and'")
+
         # Search
-        search_query = self.search_query_class(queryset, query_string, fields=fields)
+        search_query = self.search_query_class(queryset, query_string, fields=fields, operator=operator)
         return self.search_results_class(self, search_query)

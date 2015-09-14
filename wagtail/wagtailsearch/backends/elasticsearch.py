@@ -254,6 +254,9 @@ class ElasticSearchQuery(BaseSearchQuery):
                         fields[0]: self.query_string,
                     }
                 }
+
+                if self.operator != 'or':
+                    query['match']['operator'] = self.operator
             else:
                 query = {
                     'multi_match': {
@@ -261,6 +264,9 @@ class ElasticSearchQuery(BaseSearchQuery):
                         'fields': fields,
                     }
                 }
+
+                if self.operator != 'or':
+                    query['multi_match']['operator'] = self.operator
         else:
             query = {
                 'match_all': {}
