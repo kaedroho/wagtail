@@ -128,6 +128,24 @@ Here's an example of using the "operator" keyword argument:
     [<Thing: Hello world>]
 
 
+Custom ordering
+^^^^^^^^^^^^^^^
+
+.. versionadded:: 1.2
+
+By default, search results are ordered by relevance, if the backend supports it. To order by a custom field, the ``order_by_relevance`` keyword argument needs to be set to ``False`` on the ``search()`` method.
+
+For example:
+
+.. code-block:: python
+
+    # Get a list of events ordered by date
+    >>> EventPage.objects.order_by('date').search("Event", order_by_relevance=False)
+
+    # Events ordered by date
+    [<EventPage: Easter>, <EventPage: Haloween>, <EventPage: Christmas>]
+
+
 .. _wagtailsearch_frontend_views:
 
 
