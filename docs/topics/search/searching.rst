@@ -85,6 +85,44 @@ This can be limited to a certian set of fields using the ``fields`` keyword argu
     [<EventPage: Event 1>, <EventPage: Event 2>]
 
 
+Changing search behaviour
+-------------------------
+
+Search operator
+^^^^^^^^^^^^^^^
+
+.. versionadded:: 1.2
+
+By default, search queries use the "or" operator meaning that records are returned if they match any of the search terms.
+
+The operator can be changed to "and", which requires all of the search terms to be matched in order for the result to be returned.
+
+For example:
+
+.. code-block:: python
+
+    # The database contains a "Thing" model with the following items:
+    # - Hello world
+    # - Hello
+    # - World
+
+
+    # Search with the "or" operator (default)
+    >>> s = get_search_backend()
+    >>> s.search("Hello world", Things)
+
+    # All records returned as they all contain either "hello" or "world"
+    [<Thing: Hello World>, <Thing: Hello>, <Thing: World>]
+
+
+    # Search with the "and" operator
+    >>> s = get_search_backend()
+    >>> s.search("Hello world", Things, operator="and")
+
+    # Only "hello world" returned as that's the only item that contains both terms
+    [<Thing: Hello World>]
+
+
 .. _wagtailsearch_frontend_views:
 
 
