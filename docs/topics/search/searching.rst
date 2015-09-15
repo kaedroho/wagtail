@@ -93,11 +93,16 @@ Search operator
 
 .. versionadded:: 1.2
 
-By default, search queries use the "or" operator meaning that records are returned if they match any of the search terms.
+The search operator specifies how search should behave when the user has typed in multiple search terms. There are two possible values:
 
-The operator can be changed to "and", which requires all of the search terms to be matched in order for the result to be returned.
+ - "or" - The results must match at least one term (default for Elasticsearch)
+ - "and" - The results must match all terms (default for database search)
 
-For example:
+Both operators have benefits and drawbacks. The "or" operator will return many more results but will likely contain a lot of results that aren't relevent. The "and" operator only returns results that contain all search terms, but require the user to be more precise with their query.
+
+We recommend using the "or" operator when ordering by relevance and the "and" operator when ordering by anything else (note: the database backend doesn't currently support ordering by relevance).
+
+Here's an example of using the "operator" keyword argument:
 
 .. code-block:: python
 
@@ -107,9 +112,9 @@ For example:
     # - World
 
 
-    # Search with the "or" operator (default)
+    # Search with the "or" operator
     >>> s = get_search_backend()
-    >>> s.search("Hello world", Things)
+    >>> s.search("Hello world", Things, operator="or")
 
     # All records returned as they all contain either "hello" or "world"
     [<Thing: Hello World>, <Thing: Hello>, <Thing: World>]
@@ -120,7 +125,7 @@ For example:
     >>> s.search("Hello world", Things, operator="and")
 
     # Only "hello world" returned as that's the only item that contains both terms
-    [<Thing: Hello World>]
+    [<Thing: Hello world>]
 
 
 .. _wagtailsearch_frontend_views:

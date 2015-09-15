@@ -4,6 +4,8 @@ from wagtail.wagtailsearch.backends.base import BaseSearch, BaseSearchQuery, Bas
 
 
 class DBSearchQuery(BaseSearchQuery):
+    DEFAULT_OPERATOR = 'and'
+
     def _process_lookup(self, field, lookup, value):
         return models.Q(**{field.get_attname(self.queryset.model) + '__' + lookup: value})
 

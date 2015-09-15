@@ -77,7 +77,7 @@ class BackendTests(WagtailTestUtils):
         self.assertEqual(set(results), {self.testa, self.testd.searchtest_ptr})
 
     def test_operator_or(self):
-        # This is the default. All records that match any term should be returned
+        # All records that match any term should be returned
         results = self.backend.search("Hello world", models.SearchTest, operator='or')
 
         self.assertEqual(set(results), {self.testa, self.testb, self.testc.searchtest_ptr, self.testd.searchtest_ptr})

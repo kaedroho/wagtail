@@ -16,11 +16,13 @@ class FieldError(Exception):
 
 
 class BaseSearchQuery(object):
-    def __init__(self, queryset, query_string, fields=None, operator='or'):
+    DEFAULT_OPERATOR = 'or'
+
+    def __init__(self, queryset, query_string, fields=None, operator=None):
         self.queryset = queryset
         self.query_string = query_string
         self.fields = fields
-        self.operator = operator
+        self.operator = operator or self.DEFAULT_OPERATOR
 
     def _get_searchable_field(self, field_attname):
         # Get field
@@ -201,7 +203,7 @@ class BaseSearch(object):
     def delete(self, obj):
         raise NotImplementedError
 
-    def search(self, query_string, model_or_queryset, fields=None, filters=None, prefetch_related=None, operator='or'):
+    def search(self, query_string, model_or_queryset, fields=None, filters=None, prefetch_related=None, operator=None):
         # Find model/queryset
         if isinstance(model_or_queryset, QuerySet):
             model = model_or_queryset.model

@@ -156,6 +156,8 @@ class ElasticSearchMapping(object):
 
 
 class ElasticSearchQuery(BaseSearchQuery):
+    DEFAULT_OPERATOR = 'or'
+
     def _process_lookup(self, field, lookup, value):
         # Get the name of the field in the index
         field_index_name = field.get_index_name(self.queryset.model)
