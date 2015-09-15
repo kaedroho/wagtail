@@ -245,8 +245,7 @@ class ElasticSearchQuery(BaseSearchQuery):
 
             return filter_out
 
-    def to_es(self):
-        # Query
+    def get_query(self):
         if self.query_string is not None:
             fields = self.fields or ['_all', '_partials']
 
@@ -274,7 +273,9 @@ class ElasticSearchQuery(BaseSearchQuery):
                 'match_all': {}
             }
 
-        # Filters
+        return query
+
+    def get_filters(self):
         filters = []
 
         # Filter by content type
@@ -289,15 +290,21 @@ class ElasticSearchQuery(BaseSearchQuery):
         if queryset_filters:
             filters.append(queryset_filters)
 
+        return filters
+
+    def get_filtered_query(self):
+        query = self.get_query()
+        filters = self.get_filters()
+
         if len(filters) == 1:
-            query = {
+            return {
                 'filtered': {
                     'query': query,
                     'filter': filters[0],
                 }
             }
         elif len(filters) > 1:
-            query = {
+            return {
                 'filtered': {
                     'query': query,
                     'filter': {
@@ -305,19 +312,38 @@ class ElasticSearchQuery(BaseSearchQuery):
                     }
                 }
             }
+        else:
+            return query
 
-        return query
+    def get_body(self):
+        return {
+            'query': self.get_filtered_query(),
+        }
 
     def __repr__(self):
-        return json.dumps(self.to_es())
+        return json.dumps(self.get_body())
+
+    # Backwards compatibility
+    def to_es(self):
+        # DEPRECATION WARNING
+        return self.get_filtered_query()
 
 
 class ElasticSearchResults(BaseSearchResults):
+    def _get_es_body(self):
+        if hasattr(self.query, 'get_body'):
+            return self.query.get_body()
+        else:
+            # DEPRECATION WARNING
+            return {
+                'query': self.to_es(),
+            }
+
     def _do_search(self):
         # Params for elasticsearch query
         params = dict(
             index=self.backend.es_index,
-            body=dict(query=self.query.to_es()),
+            body=self._get_es_body(),
             _source=False,
             fields='pk',
             from_=self.start,
@@ -351,7 +377,7 @@ class ElasticSearchResults(BaseSearchResults):
         # Get count
         hit_count = self.backend.es.count(
             index=self.backend.es_index,
-            body=dict(query=query),
+            body=self._get_es_body(),
         )['count']
 
         # Add limits
