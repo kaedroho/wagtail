@@ -230,9 +230,10 @@ class BaseSearch(object):
                 queryset = queryset.prefetch_related(prefetch)
 
         # Check operator
-        operator = operator.lower()
-        if operator not in ['or', 'and']:
-            raise ValueError("operator must be either 'or' or 'and'")
+        if operator is not None:
+            operator = operator.lower()
+            if operator not in ['or', 'and']:
+                raise ValueError("operator must be either 'or' or 'and'")
 
         # Search
         search_query = self.search_query_class(queryset, query_string, fields=fields, operator=operator)
