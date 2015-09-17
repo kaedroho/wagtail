@@ -315,10 +315,50 @@ class ElasticSearchQuery(BaseSearchQuery):
         else:
             return query
 
-    def get_body(self):
-        return {
+    def get_sort(self):
+        # Ordering by relevance is the default in Elasticsearch
+        if self.order_by_relevance:
+            return
+
+        # Get queryset and make sure its ordered
+        if self.queryset.ordered:
+            order_by_fields = self.queryset.query.order_by
+            sort = []
+
+            for order_by_field in order_by_fields:
+                reverse = False
+                field_name = order_by_field
+
+                if order_by_field.startswith('-'):
+                    reverse = True
+                    field_name = order_by_field[1:]
+
+                print(field_name)
+
+                field = self._get_filterable_field(field_name)
+                field_index_name = field.get_index_name(self.queryset.model)
+
+                sort.append({
+                    field_index_name: 'desc' if reverse else 'asc'
+                })
+
+            return sort
+
+        else:
+            # Order by pk field
+            return ['pk']
+
+    def get_body(self, for_count=False):
+        body = {
             'query': self.get_filtered_query(),
         }
+
+        sort = self.get_sort()
+
+        if sort and not for_count:
+            body['sort'] = sort
+
+        return body
 
     def __repr__(self):
         return json.dumps(self.get_body())
@@ -330,9 +370,9 @@ class ElasticSearchQuery(BaseSearchQuery):
 
 
 class ElasticSearchResults(BaseSearchResults):
-    def _get_es_body(self):
+    def _get_es_body(self, for_count=False):
         if hasattr(self.query, 'get_body'):
-            return self.query.get_body()
+            return self.query.get_body(for_count=for_count)
         else:
             # DEPRECATION WARNING
             return {
@@ -377,7 +417,7 @@ class ElasticSearchResults(BaseSearchResults):
         # Get count
         hit_count = self.backend.es.count(
             index=self.backend.es_index,
-            body=self._get_es_body(),
+            body=self._get_es_body(for_count=True),
         )['count']
 
         # Add limits
