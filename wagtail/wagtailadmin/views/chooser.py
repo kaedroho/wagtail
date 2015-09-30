@@ -119,7 +119,7 @@ def browse(request, parent_page_id=None):
     )
 
 
-def search(request, parent_page_id=None):
+def search(request):
     # A missing or empty page_type parameter indicates 'all page types' (i.e. descendants of wagtailcore.page)
     page_type_string = request.GET.get('page_type') or 'wagtailcore.page'
 
