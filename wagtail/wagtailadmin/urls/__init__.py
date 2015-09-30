@@ -24,7 +24,6 @@ urlpatterns = [
 
     # TODO: Move into wagtailadmin_pages namespace
     url(r'^choose-page/$', chooser.browse, name='wagtailadmin_choose_page'),
-    url(r'^choose-page/(\d+)/$', chooser.browse, name='wagtailadmin_choose_page_child'),
     url(r'^choose-page/search/$', chooser.search, name='wagtailadmin_choose_page_search'),
     url(r'^choose-external-link/$', chooser.external_link, name='wagtailadmin_choose_page_external_link'),
     url(r'^choose-email-link/$', chooser.email_link, name='wagtailadmin_choose_page_email_link'),
