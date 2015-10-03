@@ -38,6 +38,9 @@ class BaseAPIEndpoint(GenericViewSet):
         'fields',
         'order',
         'search',
+
+        # Required by BrowsableAPIRenderer
+        'format',
     ])
     extra_api_fields = []
     name = None  # Set on subclass.
