@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import json
 import six
 import warnings
+from collections import OrderedDict
 
 from django.utils.six.moves.urllib.parse import urlparse
 
@@ -433,6 +434,29 @@ class ElasticSearchResults(BaseSearchResults):
 
         return max(hit_count, 0)
 
+    def facet(self, field_name):
+        field = self.query._get_filterable_field(field_name)
+        field_index_name = field.get_index_name(self.query.queryset.model)
+
+        result = self.backend.es.search(
+            index=self.backend.es_index,
+            body={
+                'query': self.query.to_es(),
+                'facets': {
+                    field_name: {
+                        'terms': {
+                            'field': field_index_name
+                        }
+                    }
+                }
+            },
+            size=0
+        )
+
+        return OrderedDict([
+            (facet['term'], facet['count'])
+            for facet in result['facets'][field_name]['terms']
+        ])
 
 class ElasticSearchIndexRebuilder(object):
     def __init__(self, es, index_name):
