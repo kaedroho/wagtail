@@ -670,31 +670,32 @@ def get_page_edit_handler(page_class):
 
 @vary_on_headers('X-Requested-With')
 def search(request):
-    pages = []
-    q = None
+    form = SearchForm(request.GET)
 
-    if 'q' in request.GET:
-        form = SearchForm(request.GET)
-        if form.is_valid():
-            q = form.cleaned_data['q']
+    if form.is_valid():
+        # Search
+        search_query = form.cleaned_data['q']
+        pages = Page.objects.all().prefetch_related('content_type').search(search_query, fields=['title'])
 
-            pages = Page.objects.all().prefetch_related('content_type').search(q, fields=['title'])
-            paginator, pages = paginate(request, pages)
+        # Pagination
+        paginator, pages = paginate(request, pages)
     else:
         form = SearchForm()
+        pages = Page.objects.none()
+        search_query = None
 
     if request.is_ajax():
         return render(request, "wagtailadmin/pages/search_results.html", {
             'pages': pages,
-            'query_string': q,
-            'pagination_query_params': ('q=%s' % q) if q else ''
+            'query_string': search_query,
+            'pagination_query_params': ('q=%s' % search_query) if search_query else ''
         })
     else:
         return render(request, "wagtailadmin/pages/search.html", {
             'search_form': form,
             'pages': pages,
-            'query_string': q,
-            'pagination_query_params': ('q=%s' % q) if q else ''
+            'query_string': search_query,
+            'pagination_query_params': ('q=%s' % search_query) if search_query else ''
         })
 
 
