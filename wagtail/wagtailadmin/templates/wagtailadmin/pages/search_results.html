@@ -2,7 +2,7 @@
 <div class="nice-padding">
     {% if pages %}
         <h2>
-            {% blocktrans count counter=pages.paginator.count %}
+            {% blocktrans count counter=total_count %}
                 There is one matching page
             {% plural %}
                 There are {{ counter }} matching pages
@@ -15,6 +15,19 @@
                 <li><a href="{% url 'wagtailimages:index' %}?q={{ query_string|urlencode }}" class="icon icon-image">{% trans "Images" %}</a></li>
                 <li><a href="{% url 'wagtaildocs:index' %}?q={{ query_string|urlencode }}" class="icon icon-doc-full-inverse">{% trans "Documents" %}</a></li>
                 <li><a href="{% url 'wagtailusers_users:index' %}?q={{ query_string|urlencode }}" class="icon icon-user">{% trans "Users" %}</a></li>
+            </ul>
+        </nav>
+
+        <nav class="listing-filter">
+            <h3 class="filter-title">{% trans "Content types" %}</h3>
+            <ul class="filter-options">
+                {% for content_type, count in content_types %}
+                    {% if content_type == selected_content_type %}
+                        <li style="background-color: #E6E6E6">{{ content_type.model_class.get_verbose_name }} ({{ count }})</li>
+                    {% else %}
+                        <li><a href="{% url 'wagtailadmin_pages:search' %}?q={{ query_string|urlencode }}&amp;content_type={{ content_type.id }}">{{ content_type.model_class.get_verbose_name }} ({{ count }})</a></li>
+                    {% endif %}
+                {% endfor %}
             </ul>
         </nav>
 

@@ -672,10 +672,31 @@ def get_page_edit_handler(page_class):
 def search(request):
     form = SearchForm(request.GET)
 
+    selected_content_type_id = request.GET.get('content_type')
+    if selected_content_type_id:
+        selected_content_type = ContentType.objects.get(id=selected_content_type_id)
+    else:
+        selected_content_type = None
+
     if form.is_valid():
-        # Search
+        pages = Page.objects.all()
         search_query = form.cleaned_data['q']
-        pages = Page.objects.all().prefetch_related('content_type').search(search_query, fields=['title'])
+
+        # Get list of content types
+        content_types = [
+            (ContentType.objects.get(id=ct_id), count)
+            for ct_id, count in pages.search(search_query, fields=['title']).facet('content_type_id').items()
+        ]
+
+        # Get total count
+        total_count = pages.search(search_query, fields=['title']).count()
+
+        # Filter by content type
+        if selected_content_type:
+            pages = pages.filter(content_type=selected_content_type)
+
+        # Search
+        pages = pages.prefetch_related('content_type').search(search_query, fields=['title'])
 
         # Pagination
         paginator, pages = paginate(request, pages)
@@ -683,19 +704,33 @@ def search(request):
         form = SearchForm()
         pages = Page.objects.none()
         search_query = None
+        content_types = []
+        total_count = None
+
+    pagination_query_params = []
+    if search_query:
+        pagination_query_params.append('q=%s' % search_query)
+    if selected_content_type:
+        pagination_query_params.append('content_type=%d' % selected_content_type.id)
 
     if request.is_ajax():
         return render(request, "wagtailadmin/pages/search_results.html", {
             'pages': pages,
+            'content_types': content_types,
+            'selected_content_type': selected_content_type,
+            'total_count': total_count,
             'query_string': search_query,
-            'pagination_query_params': ('q=%s' % search_query) if search_query else ''
+            'pagination_query_params': '&'.join(pagination_query_params)
         })
     else:
         return render(request, "wagtailadmin/pages/search.html", {
             'search_form': form,
             'pages': pages,
+            'content_types': content_types,
+            'selected_content_type': selected_content_type,
+            'total_count': total_count,
             'query_string': search_query,
-            'pagination_query_params': ('q=%s' % search_query) if search_query else ''
+            'pagination_query_params': '&'.join(pagination_query_params)
         })
 
 
