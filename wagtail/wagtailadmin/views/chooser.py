@@ -52,17 +52,23 @@ def filter_page_type(queryset, page_models):
     return qs
 
 
-def browse(request, parent_page_id=None):
-    # Find parent page
-    if parent_page_id:
-        parent_page = get_object_or_404(Page, id=parent_page_id)
+def browse(request):
+    pages = Page.objects.all()
+
+    # Child of filter
+    child_of = request.GET.get('child_of')
+    if child_of:
+        if child_of == 'root':
+            parent_page = Page.get_first_root_node()
+        else:
+            # Should give a 400 error, but hey
+            parent_page = get_object_or_404(Page, id=child_of)
+
+        pages = parent_page.get_children()
     else:
-        parent_page = Page.get_first_root_node()
+        parent_page = None
 
-    # Get children of parent page
-    pages = parent_page.get_children()
-
-    # Filter them by page type
+    # Filter by page type
     # A missing or empty page_type parameter indicates 'all page types' (i.e. descendants of wagtailcore.page)
     page_type_string = request.GET.get('page_type') or 'wagtailcore.page'
     if page_type_string != 'wagtailcore.page':
@@ -81,7 +87,8 @@ def browse(request, parent_page_id=None):
         desired_classes = (Page, )
 
     # Parent page can be chosen if it is a instance of desired_classes
-    parent_page.can_choose = issubclass(parent_page.specific_class or Page, desired_classes)
+    if parent_page:
+        parent_page.can_choose = issubclass(parent_page.specific_class or Page, desired_classes)
 
     # Pagination
     # We apply pagination first so we don't need to walk the entire list
@@ -119,7 +126,7 @@ def browse(request, parent_page_id=None):
     )
 
 
-def search(request, parent_page_id=None):
+def search(request):
     # A missing or empty page_type parameter indicates 'all page types' (i.e. descendants of wagtailcore.page)
     page_type_string = request.GET.get('page_type') or 'wagtailcore.page'
 
