@@ -216,8 +216,8 @@ class PagesAPIEndpoint(BaseAPIEndpoint):
         # Get live pages that are not in a private section
         queryset = model.objects.public().live()
 
-        # Filter by site
-        queryset = queryset.descendant_of(request.site.root_page, inclusive=True)
+        # Exclude root
+        queryset = queryset.exclude(depth=1)
 
         return queryset
 

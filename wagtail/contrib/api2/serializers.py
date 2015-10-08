@@ -13,7 +13,7 @@ from rest_framework import relations
 from wagtail.utils.compat import get_related_model
 from wagtail.wagtailcore import fields as wagtailcore_fields
 
-from .utils import get_full_url, pages_for_site
+from .utils import get_full_url
 
 
 def get_object_detail_url(context, model, pk):
@@ -130,8 +130,7 @@ class PageParentField(RelatedField):
     def get_attribute(self, instance):
         parent = instance.get_parent()
 
-        site_pages = pages_for_site(self.context['request'].site)
-        if site_pages.filter(id=parent.id).exists():
+        if not parent.is_root():
             return parent
 
 
