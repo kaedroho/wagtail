@@ -7,7 +7,7 @@ from taggit.managers import _TaggableManager
 from wagtail.wagtailcore.models import Page
 from wagtail.wagtailsearch.backends import get_search_backend
 
-from .utils import BadRequestError, pages_for_site
+from .utils import BadRequestError
 
 
 class FieldsFilter(BaseFilterBackend):
@@ -117,14 +117,14 @@ class ChildOfFilter(BaseFilterBackend):
             except (ValueError, AssertionError):
                 raise BadRequestError("child_of must be a positive integer")
 
-            site_pages = pages_for_site(request.site)
+            pages = Page.objects.public().live()
             try:
-                parent_page = site_pages.get(id=parent_page_id)
-                queryset = queryset.child_of(parent_page)
-                queryset._filtered_by_child_of = True
-                return queryset
+                parent_page = pages.get(id=parent_page_id)
             except Page.DoesNotExist:
                 raise BadRequestError("parent page doesn't exist")
+
+            queryset = queryset.child_of(parent_page)
+            queryset._filtered_by_child_of = True
 
         return queryset
 
@@ -140,11 +140,12 @@ class DescendantOfFilter(BaseFilterBackend):
             except (ValueError, AssertionError):
                 raise BadRequestError("descendant_of must be a positive integer")
 
-            site_pages = pages_for_site(request.site)
+            pages = Page.objects.public().live()
             try:
-                ancestor_page = site_pages.get(id=ancestor_page_id)
-                return queryset.descendant_of(ancestor_page)
+                ancestor_page = pages.get(id=ancestor_page_id)
             except Page.DoesNotExist:
                 raise BadRequestError("ancestor page doesn't exist")
+
+            queryset = queryset.descendant_of(ancestor_page)
 
         return queryset
