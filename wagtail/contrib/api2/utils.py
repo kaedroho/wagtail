@@ -1,6 +1,9 @@
 from django.conf import settings
 from django.utils.six.moves.urllib.parse import urlparse
 
+from wagtail.wagtailcore.models import Page
+from wagtail.wagtailcore.utils import resolve_model_string
+
 
 class BadRequestError(Exception):
     pass
@@ -19,3 +22,26 @@ def get_base_url(request=None):
 def get_full_url(request, path):
     base_url = get_base_url(request) or ''
     return base_url + path
+
+
+def page_models_from_string(string):
+    page_models = []
+
+    for sub_string in string.split(','):
+        page_model = resolve_model_string(sub_string)
+
+        if not issubclass(page_model, Page):
+            raise ValueError("Model is not a page")
+
+        page_models.append(page_model)
+
+    return tuple(page_models)
+
+
+def filter_page_type(queryset, page_models):
+    qs = queryset.none()
+
+    for model in page_models:
+        qs |= queryset.type(model)
+
+    return qs
