@@ -22,7 +22,7 @@ from .filters import (
 )
 from .pagination import WagtailPagination
 from .serializers import BaseSerializer, PageSerializer, DocumentSerializer, ImageSerializer, get_serializer_class
-from .utils import BadRequestError
+from .utils import BadRequestError, page_models_from_string, filter_page_type
 
 
 class BaseAPIEndpoint(GenericViewSet):
@@ -70,7 +70,7 @@ class BaseAPIEndpoint(GenericViewSet):
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
         return super(BaseAPIEndpoint, self).handle_exception(exc)
 
-    def get_api_fields(self, model):
+    def get_available_fields(self, model):
         """
         This returns a list of field names that are allowed to
         be used in the API (excluding the id field).
@@ -89,7 +89,7 @@ class BaseAPIEndpoint(GenericViewSet):
         query_parameters = set(self.request.GET.keys())
 
         # All query paramters must be either a field or an operation
-        allowed_query_parameters = set(self.get_api_fields(queryset.model)).union(self.known_query_parameters).union({'id'})
+        allowed_query_parameters = set(self.get_available_fields(queryset.model)).union(self.known_query_parameters).union({'id'})
         unknown_parameters = query_parameters - allowed_query_parameters
         if unknown_parameters:
             raise BadRequestError("query parameter is not an operation or a recognised field: %s" % ', '.join(sorted(unknown_parameters)))
@@ -104,15 +104,17 @@ class BaseAPIEndpoint(GenericViewSet):
             model = type(self.get_object())
 
         # Get all available fields
-        all_fields = self.get_api_fields(model)
-        all_fields = list(OrderedDict.fromkeys(all_fields)) # Removes any duplicates in case the developer put "title" in api_fields
+        all_fields = self.get_available_fields(model)
+
+        # Remove any duplicates
+        all_fields = list(OrderedDict.fromkeys(all_fields))
 
         if self.action == 'listing_view':
             # Listing views just show the title field and any other allowed field the user specified
             if 'fields' in request.GET:
                 fields = set(request.GET['fields'].split(','))
             else:
-                fields = {'title'}
+                fields = set(all_fields)
 
             unknown_fields = fields - set(all_fields)
 
@@ -129,7 +131,7 @@ class BaseAPIEndpoint(GenericViewSet):
         fields = ['id', 'meta'] + fields
 
         # If showing details, add the parent field
-        if isinstance(self, PagesAPIEndpoint) and self.get_serializer_context().get('show_details', False):
+        if isinstance(self, PagesAPIEndpoint) and self.action == 'detail_view':
             fields.insert(2, 'parent')
 
         return get_serializer_class(model, fields, base=self.base_serializer_class)
@@ -138,16 +140,11 @@ class BaseAPIEndpoint(GenericViewSet):
         """
         The serialization context differs between listing and detail views.
         """
-        context = {
+        return {
             'request': self.request,
             'view': self,
             'router': self.request.wagtailapi_router
         }
-
-        if self.action == 'detail_view':
-            context['show_details'] = True
-
-        return context
 
     def get_renderer_context(self):
         context = super(BaseAPIEndpoint, self).get_renderer_context()
@@ -196,22 +193,27 @@ class PagesAPIEndpoint(BaseAPIEndpoint):
         request = self.request
 
         # Allow pages to be filtered to a specific type
-        if 'type' not in request.GET:
-            model = Page
+        try:
+            models = page_models_from_string(request.GET.get('type', 'wagtailcore.Page'))
+        except (LookupError, ValueError):
+            raise BadRequestError("type doesn't exist")
+
+        if not models:
+            models = [Page]
+
+        if len(models) == 1:
+            queryset = models[0].objects.all()
         else:
-            model_name = request.GET['type']
-            try:
-                model = resolve_model_string(model_name)
-            except LookupError:
-                raise BadRequestError("type doesn't exist")
-            if not issubclass(model, Page):
-                raise BadRequestError("type doesn't exist")
+            queryset = Page.objects.all()
+
+            # Filter pages by specified models
+            queryset = filter_page_type(queryset, models)
 
         # Get live pages that are not in a private section
-        queryset = model.objects.public().live()
+        queryset = queryset.public().live()
 
-        # Filter by site
-        queryset = queryset.descendant_of(request.site.root_page, inclusive=True)
+        # Exclude root
+        queryset = queryset.exclude(depth=1)
 
         return queryset
 

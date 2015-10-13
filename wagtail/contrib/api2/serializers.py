@@ -13,7 +13,7 @@ from rest_framework import relations
 from wagtail.utils.compat import get_related_model
 from wagtail.wagtailcore import fields as wagtailcore_fields
 
-from .utils import get_full_url, pages_for_site
+from .utils import get_full_url
 
 
 def get_object_detail_url(context, model, pk):
@@ -57,12 +57,14 @@ class PageMetaField(MetaField):
     "meta": {
         "type": "blog.BlogPage",
         "detail_url": "http://api.example.com/v1/pages/1/"
+        "html_url": "http://www.example.com/blog/blog-post/"
     }
     """
     def to_representation(self, page):
         return OrderedDict([
             ('type', page.specific_class._meta.app_label + '.' + page.specific_class.__name__),
             ('detail_url', get_object_detail_url(self.context, type(page), page.pk)),
+            ('html_url', page.full_url),
         ])
 
 
@@ -82,11 +84,8 @@ class DocumentMetaField(MetaField):
         data = OrderedDict([
             ('type', "wagtaildocs.Document"),
             ('detail_url', get_object_detail_url(self.context, type(document), document.pk)),
+            ('download_url', get_full_url(self.context['request'], document.url)),
         ])
-
-        # Add download url
-        if self.context.get('show_details', False):
-            data['download_url'] = get_full_url(self.context['request'], document.url)
 
         return data
 
@@ -131,8 +130,7 @@ class PageParentField(RelatedField):
     def get_attribute(self, instance):
         parent = instance.get_parent()
 
-        site_pages = pages_for_site(self.context['request'].site)
-        if site_pages.filter(id=parent.id).exists():
+        if not parent.is_root():
             return parent
 
 
