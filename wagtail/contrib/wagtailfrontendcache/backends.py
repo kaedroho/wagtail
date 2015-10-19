@@ -1,5 +1,8 @@
-import logging
+import boto3
+import botocore
 import json
+import logging
+import uuid
 
 from django.utils.six.moves.urllib.parse import urlparse, urlunparse, urlencode
 from django.utils.six.moves.urllib.request import Request, urlopen
@@ -83,3 +86,26 @@ class CloudflareBackend(BaseBackend):
         if response_json['result'] == 'error':
             logger.error("Couldn't purge '%s' from Cloudflare. Cloudflare error '%s'", url, response_json['msg'])
             return
+
+
+class CloudfrontBackend(BaseBackend):
+    def __init__(self, params):
+        self.client = boto3.client('cloudfront')
+        self.cloudfront_distribution_id = params.pop('DISTRIBUTION_ID')
+
+    def purge(self, url):
+        try:
+            self.client.create_invalidation(
+                DistributionId=self.cloudfront_distribution_id,
+                InvalidationBatch={
+                    'Paths': {
+                        'Quantity': 1,
+                        'Items': [
+                            url,
+                        ]
+                    },
+                    'CallerReference': str(uuid.uuid4())
+                }
+            )
+        except botocore.exceptions.ClientError as e:
+            logger.error("Couldn't purge '%s' from Cloudfront. ClientError: %s %s", url, e.response['Error']['Code'], e.response['Error']['Message'])

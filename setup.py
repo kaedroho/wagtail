@@ -21,6 +21,7 @@ except ImportError:
 
 
 install_requires = [
+    "boto3>=1.1,<1.2",
     "Django>=1.7.1,<1.10",
     "django-compressor>=1.4",
     "django-modelcluster>=1.1",

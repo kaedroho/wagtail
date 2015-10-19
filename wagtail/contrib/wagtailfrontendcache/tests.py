@@ -5,7 +5,7 @@ from wagtail.wagtailcore.models import Page
 from wagtail.tests.testapp.models import EventIndex
 
 from wagtail.contrib.wagtailfrontendcache.utils import get_backends
-from wagtail.contrib.wagtailfrontendcache.backends import HTTPBackend, CloudflareBackend, BaseBackend
+from wagtail.contrib.wagtailfrontendcache.backends import HTTPBackend, CloudflareBackend, CloudfrontBackend, BaseBackend
 
 
 class TestBackendConfiguration(TestCase):
@@ -42,6 +42,19 @@ class TestBackendConfiguration(TestCase):
 
         self.assertEqual(backends['cloudflare'].cloudflare_email, 'test@test.com')
         self.assertEqual(backends['cloudflare'].cloudflare_token, 'this is the token')
+
+    def test_cloudfront(self):
+        backends = get_backends(backend_settings={
+            'cloudfront': {
+                'BACKEND': 'wagtail.contrib.wagtailfrontendcache.backends.CloudfrontBackend',
+                'DISTRIBUTION_ID': 'frontend',
+            },
+        })
+
+        self.assertEqual(set(backends.keys()), set(['cloudfront']))
+        self.assertIsInstance(backends['cloudfront'], CloudfrontBackend)
+
+        self.assertEqual(backends['cloudfront'].cloudfront_distribution_id, 'frontend')
 
     def test_multiple(self):
         backends = get_backends(backend_settings={
