@@ -1,6 +1,7 @@
 import json
 import mock
 import collections
+import unittest
 
 from django.test import TestCase
 from django.test.utils import override_settings
@@ -140,7 +141,7 @@ class TestPageListing(TestCase):
         content = json.loads(response.content.decode('UTF-8'))
 
         for page in content['results']:
-            self.assertEqual(set(page.keys()), {'id', 'meta', 'title', 'date', 'related_links', 'feed_image', 'body', 'carousel_items', 'tags'})
+            self.assertEqual(set(page.keys()), {'id', 'meta', 'title'})
 
     def test_fields(self):
         response = self.get_response(type='demosite.BlogEntryPage', fields='title,date,feed_image')
@@ -531,6 +532,431 @@ class TestPageListing(TestCase):
 
     def test_search_when_filtering_by_tag_gives_error(self):
         response = self.get_response(type='demosite.BlogEntryPage', search='blog', tags='wagtail')
+        content = json.loads(response.content.decode('UTF-8'))
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content, {'message': "filtering by tag with a search query is not supported"})
+
+
+class TestSpecificPageListing(TestCase):
+    fixtures = ['demosite.json']
+
+    def get_response(self, **params):
+        return self.client.get(reverse('wagtailapi_v2:pages:demosite_blogentrypage_listing'), params)
+
+    def get_page_id_list(self, content):
+        return [page['id'] for page in content['results']]
+
+
+    # BASIC TESTS
+
+    def test_basic(self):
+        response = self.get_response()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-type'], 'application/json')
+
+        # Will crash if the JSON is invalid
+        content = json.loads(response.content.decode('UTF-8'))
+
+        # Check that the total count is there and correct
+        self.assertIn('total_count', content)
+        self.assertIsInstance(content['total_count'], int)
+        self.assertEqual(content['total_count'], get_total_page_count())
+
+        # Check that the results section is there
+        self.assertIn('results', content)
+        self.assertIsInstance(content['results'], list)
+
+        # Check that each page has a meta section with type, detail_url and html_url attributes
+        for page in content['results']:
+            self.assertIn('meta', page)
+            self.assertIsInstance(page['meta'], dict)
+            self.assertEqual(set(page['meta'].keys()), {'type', 'detail_url', 'html_url'})
+
+            # All pages must be a blog entry
+            self.assertEqual(page['meta']['type'], 'demosite.BlogEntryPage')
+
+            # All fields in specific type available
+            self.assertEqual(set(page.keys()), {'id', 'meta', 'title', 'related_links', 'date', 'body', 'tags', 'feed_image', 'carousel_items'})
+
+    def test_unpublished_pages_dont_appear_in_list(self):
+        total_count = get_total_page_count()
+
+        page = models.BlogEntryPage.objects.get(id=16)
+        page.unpublish()
+
+        response = self.get_response()
+        content = json.loads(response.content.decode('UTF-8'))
+        self.assertEqual(content['total_count'], total_count - 1)
+
+    def test_private_pages_dont_appear_in_list(self):
+        total_count = get_total_page_count()
+
+        page = models.BlogIndexPage.objects.get(id=5)
+        page.view_restrictions.create(password='test')
+
+        new_total_count = get_total_page_count()
+        self.assertNotEqual(total_count, new_total_count)
+
+        response = self.get_response()
+        content = json.loads(response.content.decode('UTF-8'))
+        self.assertEqual(content['total_count'], new_total_count)
+
+
+    # TYPE FILTER
+
+    def test_type_filter_gives_error(self):
+        response = self.get_response(type='demosite.BlogEntryPage')
+        content = json.loads(response.content.decode('UTF-8'))
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content, {'message': "query parameter is not an operation or a recognised field: type"})
+
+
+    # FIELDS
+
+    def test_fields_default(self):
+        response = self.get_response()
+        content = json.loads(response.content.decode('UTF-8'))
+
+        for page in content['results']:
+            self.assertEqual(set(page.keys()), {'id', 'meta', 'title', 'date', 'related_links', 'feed_image', 'body', 'carousel_items', 'tags'})
+
+    def test_fields(self):
+        response = self.get_response(fields='title,date,feed_image')
+        content = json.loads(response.content.decode('UTF-8'))
+
+        for page in content['results']:
+            self.assertEqual(set(page.keys()), {'id', 'meta', 'title', 'date', 'feed_image'})
+
+    def test_fields_child_relation(self):
+        response = self.get_response(fields='title,related_links')
+        content = json.loads(response.content.decode('UTF-8'))
+
+        for page in content['results']:
+            self.assertEqual(set(page.keys()), {'id', 'meta', 'title', 'related_links'})
+            self.assertIsInstance(page['related_links'], list)
+
+    def test_fields_foreign_key(self):
+        response = self.get_response(fields='title,date,feed_image')
+        content = json.loads(response.content.decode('UTF-8'))
+
+        for page in content['results']:
+            feed_image = page['feed_image']
+
+            if feed_image is not None:
+                self.assertIsInstance(feed_image, dict)
+                self.assertEqual(set(feed_image.keys()), {'id', 'meta'})
+                self.assertIsInstance(feed_image['id'], int)
+                self.assertIsInstance(feed_image['meta'], dict)
+                self.assertEqual(set(feed_image['meta'].keys()), {'type', 'detail_url'})
+                self.assertEqual(feed_image['meta']['type'], 'wagtailimages.Image')
+                self.assertEqual(feed_image['meta']['detail_url'], 'http://localhost/api/v2beta/images/%d/' % feed_image['id'])
+
+    def test_fields_tags(self):
+        response = self.get_response(fields='tags')
+        content = json.loads(response.content.decode('UTF-8'))
+
+        for page in content['results']:
+            self.assertEqual(set(page.keys()), {'id', 'meta', 'tags'})
+            self.assertIsInstance(page['tags'], list)
+
+    def test_fields_ordering(self):
+        response = self.get_response(fields='date,title,feed_image,related_links')
+
+        # Will crash if the JSON is invalid
+        content = json.loads(response.content.decode('UTF-8'))
+
+        # Test field order
+        content = json.JSONDecoder(object_pairs_hook=collections.OrderedDict).decode(response.content.decode('UTF-8'))
+        field_order = [
+            'id',
+            'meta',
+            'title',
+            'date',
+            'feed_image',
+            'related_links',
+        ]
+        self.assertEqual(list(content['results'][0].keys()), field_order)
+
+    def test_fields_which_are_not_in_api_fields_gives_error(self):
+        response = self.get_response(fields='path')
+        content = json.loads(response.content.decode('UTF-8'))
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content, {'message': "unknown fields: path"})
+
+    def test_fields_unknown_field_gives_error(self):
+        response = self.get_response(fields='123,title,abc')
+        content = json.loads(response.content.decode('UTF-8'))
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content, {'message': "unknown fields: 123, abc"})
+
+
+    # FILTERING
+
+    @unittest.expectedFailure  # FIXME
+    def test_filtering_exact_filter(self):
+        response = self.get_response(title='Home page')
+        content = json.loads(response.content.decode('UTF-8'))
+
+        page_id_list = self.get_page_id_list(content)
+        self.assertEqual(page_id_list, [2])
+
+    def test_filtering_exact_filter_on_specific_field(self):
+        response = self.get_response(date='2013-12-02')
+        content = json.loads(response.content.decode('UTF-8'))
+
+        page_id_list = self.get_page_id_list(content)
+        self.assertEqual(page_id_list, [16])
+
+    def test_filtering_on_id(self):
+        response = self.get_response(id=16)
+        content = json.loads(response.content.decode('UTF-8'))
+
+        page_id_list = self.get_page_id_list(content)
+        self.assertEqual(page_id_list, [16])
+
+    def test_filtering_tags(self):
+        response = self.get_response(tags='wagtail')
+        content = json.loads(response.content.decode('UTF-8'))
+
+        page_id_list = self.get_page_id_list(content)
+        self.assertEqual(page_id_list, [16, 18])
+
+    def test_filtering_multiple_tags(self):
+        response = self.get_response(tags='wagtail,bird')
+        content = json.loads(response.content.decode('UTF-8'))
+
+        page_id_list = self.get_page_id_list(content)
+        self.assertEqual(page_id_list, [16])
+
+    def test_filtering_unknown_field_gives_error(self):
+        response = self.get_response(not_a_field='abc')
+        content = json.loads(response.content.decode('UTF-8'))
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content, {'message': "query parameter is not an operation or a recognised field: not_a_field"})
+
+
+    # CHILD OF FILTER
+
+    def test_child_of_filter(self):
+        response = self.get_response(child_of=5)
+        content = json.loads(response.content.decode('UTF-8'))
+
+        page_id_list = self.get_page_id_list(content)
+        self.assertEqual(page_id_list, [16, 18, 19])
+
+    def test_child_of_unknown_page_gives_error(self):
+        response = self.get_response(child_of=1000)
+        content = json.loads(response.content.decode('UTF-8'))
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content, {'message': "parent page doesn't exist"})
+
+    def test_child_of_not_integer_gives_error(self):
+        response = self.get_response(child_of='abc')
+        content = json.loads(response.content.decode('UTF-8'))
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content, {'message': "child_of must be a positive integer"})
+
+
+    # DESCENDANT OF FILTER
+
+    def test_descendant_of_filter(self):
+        response = self.get_response(descendant_of=6)
+        content = json.loads(response.content.decode('UTF-8'))
+
+        page_id_list = self.get_page_id_list(content)
+        self.assertEqual(page_id_list, [10, 15, 17, 21, 22, 23])
+
+    def test_descendant_of_unknown_page_gives_error(self):
+        response = self.get_response(descendant_of=1000)
+        content = json.loads(response.content.decode('UTF-8'))
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content, {'message': "ancestor page doesn't exist"})
+
+    def test_descendant_of_not_integer_gives_error(self):
+        response = self.get_response(descendant_of='abc')
+        content = json.loads(response.content.decode('UTF-8'))
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content, {'message': "descendant_of must be a positive integer"})
+
+    def test_descendant_of_when_filtering_by_child_of_gives_error(self):
+        response = self.get_response(descendant_of=6, child_of=5)
+        content = json.loads(response.content.decode('UTF-8'))
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content, {'message': "filtering by descendant_of with child_of is not supported"})
+
+
+    # ORDERING
+
+    def test_ordering_default(self):
+        response = self.get_response()
+        content = json.loads(response.content.decode('UTF-8'))
+
+        page_id_list = self.get_page_id_list(content)
+        self.assertEqual(page_id_list, [16, 18, 19])
+
+    def test_ordering_by_title(self):
+        response = self.get_response(order='title')
+        content = json.loads(response.content.decode('UTF-8'))
+
+        page_id_list = self.get_page_id_list(content)
+        self.assertEqual(page_id_list, [19, 16, 18])
+
+    def test_ordering_by_title_backwards(self):
+        response = self.get_response(order='-title')
+        content = json.loads(response.content.decode('UTF-8'))
+
+        page_id_list = self.get_page_id_list(content)
+        self.assertEqual(page_id_list, [18, 16, 19])
+
+    def test_ordering_by_random(self):
+        response_1 = self.get_response(order='random')
+        content_1 = json.loads(response_1.content.decode('UTF-8'))
+        page_id_list_1 = self.get_page_id_list(content_1)
+
+        response_2 = self.get_response(order='random')
+        content_2 = json.loads(response_2.content.decode('UTF-8'))
+        page_id_list_2 = self.get_page_id_list(content_2)
+
+        self.assertNotEqual(page_id_list_1, page_id_list_2)
+
+    def test_ordering_by_random_backwards_gives_error(self):
+        response = self.get_response(order='-random')
+        content = json.loads(response.content.decode('UTF-8'))
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content, {'message': "cannot order by 'random' (unknown field)"})
+
+    def test_ordering_by_random_with_offset_gives_error(self):
+        response = self.get_response(order='random', offset=10)
+        content = json.loads(response.content.decode('UTF-8'))
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content, {'message': "random ordering with offset is not supported"})
+
+    def test_ordering_by_unknown_field_gives_error(self):
+        response = self.get_response(order='not_a_field')
+        content = json.loads(response.content.decode('UTF-8'))
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content, {'message': "cannot order by 'not_a_field' (unknown field)"})
+
+
+    # LIMIT
+
+    def test_limit_only_two_results_returned(self):
+        response = self.get_response(limit=2)
+        content = json.loads(response.content.decode('UTF-8'))
+
+        self.assertEqual(len(content['results']), 2)
+
+    def test_limit_total_count(self):
+        response = self.get_response(limit=2)
+        content = json.loads(response.content.decode('UTF-8'))
+
+        # The total count must not be affected by "limit"
+        self.assertEqual(content['total_count'], get_total_page_count())
+
+    def test_limit_not_integer_gives_error(self):
+        response = self.get_response(limit='abc')
+        content = json.loads(response.content.decode('UTF-8'))
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content, {'message': "limit must be a positive integer"})
+
+    def test_limit_too_high_gives_error(self):
+        response = self.get_response(limit=1000)
+        content = json.loads(response.content.decode('UTF-8'))
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content, {'message': "limit cannot be higher than 20"})
+
+    @override_settings(WAGTAILAPI_LIMIT_MAX=10)
+    def test_limit_maximum_can_be_changed(self):
+        response = self.get_response(limit=20)
+        content = json.loads(response.content.decode('UTF-8'))
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content, {'message': "limit cannot be higher than 10"})
+
+    @override_settings(WAGTAILAPI_LIMIT_MAX=2)
+    def test_limit_default_changes_with_max(self):
+        # The default limit is 20. If WAGTAILAPI_LIMIT_MAX is less than that,
+        # the default should change accordingly.
+        response = self.get_response()
+        content = json.loads(response.content.decode('UTF-8'))
+
+        self.assertEqual(len(content['results']), 2)
+
+
+    # OFFSET
+
+    def test_offset_5_usually_appears_5th_in_list(self):
+        response = self.get_response()
+        content = json.loads(response.content.decode('UTF-8'))
+        page_id_list = self.get_page_id_list(content)
+        self.assertEqual(page_id_list.index(5), 4)
+
+    def test_offset_5_moves_after_offset(self):
+        response = self.get_response(offset=4)
+        content = json.loads(response.content.decode('UTF-8'))
+        page_id_list = self.get_page_id_list(content)
+        self.assertEqual(page_id_list.index(5), 0)
+
+    def test_offset_total_count(self):
+        response = self.get_response(offset=10)
+        content = json.loads(response.content.decode('UTF-8'))
+
+        # The total count must not be affected by "offset"
+        self.assertEqual(content['total_count'], get_total_page_count())
+
+    def test_offset_not_integer_gives_error(self):
+        response = self.get_response(offset='abc')
+        content = json.loads(response.content.decode('UTF-8'))
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content, {'message': "offset must be a positive integer"})
+
+
+    # SEARCH
+
+    @unittest.expectedFailure  # FIXME
+    def test_search_for_blog(self):
+        response = self.get_response(search='blog')
+        content = json.loads(response.content.decode('UTF-8'))
+
+        page_id_list = self.get_page_id_list(content)
+
+        # Check that the results are the blog index and three blog pages
+        self.assertEqual(set(page_id_list), set([5, 16, 18, 19]))
+
+    def test_search_when_ordering_gives_error(self):
+        response = self.get_response(search='blog', order='title')
+        content = json.loads(response.content.decode('UTF-8'))
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content, {'message': "ordering with a search query is not supported"})
+
+    @override_settings(WAGTAILAPI_SEARCH_ENABLED=False)
+    def test_search_when_disabled_gives_error(self):
+        response = self.get_response(search='blog')
+        content = json.loads(response.content.decode('UTF-8'))
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(content, {'message': "search is disabled"})
+
+    def test_search_when_filtering_by_tag_gives_error(self):
+        response = self.get_response(search='blog', tags='wagtail')
         content = json.loads(response.content.decode('UTF-8'))
 
         self.assertEqual(response.status_code, 400)
