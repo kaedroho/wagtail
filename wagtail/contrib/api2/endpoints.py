@@ -221,6 +221,24 @@ class PagesAPIEndpoint(BaseAPIEndpoint):
         base = super(PagesAPIEndpoint, self).get_object()
         return base.specific
 
+    @classmethod
+    def get_urlpatterns(cls):
+        """
+        This returns a list of URL patterns for the endpoint
+        """
+        from wagtail.wagtailcore.models import PAGE_MODEL_CLASSES
+
+        patterns = super().get_urlpatterns()
+        for model in PAGE_MODEL_CLASSES:
+            url_prefix = '{}_{}_'.format(model._meta.app_label, model.__name__.lower())
+
+            patterns.extend([
+                url(r'^{}\.{}/$'.format(model._meta.app_label, model.__name__), cls.as_view({'get': 'listing_view'}), name=url_prefix+'listing'),
+                url(r'^{}\.{}/(?P<pk>\d+)/$'.format(model._meta.app_label, model.__name__), cls.as_view({'get': 'detail_view'}), name=url_prefix+'detail'),
+            ])
+
+        return patterns
+
 
 class ImagesAPIEndpoint(BaseAPIEndpoint):
     base_serializer_class = ImageSerializer
