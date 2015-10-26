@@ -1,8 +1,20 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+
+import unittest
+import random
+import io
+
+import unicodecsv
+
 from django.test import TestCase
 from django.test.client import Client
-from wagtail.wagtailredirects import models
-from wagtail.tests.utils import WagtailTestUtils
 from django.core.urlresolvers import reverse
+
+from wagtail.tests.utils import WagtailTestUtils
+from wagtail.wagtailredirects import models
+from wagtail.wagtailredirects.redirect_csv_import import import_redirect_csv, InvalidRedirectCSVException
 
 
 class TestRedirects(TestCase):
@@ -210,6 +222,7 @@ class TestRedirectsEditView(TestCase, WagtailTestUtils):
         # Should not redirect to index
         self.assertEqual(response.status_code, 200)
 
+
 class TestRedirectsDeleteView(TestCase, WagtailTestUtils):
     def setUp(self):
         # Create a redirect to edit
@@ -244,3 +257,207 @@ class TestRedirectsDeleteView(TestCase, WagtailTestUtils):
         # Check that the redirect was deleted
         redirects = models.Redirect.objects.filter(old_path='/test')
         self.assertEqual(redirects.count(), 0)
+
+
+class TestRedirectCSVImport(TestCase):
+    def make_csv(self, data, encoding='UTF-8', line_ending='\r\n'):
+        sio = io.StringIO()
+        writer = unicodecsv.writer(sio, lineterminator=line_ending)
+        writer.writerows(data)
+
+        # Encode to a BytesIO to make it like a real file
+        return io.BytesIO(sio.getvalue().encode(encoding))
+
+    def test_redirect_to_external(self):
+        f = self.make_csv([
+            ('/myredirect', 'http://example.com'),
+        ])
+
+        import_redirect_csv(f)
+
+    def test_redirect_to_internal_path(self):
+        f = self.make_csv([
+            ('/myredirect', '/test'),
+        ])
+
+        import_redirect_csv(f)
+
+    def test_redirect_to_page(self):
+        # TODO: Make a page
+        f = self.make_csv([
+            ('/myredirect', '/testpage'),
+        ])
+
+        import_redirect_csv(f)
+
+    @unittest.expectedFailure
+    def test_ignores_header(self):
+        f = self.make_csv([
+            ('redirect from', 'redirect to'),
+            ('/myredirect', 'http://example.com'),
+        ])
+
+        # Shouldn't raise exception
+        import_redirect_csv(f)
+
+    def test_strips_whitespace(self):
+        f = self.make_csv([
+            ('   /myredirect   ', '   http://example.com '),
+        ])
+
+        import_redirect_csv(f)
+
+    def test_detects_preexisting_redirect(self):
+        # MAKE A REDIRECT
+
+        f = self.make_csv([
+            ('/myredirect', 'http://example.com'),
+        ])
+
+        import_redirect_csv(f)
+
+    def test_handles_unicode_path(self):
+        f = self.make_csv([
+            ('/转向', 'http://example.com'),
+        ])
+
+        import_redirect_csv(f)
+
+    def test_handles_unicode_domain(self):
+        f = self.make_csv([
+            ('/myredirect', 'http://转向.com'),
+        ])
+
+        import_redirect_csv(f)
+
+    def test_handles_stupid_line_endings(self):
+        f = self.make_csv([
+            ('/myredirect', 'http://example.com'),
+        ], line_ending='\r')
+
+        import_redirect_csv(f)
+
+    def test_handles_extra_blank_row(self):
+        f = self.make_csv([
+            ('/myredirect', 'http://example.com'),
+            ('', ''),
+        ])
+
+        import_redirect_csv(f)
+
+
+    # Failure tests
+
+    def assertNoRedirects(self):
+        # In the event of a failed import, no redirects should be imported
+        self.assertFalse(models.Redirect.objects.exists(), "The import failed but some redirects were imported")
+
+    def test_extra_column(self):
+        f = self.make_csv([
+            ('/myredirect', 'http://example.com', 'extra column'),
+        ])
+
+        with self.assertRaises(InvalidRedirectCSVException) as e:
+            import_redirect_csv(f)
+
+        self.assertEqual(str(e.exception), "CSV file has 3 columns. It should have 2.")
+        self.assertNoRedirects()
+
+    def test_missing_columns(self):
+        f = self.make_csv([
+            ('/myredirect', ),
+        ])
+
+        with self.assertRaises(InvalidRedirectCSVException) as e:
+            import_redirect_csv(f)
+
+        self.assertEqual(str(e.exception), "CSV file has 1 columns. It should have 2.")
+        self.assertNoRedirects()
+
+    def test_missing_path(self):
+        f = self.make_csv([
+            ('', 'http://example.com'),
+        ])
+
+        with self.assertRaises(InvalidRedirectCSVException) as e:
+            import_redirect_csv(f)
+
+        self.assertEqual(str(e.exception), "[ROW 1] From path must not be blank.")
+        self.assertNoRedirects()
+
+    def test_missing_url(self):
+        f = self.make_csv([
+            ('/myredirect', ''),
+        ])
+
+        with self.assertRaises(InvalidRedirectCSVException) as e:
+            import_redirect_csv(f)
+
+        self.assertEqual(str(e.exception), "[ROW 1] URL must not be blank.")
+        self.assertNoRedirects()
+
+    def test_no_forward_slash_in_path(self):
+        f = self.make_csv([
+            ('path', 'url'),  # Allow in first row so headers can be handled correctly
+            ('myredirect', 'http://example.com'),
+        ])
+
+        with self.assertRaises(InvalidRedirectCSVException) as e:
+            import_redirect_csv(f)
+
+        self.assertEqual(str(e.exception), "[ROW 1] From path must begin with a '/'.")
+        self.assertNoRedirects()
+
+    def test_url_in_path(self):
+        f = self.make_csv([
+            ('http://myredirect', 'http://example.com'),
+        ])
+
+        with self.assertRaises(InvalidRedirectCSVException) as e:
+            import_redirect_csv(f)
+
+        self.assertEqual(str(e.exception), "[ROW 1] From path must begin with a '/'.")
+        self.assertNoRedirects()
+
+    def test_no_forward_slash_or_scheme_in_url(self):
+        f = self.make_csv([
+            ('/myredirect', 'example'),
+        ])
+
+        with self.assertRaises(InvalidRedirectCSVException) as e:
+            import_redirect_csv(f)
+
+        self.assertEqual(str(e.exception), "[ROW 1] Invalid URL.")
+        self.assertNoRedirects()
+
+    def test_bad_scheme_in_url(self):
+        f = self.make_csv([
+            ('/myredirect', 'gopher://example.com'),
+        ])
+
+        with self.assertRaises(InvalidRedirectCSVException) as e:
+            import_redirect_csv(f)
+
+        self.assertEqual(str(e.exception), "[ROW 1] Unknown scheme used in URL.")
+        self.assertNoRedirects()
+
+    def test_bad_encoding(self):
+        f = self.make_csv([
+            ('/myredirect', 'http://example.com'),
+        ], encoding='UTF-16')
+
+        with self.assertRaises(InvalidRedirectCSVException) as e:
+            import_redirect_csv(f)
+
+        self.assertEqual(str(e.exception), "Unable to read file. Is it a valid CSV file with UTF-8 encoding?")
+        self.assertNoRedirects()
+
+    @unittest.expectedFailure
+    def test_junk(self):
+        f = BytesIO([random.randint(0, 255) for byte in range(100)])
+
+        with self.assertRaises(InvalidRedirectCSVException) as e:
+            import_redirect_csv(f)
+
+        self.assertEqual(str(e.exception), "Unable to read file. Is it a valid CSV file with UTF-8 encoding?")
+        self.assertNoRedirects()
