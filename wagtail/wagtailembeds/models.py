@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+from __future__ import division  # Use true division
 
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
@@ -40,6 +41,17 @@ class Embed(models.Model):
     class Meta:
         unique_together = ('url', 'max_width')
         verbose_name = _('Embed')
+
+    @property
+    def ratio(self):
+        if self.width and self.height:
+            return self.height / self.width
+
+    @property
+    def ratio_css(self):
+        ratio = self.ratio
+        if ratio:
+            return str(ratio * 100) + "%"
 
     def __str__(self):
         return self.url
