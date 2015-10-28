@@ -507,3 +507,33 @@ class TestMediaEmbedHandler(TestCase):
         )
 
         self.assertEqual(result, '')
+
+
+class TestEmbedTag(TestCase):
+    def setUp(self):
+        # Create an embed for running tests on
+        self.embed = Embed.objects.create(
+            url="http://foo.com/bar",
+            html="<div class=\"foocom-embed\">yay</div>",
+            width=400,
+            height=300,
+        )
+
+    def test_embed_template_rendering(self):
+        temp = template.Template('{{ embed }}"')
+        result = temp.render(template.Context({'embed': self.embed}))
+
+        self.assertEqual(result, "<div class=\"foo-embed\">yay</div>")
+
+    def test_embed_tag(self):
+        temp = template.Template('{% load wagtailembeds_tags %}{% embed "http://foo.com/bar" %}')
+        result = temp.render(template.Context({}))
+
+        self.assertEqual(result, "<div class=\"foo-embed\">yay</div>")
+
+    @unittest.expectedFailure
+    def test_embed_tag_using_as_syntax(self):
+        temp = template.Template('{% load wagtailembeds_tags %}{% embed "http://foo.com/bar" as embed %}{{ embed }}')
+        result = temp.render(template.Context({}))
+
+        self.assertEqual(result, "<div class=\"foo-embed\">yay</div>")
