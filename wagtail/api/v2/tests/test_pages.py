@@ -8,7 +8,7 @@ from django.core.urlresolvers import reverse
 
 from wagtail.wagtailcore.models import Page
 
-from wagtail.contrib.api2 import signal_handlers
+from wagtail.api.v2 import signal_handlers
 
 from wagtail.tests.demosite import models
 from wagtail.tests.testapp.models import StreamPage
