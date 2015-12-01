@@ -8,7 +8,7 @@ from django.core.urlresolvers import reverse
 
 from wagtail.wagtailcore.models import Page
 
-from wagtail.contrib.api2 import signal_handlers
+from wagtail.api.v1 import signal_handlers
 
 from wagtail.tests.demosite import models
 from wagtail.tests.testapp.models import StreamPage
@@ -23,10 +23,10 @@ class TestPageListing(TestCase):
     fixtures = ['demosite.json']
 
     def get_response(self, **params):
-        return self.client.get(reverse('wagtailapi_v2:pages:listing'), params)
+        return self.client.get(reverse('wagtailapi_v1:pages:listing'), params)
 
     def get_page_id_list(self, content):
-        return [page['id'] for page in content['results']]
+        return [page['id'] for page in content['pages']]
 
 
     # BASIC TESTS
@@ -40,20 +40,24 @@ class TestPageListing(TestCase):
         # Will crash if the JSON is invalid
         content = json.loads(response.content.decode('UTF-8'))
 
+        # Check that the meta section is there
+        self.assertIn('meta', content)
+        self.assertIsInstance(content['meta'], dict)
+
         # Check that the total count is there and correct
-        self.assertIn('total_count', content)
-        self.assertIsInstance(content['total_count'], int)
-        self.assertEqual(content['total_count'], get_total_page_count())
+        self.assertIn('total_count', content['meta'])
+        self.assertIsInstance(content['meta']['total_count'], int)
+        self.assertEqual(content['meta']['total_count'], get_total_page_count())
 
-        # Check that the results section is there
-        self.assertIn('results', content)
-        self.assertIsInstance(content['results'], list)
+        # Check that the pages section is there
+        self.assertIn('pages', content)
+        self.assertIsInstance(content['pages'], list)
 
-        # Check that each page has a meta section with type, detail_url and html_url attributes
-        for page in content['results']:
+        # Check that each page has a meta section with type and detail_url attributes
+        for page in content['pages']:
             self.assertIn('meta', page)
             self.assertIsInstance(page['meta'], dict)
-            self.assertEqual(set(page['meta'].keys()), {'type', 'detail_url', 'html_url'})
+            self.assertEqual(set(page['meta'].keys()), {'type', 'detail_url'})
 
     def test_unpublished_pages_dont_appear_in_list(self):
         total_count = get_total_page_count()
@@ -63,7 +67,7 @@ class TestPageListing(TestCase):
 
         response = self.get_response()
         content = json.loads(response.content.decode('UTF-8'))
-        self.assertEqual(content['total_count'], total_count - 1)
+        self.assertEqual(content['meta']['total_count'], total_count - 1)
 
     def test_private_pages_dont_appear_in_list(self):
         total_count = get_total_page_count()
@@ -76,7 +80,7 @@ class TestPageListing(TestCase):
 
         response = self.get_response()
         content = json.loads(response.content.decode('UTF-8'))
-        self.assertEqual(content['total_count'], new_total_count)
+        self.assertEqual(content['meta']['total_count'], new_total_count)
 
 
     # TYPE FILTER
@@ -85,39 +89,15 @@ class TestPageListing(TestCase):
         response = self.get_response(type='demosite.BlogEntryPage')
         content = json.loads(response.content.decode('UTF-8'))
 
-        for page in content['results']:
+        for page in content['pages']:
             self.assertEqual(page['meta']['type'], 'demosite.BlogEntryPage')
-
-            # All fields in specific type available
-            self.assertEqual(set(page.keys()), {'id', 'meta', 'title', 'related_links', 'date', 'body', 'tags', 'feed_image', 'carousel_items'})
 
     def test_type_filter_total_count(self):
         response = self.get_response(type='demosite.BlogEntryPage')
         content = json.loads(response.content.decode('UTF-8'))
 
         # Total count must be reduced as this filters the results
-        self.assertEqual(content['total_count'], 3)
-
-    def test_type_filter_multiple(self):
-        response = self.get_response(type='demosite.BlogEntryPage,demosite.EventPage')
-        content = json.loads(response.content.decode('UTF-8'))
-
-        blog_page_seen = False
-        event_page_seen = False
-
-        for page in content['results']:
-            self.assertIn(page['meta']['type'], ['demosite.BlogEntryPage', 'demosite.EventPage'])
-
-            if page['meta']['type'] == 'demosite.BlogEntryPage':
-                blog_page_seen = True
-            elif page['meta']['type'] == 'demosite.EventPage':
-                event_page_seen = True
-
-            # Only generic fields available
-            self.assertEqual(set(page.keys()), {'id', 'meta', 'title'})
-
-        self.assertTrue(blog_page_seen, "No blog pages were found in the results")
-        self.assertTrue(event_page_seen, "No event pages were found in the results")
+        self.assertEqual(content['meta']['total_count'], 3)
 
     def test_non_existant_type_gives_error(self):
         response = self.get_response(type='demosite.IDontExist')
@@ -133,35 +113,35 @@ class TestPageListing(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(content, {'message': "type doesn't exist"})
 
-    # FIELDS
+    # EXTRA FIELDS
 
-    def test_fields_default(self):
+    def test_extra_fields_default(self):
         response = self.get_response(type='demosite.BlogEntryPage')
         content = json.loads(response.content.decode('UTF-8'))
 
-        for page in content['results']:
-            self.assertEqual(set(page.keys()), {'id', 'meta', 'title', 'date', 'related_links', 'feed_image', 'body', 'carousel_items', 'tags'})
+        for page in content['pages']:
+            self.assertEqual(set(page.keys()), {'id', 'meta', 'title'})
 
-    def test_fields(self):
+    def test_extra_fields(self):
         response = self.get_response(type='demosite.BlogEntryPage', fields='title,date,feed_image')
         content = json.loads(response.content.decode('UTF-8'))
 
-        for page in content['results']:
+        for page in content['pages']:
             self.assertEqual(set(page.keys()), {'id', 'meta', 'title', 'date', 'feed_image'})
 
-    def test_fields_child_relation(self):
+    def test_extra_fields_child_relation(self):
         response = self.get_response(type='demosite.BlogEntryPage', fields='title,related_links')
         content = json.loads(response.content.decode('UTF-8'))
 
-        for page in content['results']:
+        for page in content['pages']:
             self.assertEqual(set(page.keys()), {'id', 'meta', 'title', 'related_links'})
             self.assertIsInstance(page['related_links'], list)
 
-    def test_fields_foreign_key(self):
+    def test_extra_fields_foreign_key(self):
         response = self.get_response(type='demosite.BlogEntryPage', fields='title,date,feed_image')
         content = json.loads(response.content.decode('UTF-8'))
 
-        for page in content['results']:
+        for page in content['pages']:
             feed_image = page['feed_image']
 
             if feed_image is not None:
@@ -171,17 +151,17 @@ class TestPageListing(TestCase):
                 self.assertIsInstance(feed_image['meta'], dict)
                 self.assertEqual(set(feed_image['meta'].keys()), {'type', 'detail_url'})
                 self.assertEqual(feed_image['meta']['type'], 'wagtailimages.Image')
-                self.assertEqual(feed_image['meta']['detail_url'], 'http://localhost/api/v2beta/images/%d/' % feed_image['id'])
+                self.assertEqual(feed_image['meta']['detail_url'], 'http://localhost/api/v1/images/%d/' % feed_image['id'])
 
-    def test_fields_tags(self):
+    def test_extra_fields_tags(self):
         response = self.get_response(type='demosite.BlogEntryPage', fields='tags')
         content = json.loads(response.content.decode('UTF-8'))
 
-        for page in content['results']:
+        for page in content['pages']:
             self.assertEqual(set(page.keys()), {'id', 'meta', 'tags'})
             self.assertIsInstance(page['tags'], list)
 
-    def test_fields_ordering(self):
+    def test_extra_field_ordering(self):
         response = self.get_response(type='demosite.BlogEntryPage', fields='date,title,feed_image,related_links')
 
         # Will crash if the JSON is invalid
@@ -197,23 +177,23 @@ class TestPageListing(TestCase):
             'feed_image',
             'related_links',
         ]
-        self.assertEqual(list(content['results'][0].keys()), field_order)
+        self.assertEqual(list(content['pages'][0].keys()), field_order)
 
-    def test_fields_without_type_gives_error(self):
+    def test_extra_fields_without_type_gives_error(self):
         response = self.get_response(fields='title,related_links')
         content = json.loads(response.content.decode('UTF-8'))
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(content, {'message': "unknown fields: related_links"})
 
-    def test_fields_which_are_not_in_api_fields_gives_error(self):
+    def test_extra_fields_which_are_not_in_api_fields_gives_error(self):
         response = self.get_response(fields='path')
         content = json.loads(response.content.decode('UTF-8'))
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(content, {'message': "unknown fields: path"})
 
-    def test_fields_unknown_field_gives_error(self):
+    def test_extra_fields_unknown_field_gives_error(self):
         response = self.get_response(fields='123,title,abc')
         content = json.loads(response.content.decode('UTF-8'))
 
@@ -441,14 +421,14 @@ class TestPageListing(TestCase):
         response = self.get_response(limit=2)
         content = json.loads(response.content.decode('UTF-8'))
 
-        self.assertEqual(len(content['results']), 2)
+        self.assertEqual(len(content['pages']), 2)
 
     def test_limit_total_count(self):
         response = self.get_response(limit=2)
         content = json.loads(response.content.decode('UTF-8'))
 
         # The total count must not be affected by "limit"
-        self.assertEqual(content['total_count'], get_total_page_count())
+        self.assertEqual(content['meta']['total_count'], get_total_page_count())
 
     def test_limit_not_integer_gives_error(self):
         response = self.get_response(limit='abc')
@@ -479,7 +459,7 @@ class TestPageListing(TestCase):
         response = self.get_response()
         content = json.loads(response.content.decode('UTF-8'))
 
-        self.assertEqual(len(content['results']), 2)
+        self.assertEqual(len(content['pages']), 2)
 
 
     # OFFSET
@@ -501,7 +481,7 @@ class TestPageListing(TestCase):
         content = json.loads(response.content.decode('UTF-8'))
 
         # The total count must not be affected by "offset"
-        self.assertEqual(content['total_count'], get_total_page_count())
+        self.assertEqual(content['meta']['total_count'], get_total_page_count())
 
     def test_offset_not_integer_gives_error(self):
         response = self.get_response(offset='abc')
@@ -557,7 +537,7 @@ class TestPageDetail(TestCase):
     fixtures = ['demosite.json']
 
     def get_response(self, page_id, **params):
-        return self.client.get(reverse('wagtailapi_v2:pages:detail', args=(page_id, )), params)
+        return self.client.get(reverse('wagtailapi_v1:pages:detail', args=(page_id, )), params)
 
     def test_basic(self):
         response = self.get_response(16)
@@ -582,11 +562,7 @@ class TestPageDetail(TestCase):
 
         # Check the meta detail_url
         self.assertIn('detail_url', content['meta'])
-        self.assertEqual(content['meta']['detail_url'], 'http://localhost/api/v2beta/pages/16/')
-
-        # Check the meta html_url
-        self.assertIn('html_url', content['meta'])
-        self.assertEqual(content['meta']['html_url'], 'http://localhost/blog-index/blog-post/')
+        self.assertEqual(content['meta']['detail_url'], 'http://localhost/api/v1/pages/16/')
 
         # Check the parent field
         self.assertIn('parent', content)
@@ -594,10 +570,9 @@ class TestPageDetail(TestCase):
         self.assertEqual(set(content['parent'].keys()), {'id', 'meta'})
         self.assertEqual(content['parent']['id'], 5)
         self.assertIsInstance(content['parent']['meta'], dict)
-        self.assertEqual(set(content['parent']['meta'].keys()), {'type', 'detail_url', 'html_url'})
+        self.assertEqual(set(content['parent']['meta'].keys()), {'type', 'detail_url'})
         self.assertEqual(content['parent']['meta']['type'], 'demosite.BlogIndexPage')
-        self.assertEqual(content['parent']['meta']['detail_url'], 'http://localhost/api/v2beta/pages/5/')
-        self.assertEqual(content['parent']['meta']['html_url'], 'http://localhost/blog-index/')
+        self.assertEqual(content['parent']['meta']['detail_url'], 'http://localhost/api/v1/pages/5/')
 
         # Check that the custom fields are included
         self.assertIn('date', content)
@@ -620,7 +595,7 @@ class TestPageDetail(TestCase):
         self.assertIsInstance(content['feed_image']['meta'], dict)
         self.assertEqual(set(content['feed_image']['meta'].keys()), {'type', 'detail_url'})
         self.assertEqual(content['feed_image']['meta']['type'], 'wagtailimages.Image')
-        self.assertEqual(content['feed_image']['meta']['detail_url'], 'http://localhost/api/v2beta/images/7/')
+        self.assertEqual(content['feed_image']['meta']['detail_url'], 'http://localhost/api/v1/images/7/')
 
         # Check that the child relations were serialised properly
         self.assertEqual(content['related_links'], [])
@@ -683,7 +658,7 @@ class TestPageDetailWithStreamField(TestCase):
     def test_can_fetch_streamfield_content(self):
         stream_page = self.make_stream_page('[{"type": "text", "value": "foo"}]')
 
-        response_url = reverse('wagtailapi_v2:pages:detail', args=(stream_page.id, ))
+        response_url = reverse('wagtailapi_v1:pages:detail', args=(stream_page.id, ))
         response = self.client.get(response_url)
 
         self.assertEqual(response.status_code, 200)
@@ -699,7 +674,7 @@ class TestPageDetailWithStreamField(TestCase):
     def test_image_block(self):
         stream_page = self.make_stream_page('[{"type": "image", "value": 1}]')
 
-        response_url = reverse('wagtailapi_v2:pages:detail', args=(stream_page.id, ))
+        response_url = reverse('wagtailapi_v1:pages:detail', args=(stream_page.id, ))
         response = self.client.get(response_url)
         content = json.loads(response.content.decode('utf-8'))
 
@@ -733,17 +708,17 @@ class TestPageCacheInvalidation(TestCase):
     def test_republish_page_purges(self, purge):
         Page.objects.get(id=2).save_revision().publish()
 
-        purge.assert_any_call('http://api.example.com/api/v2beta/pages/2/')
+        purge.assert_any_call('http://api.example.com/api/v1/pages/2/')
 
     def test_unpublish_page_purges(self, purge):
         Page.objects.get(id=2).unpublish()
 
-        purge.assert_any_call('http://api.example.com/api/v2beta/pages/2/')
+        purge.assert_any_call('http://api.example.com/api/v1/pages/2/')
 
     def test_delete_page_purges(self, purge):
         Page.objects.get(id=16).delete()
 
-        purge.assert_any_call('http://api.example.com/api/v2beta/pages/16/')
+        purge.assert_any_call('http://api.example.com/api/v1/pages/16/')
 
     def test_save_draft_doesnt_purge(self, purge):
         Page.objects.get(id=2).save_revision()

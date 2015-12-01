@@ -7,17 +7,17 @@ from django.core.urlresolvers import reverse
 
 from wagtail.wagtaildocs.models import Document
 
-from wagtail.contrib.api2 import signal_handlers
+from wagtail.api.v1 import signal_handlers
 
 
 class TestDocumentListing(TestCase):
     fixtures = ['demosite.json']
 
     def get_response(self, **params):
-        return self.client.get(reverse('wagtailapi_v2:documents:listing'), params)
+        return self.client.get(reverse('wagtailapi_v1:documents:listing'), params)
 
     def get_document_id_list(self, content):
-        return [document['id'] for document in content['results']]
+        return [page['id'] for page in content['documents']]
 
 
     # BASIC TESTS
@@ -31,62 +31,63 @@ class TestDocumentListing(TestCase):
         # Will crash if the JSON is invalid
         content = json.loads(response.content.decode('UTF-8'))
 
-        # Check that the total count is there and correct
-        self.assertIn('total_count', content)
-        self.assertIsInstance(content['total_count'], int)
-        self.assertEqual(content['total_count'], Document.objects.count())
+        # Check that the meta section is there
+        self.assertIn('meta', content)
+        self.assertIsInstance(content['meta'], dict)
 
-        # Check that the results section is there
-        self.assertIn('results', content)
-        self.assertIsInstance(content['results'], list)
+        # Check that the total count is there and correct
+        self.assertIn('total_count', content['meta'])
+        self.assertIsInstance(content['meta']['total_count'], int)
+        self.assertEqual(content['meta']['total_count'], Document.objects.count())
+
+        # Check that the documents section is there
+        self.assertIn('documents', content)
+        self.assertIsInstance(content['documents'], list)
 
         # Check that each document has a meta section with type and detail_url attributes
-        for document in content['results']:
+        for document in content['documents']:
             self.assertIn('meta', document)
             self.assertIsInstance(document['meta'], dict)
-            self.assertEqual(set(document['meta'].keys()), {'type', 'detail_url', 'download_url'})
+            self.assertEqual(set(document['meta'].keys()), {'type', 'detail_url'})
 
             # Type should always be wagtaildocs.Document
             self.assertEqual(document['meta']['type'], 'wagtaildocs.Document')
 
             # Check detail_url
-            self.assertEqual(document['meta']['detail_url'], 'http://localhost/api/v2beta/documents/%d/' % document['id'])
-
-            # Check download_url
-            self.assertTrue(document['meta']['download_url'].startswith('http://localhost/documents/%d/' % document['id']))
+            self.assertEqual(document['meta']['detail_url'], 'http://localhost/api/v1/documents/%d/' % document['id'])
 
 
-    # FIELDS
+    # EXTRA FIELDS
 
-    def test_fields_default(self):
+    def test_extra_fields_default(self):
         response = self.get_response()
         content = json.loads(response.content.decode('UTF-8'))
 
-        for document in content['results']:
-            self.assertEqual(set(document.keys()), {'id', 'meta', 'title', 'tags'})
-
-    def test_fields(self):
-        response = self.get_response(fields='title')
-        content = json.loads(response.content.decode('UTF-8'))
-
-        for document in content['results']:
+        for document in content['documents']:
             self.assertEqual(set(document.keys()), {'id', 'meta', 'title'})
 
-    def test_fields_tags(self):
+    def test_extra_fields(self):
+        response = self.get_response(fields='title,tags')
+        content = json.loads(response.content.decode('UTF-8'))
+
+        for document in content['documents']:
+            self.assertEqual(set(document.keys()), {'id', 'meta', 'title', 'tags'})
+
+    def test_extra_fields_tags(self):
         response = self.get_response(fields='tags')
         content = json.loads(response.content.decode('UTF-8'))
 
-        for document in content['results']:
+        for document in content['documents']:
             self.assertIsInstance(document['tags'], list)
 
-    def test_fields_which_are_not_in_api_fields_gives_error(self):
+    def test_extra_fields_which_are_not_in_api_fields_gives_error(self):
         response = self.get_response(fields='uploaded_by_user')
         content = json.loads(response.content.decode('UTF-8'))
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(content, {'message': "unknown fields: uploaded_by_user"})
 
-    def test_fields_unknown_field_gives_error(self):
+    def test_extra_fields_unknown_field_gives_error(self):
         response = self.get_response(fields='123,title,abc')
         content = json.loads(response.content.decode('UTF-8'))
 
@@ -182,14 +183,14 @@ class TestDocumentListing(TestCase):
         response = self.get_response(limit=2)
         content = json.loads(response.content.decode('UTF-8'))
 
-        self.assertEqual(len(content['results']), 2)
+        self.assertEqual(len(content['documents']), 2)
 
     def test_limit_total_count(self):
         response = self.get_response(limit=2)
         content = json.loads(response.content.decode('UTF-8'))
 
         # The total count must not be affected by "limit"
-        self.assertEqual(content['total_count'], Document.objects.count())
+        self.assertEqual(content['meta']['total_count'], Document.objects.count())
 
     def test_limit_not_integer_gives_error(self):
         response = self.get_response(limit='abc')
@@ -220,7 +221,7 @@ class TestDocumentListing(TestCase):
         response = self.get_response()
         content = json.loads(response.content.decode('UTF-8'))
 
-        self.assertEqual(len(content['results']), 2)
+        self.assertEqual(len(content['documents']), 2)
 
 
     # OFFSET
@@ -242,7 +243,7 @@ class TestDocumentListing(TestCase):
         content = json.loads(response.content.decode('UTF-8'))
 
         # The total count must not be affected by "offset"
-        self.assertEqual(content['total_count'], Document.objects.count())
+        self.assertEqual(content['meta']['total_count'], Document.objects.count())
 
     def test_offset_not_integer_gives_error(self):
         response = self.get_response(offset='abc')
@@ -289,7 +290,7 @@ class TestDocumentDetail(TestCase):
     fixtures = ['demosite.json']
 
     def get_response(self, image_id, **params):
-        return self.client.get(reverse('wagtailapi_v2:documents:detail', args=(image_id, )), params)
+        return self.client.get(reverse('wagtailapi_v1:documents:detail', args=(image_id, )), params)
 
     def test_basic(self):
         response = self.get_response(1)
@@ -314,7 +315,7 @@ class TestDocumentDetail(TestCase):
 
         # Check the meta detail_url
         self.assertIn('detail_url', content['meta'])
-        self.assertEqual(content['meta']['detail_url'], 'http://localhost/api/v2beta/documents/1/')
+        self.assertEqual(content['meta']['detail_url'], 'http://localhost/api/v1/documents/1/')
 
         # Check the meta download_url
         self.assertIn('download_url', content['meta'])
@@ -373,9 +374,9 @@ class TestDocumentCacheInvalidation(TestCase):
     def test_resave_document_purges(self, purge):
         Document.objects.get(id=5).save()
 
-        purge.assert_any_call('http://api.example.com/api/v2beta/documents/5/')
+        purge.assert_any_call('http://api.example.com/api/v1/documents/5/')
 
     def test_delete_document_purges(self, purge):
         Document.objects.get(id=5).delete()
 
-        purge.assert_any_call('http://api.example.com/api/v2beta/documents/5/')
+        purge.assert_any_call('http://api.example.com/api/v1/documents/5/')

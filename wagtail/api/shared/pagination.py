@@ -1,14 +1,11 @@
-from collections import OrderedDict
-
 from django.conf import settings
 
 from rest_framework.pagination import BasePagination
-from rest_framework.response import Response
 
-from .utils import BadRequestError
+from ..shared.utils import BadRequestError
 
 
-class WagtailPagination(BasePagination):
+class BaseWagtailPagination(BasePagination):
     def paginate_queryset(self, queryset, request, view=None):
         limit_max = getattr(settings, 'WAGTAILAPI_LIMIT_MAX', 20)
 
@@ -36,8 +33,5 @@ class WagtailPagination(BasePagination):
         return queryset[start:stop]
 
     def get_paginated_response(self, data):
-        data = OrderedDict([
-            ('total_count', self.total_count),
-            ('results', data),
-        ])
-        return Response(data)
+        # V1 and V2 have different representations, see subclasses
+        raise NotImplementedError
