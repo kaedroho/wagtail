@@ -1,7 +1,7 @@
 Wagtail API
 ===========
 
-The ``wagtailapi`` module can be used to create a read-only, JSON-based API for public Wagtail content.
+The ``wagtail.api`` module can be used to create a read-only, JSON-based API for public Wagtail content.
 
 There are three endpoints to the API:
 
@@ -16,7 +16,7 @@ See :doc:`usage` for documentation on the API.
 Installation
 ============
 
-To install, add ``wagtail.contrib.wagtailapi`` and ``rest_framework`` to ``INSTALLED_APPS`` in your Django settings and configure a URL for it in ``urls.py``:
+To install, add ``wagtail.api`` and ``rest_framework`` to ``INSTALLED_APPS`` in your Django settings and configure a URL for it in ``urls.py``:
 
 .. code-block:: python
 
@@ -24,13 +24,13 @@ To install, add ``wagtail.contrib.wagtailapi`` and ``rest_framework`` to ``INSTA
 
     INSTALLED_APPS = [
         ...
-        'wagtail.contrib.wagtailapi',
+        'wagtail.api',
         'rest_framework',
     ]
 
     # urls.py
 
-    from wagtail.contrib.wagtailapi import urls as wagtailapi_urls
+    from wagtail.api.v1 import urls as wagtailapi_urls
 
     urlpatterns = [
         ...
@@ -99,7 +99,7 @@ This list also supports child relations (which will be nested inside the returne
 Frontend cache invalidation
 ---------------------------
 
-If you have a Varnish, Squid or Cloudflare instance in front of your API, the ``wagtailapi`` module can automatically invalidate cached responses for you whenever they are updated in the database.
+If you have a Varnish, Squid or Cloudflare instance in front of your API, the ``wagtail.api`` module can automatically invalidate cached responses for you whenever they are updated in the database.
 
 To enable it, firstly configure the ``wagtail.contrib.wagtailfrontendcache`` module within your project (see [Wagtail frontend cache docs](http://docs.wagtail.io/en/latest/contrib_components/frontendcache.html) for more information).
 
