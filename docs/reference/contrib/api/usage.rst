@@ -1,10 +1,25 @@
 Wagtail API Usage Guide
 =======================
 
-Listing views
--------------
+In its default configuration, the API contains three endpoints, ``pages``,
+``images`` and ``documents``. Each endpoint contains two views, listing and
+detail.
 
-Performing a ``GET`` request against one of the endpoints will get you a listing of objects in that endpoint. The response will look something like this:
+The API module only supports JSON representations.
+
+
+The listing view
+----------------
+
+This view is for finding a set of objects that match a specified criteria. You
+can access it using a ``GET`` request to the root URL of the endpoint.
+
+
+The response
+~~~~~~~~~~~~
+
+This view will either respond with ``200 OK`` or ``400 Bad request``. All
+responses are, by default, JSON formatted.
 
 .. code-block:: text
 
@@ -37,8 +52,33 @@ Performing a ``GET`` request against one of the endpoints will get you a listing
         ]
     }
 
+All of the listing views follow this structure. There are two keys in the
+listing response, ``meta`` and the results.
 
-This is the basic structure of all of the listing views. They all have a ``meta`` section with a ``total_count`` variable and a listing of things.
+``meta`` contains only one key, ``total_count`` indicating the total number of
+results in the set irrespective of the ``limit`` parameter.
+
+The other key is named after the endpoint (eg: ``pages``, ``images``, etc). This
+contains a list of summaries for each item in the set. The fields shown can be
+modified using the ``fields`` parameter.
+
+
+Allowed query parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following query parameters are accepted by all endpoints:
+
+ - ``offset``
+ - ``limit``
+ - ``fields``
+ - ``order``
+ - ``search``
+ - Any field name
+
+The following query parameters are only accepted by the pages endpoint:
+
+ - ``child_of``
+ - ``descendant_of``
 
 
 Detail views
