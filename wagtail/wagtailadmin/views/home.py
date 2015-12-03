@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from django.conf import settings
 from django.db.models import F
+from django.http import Http404
+from django.contrib.auth.decorators import permission_required
 
 from wagtail.wagtailcore import hooks
 from wagtail.wagtailcore.models import PageRevision, UserPagePermissionsProxy
@@ -76,3 +78,15 @@ def home(request):
 
 def error_test(request):
     raise Exception("This is a test of the emergency broadcast system.")
+
+
+@permission_required('wagtailadmin.access_admin', login_url='wagtailadmin_login')
+def default(request):
+    """
+    Called whenever a request comes in with the correct prefix (eg /admin/) but
+    doesn't actually correspond to a Wagtail view.
+
+    For authenticated users, it'll raise a 404 error. Anonymous users will be
+    redirected to the login page.
+    """
+    raise Http404

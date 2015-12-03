@@ -67,6 +67,10 @@ urlpatterns += [
 
     # Password reset
     url(r'^password_reset/', include(wagtailadmin_password_reset_urls)),
+
+    # Default view (will show 404 page)
+    # This must be the last URL in this file!
+    url(r'^', home.default),
 ]
 
 # Decorate all views with cache settings to prevent caching
