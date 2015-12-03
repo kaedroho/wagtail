@@ -3,7 +3,6 @@ import functools
 from django.conf.urls import url, include
 from django.contrib.auth.decorators import permission_required
 from django.views.decorators.cache import cache_control
-from django.views.generic import TemplateView
 from django.http import Http404
 from django.views.defaults import page_not_found
 
@@ -17,7 +16,6 @@ from wagtail.utils.urlpatterns import decorate_urlpatterns
 urlpatterns = [
     url(r'^$', home.home, name='wagtailadmin_home'),
 
-    url(r'^test404/$', TemplateView.as_view(template_name='wagtailadmin/404.html')),
     url(r'^failwhale/$', home.error_test, name='wagtailadmin_error_test'),
 
     url(r'^explorer-nav/$', pages.explorer_nav, name='wagtailadmin_explorer_nav'),
