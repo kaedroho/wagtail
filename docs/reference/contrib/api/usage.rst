@@ -1,10 +1,25 @@
 Wagtail API Usage Guide
 =======================
 
-Listing views
--------------
+In its default configuration, the API contains three endpoints, ``pages``,
+``images`` and ``documents``. Each endpoint contains two views, listing and
+detail.
 
-Performing a ``GET`` request against one of the endpoints will get you a listing of objects in that endpoint. The response will look something like this:
+The API module only supports JSON representations.
+
+
+The listing view
+----------------
+
+This view is for finding a set of objects that match a specified criteria. You
+can access it using a ``GET`` request to the root URL of the endpoint.
+
+
+The response
+~~~~~~~~~~~~
+
+This view will either respond with ``200 OK`` or ``400 Bad request``. All
+responses are, by default, JSON formatted.
 
 .. code-block:: json
 
@@ -37,8 +52,33 @@ Performing a ``GET`` request against one of the endpoints will get you a listing
         ]
     }
 
+All of the listing views follow this structure. There are two keys in the
+listing response, ``meta`` and the results.
 
-This is the basic structure of all of the listing views. They all have a ``meta`` section with a ``total_count`` variable and a listing of things.
+``meta`` contains only one key, ``total_count`` indicating the total number of
+results in the set irrespective of the ``limit`` parameter.
+
+The other key is named after the endpoint (eg: ``pages``, ``images``, etc). This
+contains a list of summaries for each item in the set. The fields shown can be
+modified using the ``fields`` parameter.
+
+
+Allowed query parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following query parameters are accepted by all endpoints:
+
+ - ``offset``
+ - ``limit``
+ - ``fields``
+ - ``order``
+ - ``search``
+ - Any field name
+
+The following query parameters are only accepted by the pages endpoint:
+
+ - ``child_of``
+ - ``descendant_of``
 
 
 Detail views
@@ -581,26 +621,26 @@ This is what a typical response from a ``GET`` request to this listing would loo
     {
         "meta": {
             "total_count": 3
-        }, 
+        },
         "images": [
             {
-                "id": 4, 
+                "id": 4,
                 "meta": {
                     "type": "wagtailimages.Image",
                     "detail_url": "http://api.example.com/api/v1/images/4/"
                 },
                 "title": "Wagtail by Mark Harkin"
-            }, 
+            },
             {
-                "id": 5, 
+                "id": 5,
                 "meta": {
                     "type": "wagtailimages.Image",
                     "detail_url": "http://api.example.com/api/v1/images/5/"
                 },
                 "title": "James Joyce"
-            }, 
+            },
             {
-                "id": 6, 
+                "id": 6,
                 "meta": {
                     "type": "wagtailimages.Image",
                     "detail_url": "http://api.example.com/api/v1/images/6/"
@@ -631,36 +671,36 @@ By default, this will allow you to add the ``width`` and ``height`` fields to yo
     {
         "meta": {
             "total_count": 3
-        }, 
+        },
         "images": [
             {
-                "id": 4, 
+                "id": 4,
                 "meta": {
                     "type": "wagtailimages.Image",
                     "detail_url": "http://api.example.com/api/v1/images/4/"
                 },
-                "title": "Wagtail by Mark Harkin", 
-                "width": 640, 
+                "title": "Wagtail by Mark Harkin",
+                "width": 640,
                 "height": 427
-            }, 
+            },
             {
-                "id": 5, 
+                "id": 5,
                 "meta": {
                     "type": "wagtailimages.Image",
                     "detail_url": "http://api.example.com/api/v1/images/5/"
                 },
-                "title": "James Joyce", 
-                "width": 500, 
+                "title": "James Joyce",
+                "width": 500,
                 "height": 392
-            }, 
+            },
             {
-                "id": 6, 
+                "id": 6,
                 "meta": {
                     "type": "wagtailimages.Image",
                     "detail_url": "http://api.example.com/api/v1/images/6/"
                 },
-                "title": "David Mitchell", 
-                "width": 360, 
+                "title": "David Mitchell",
+                "width": 360,
                 "height": 282
             }
         ]
@@ -682,10 +722,10 @@ Exact matches on field values can be done by using a query parameter with the sa
     {
         "meta": {
             "total_count": 3
-        }, 
+        },
         "images": [
             {
-                "id": 5, 
+                "id": 5,
                 "meta": {
                     "type": "wagtailimages.Image",
                     "detail_url": "http://api.example.com/api/v1/images/5/"
@@ -711,33 +751,33 @@ The images endpoint also accepts the ``order`` parameter which should be set to 
     {
         "meta": {
             "total_count": 3
-        }, 
+        },
         "images": [
             {
-                "id": 6, 
+                "id": 6,
                 "meta": {
                     "type": "wagtailimages.Image",
                     "detail_url": "http://api.example.com/api/v1/images/6/"
                 },
-                "title": "David Mitchell", 
+                "title": "David Mitchell",
                 "width": 360
             },
             {
-                "id": 5, 
+                "id": 5,
                 "meta": {
                     "type": "wagtailimages.Image",
                     "detail_url": "http://api.example.com/api/v1/images/5/"
                 },
-                "title": "James Joyce", 
+                "title": "James Joyce",
                 "width": 500
             },
             {
-                "id": 4, 
+                "id": 4,
                 "meta": {
                     "type": "wagtailimages.Image",
                     "detail_url": "http://api.example.com/api/v1/images/4/"
                 },
-                "title": "Wagtail by Mark Harkin", 
+                "title": "Wagtail by Mark Harkin",
                 "width": 640
             }
         ]
@@ -762,13 +802,13 @@ Pagination is done using two query parameters called ``limit`` and ``offset``. `
         },
         "images": [
             {
-                "id": 5, 
+                "id": 5,
                 "meta": {
                     "type": "wagtailimages.Image",
                     "detail_url": "http://api.example.com/api/v1/images/5/"
                 },
-                "title": "James Joyce", 
-                "width": 500, 
+                "title": "James Joyce",
+                "width": 500,
                 "height": 392
             }
         ]
@@ -796,13 +836,13 @@ To perform a full-text search, set the ``search`` parameter to the query string 
         },
         "pages": [
             {
-                "id": 5, 
+                "id": 5,
                 "meta": {
                     "type": "wagtailimages.Image",
                     "detail_url": "http://api.example.com/api/v1/images/5/"
                 },
-                "title": "James Joyce", 
-                "width": 500, 
+                "title": "James Joyce",
+                "width": 500,
                 "height": 392
             }
         ]
@@ -826,13 +866,13 @@ This view gives you access to all of the details for a particular image.
     Content-Type: application/json
 
     {
-        "id": 5, 
+        "id": 5,
         "meta": {
             "type": "wagtailimages.Image",
             "detail_url": "http://api.example.com/api/v1/images/5/"
         },
-        "title": "James Joyce", 
-        "width": 500, 
+        "title": "James Joyce",
+        "width": 500,
         "height": 392
     }
 
@@ -862,11 +902,11 @@ This view gives you access to all of the details for a particular document.
     Content-Type: application/json
 
     {
-        "id": 1, 
+        "id": 1,
         "meta": {
             "type": "wagtaildocs.Document",
             "detail_url": "http://api.example.com/api/v1/documents/1/",
             "download_url": "http://api.example.com/documents/1/usage.md"
-        }, 
+        },
         "title": "Wagtail API usage"
     }
