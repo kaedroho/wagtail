@@ -1,7 +1,11 @@
+import functools
+
 from django.conf.urls import url, include
 from django.contrib.auth.decorators import permission_required
 from django.views.decorators.cache import cache_control
 from django.views.generic import TemplateView
+from django.http import Http404
+from django.views.defaults import page_not_found
 
 from wagtail.wagtailadmin.urls import pages as wagtailadmin_pages_urls
 from wagtail.wagtailadmin.urls import password_reset as wagtailadmin_password_reset_urls
@@ -72,6 +76,20 @@ urlpatterns += [
     # This must be the last URL in this file!
     url(r'^', home.default),
 ]
+
+# Hook in our own 404 handler
+def display_custom_404(view_func):
+    @functools.wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        try:
+            return view_func(request, *args, **kwargs)
+        except Http404:
+            return page_not_found(request, template_name='wagtailadmin/404.html')
+
+    return wrapper
+
+urlpatterns = decorate_urlpatterns(urlpatterns, display_custom_404)
+
 
 # Decorate all views with cache settings to prevent caching
 urlpatterns = decorate_urlpatterns(urlpatterns,
