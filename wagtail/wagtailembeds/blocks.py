@@ -1,8 +1,9 @@
 from django.utils.encoding import python_2_unicode_compatible
+from django.utils.safestring import mark_safe
 
 from wagtail.wagtailcore import blocks
 
-from wagtail.wagtailembeds.format import embed_to_frontend_html
+from wagtail.wagtailembeds import embeds
 
 
 @python_2_unicode_compatible
@@ -18,7 +19,11 @@ class EmbedValue(object):
         self.url = url
 
     def __str__(self):
-        return embed_to_frontend_html(self.url)
+        try:
+            embed = embeds.get_embed(self.url)
+            return mark_safe(embed.html)
+        except embeds.EmbedException:
+            return ''
 
 
 class EmbedBlock(blocks.URLBlock):
