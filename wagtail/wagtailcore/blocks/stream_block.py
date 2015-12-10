@@ -31,7 +31,8 @@ class BaseStreamBlock(Block):
 
         super(BaseStreamBlock, self).__init__(**kwargs)
 
-        self.child_blocks = self.base_blocks.copy()  # create a local (shallow) copy of base_blocks so that it can be supplemented by local_blocks
+        # create a local (shallow) copy of base_blocks so that it can be supplemented by local_blocks
+        self.child_blocks = self.base_blocks.copy()
         if local_blocks:
             for name, block in local_blocks:
                 block.set_name(name)
@@ -120,7 +121,7 @@ class BaseStreamBlock(Block):
 
         list_members_html = [
             self.render_list_member(child.block_type, child.value, "%s-%d" % (prefix, i), i,
-                errors=error_list[i] if error_list else None)
+                                    errors=error_list[i] if error_list else None)
             for (i, child) in enumerate(valid_children)
         ]
 
@@ -197,7 +198,8 @@ class BaseStreamBlock(Block):
         ]
 
     def render_basic(self, value):
-        return format_html_join('\n', '<div class="block-{1}">{0}</div>',
+        return format_html_join(
+            '\n', '<div class="block-{1}">{0}</div>',
             [(force_text(child), child.block_type) for child in value]
         )
 

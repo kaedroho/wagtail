@@ -181,7 +181,8 @@ class PageQuerySet(SearchableQuerySetMixin, TreeQuerySet):
 
     def type(self, model):
         """
-        This filters the QuerySet to only contain pages that are an instance of the specified model (including subclasses).
+        This filters the QuerySet to only contain pages that are an instance
+        of the specified model (including subclasses).
         """
         return self.filter(self.type_q(model))
 
@@ -230,9 +231,10 @@ class PageQuerySet(SearchableQuerySetMixin, TreeQuerySet):
 
     def unpublish(self):
         """
-        This unpublishes all pages in the QuerySet.
+        This unpublishes all live pages in the QuerySet.
         """
-        self.update(live=False, has_unpublished_changes=True)
+        for page in self.live():
+            page.unpublish()
 
     def specific(self):
         """
@@ -241,7 +243,7 @@ class PageQuerySet(SearchableQuerySetMixin, TreeQuerySet):
         """
         if DJANGO_VERSION >= (1, 9):
             clone = self._clone()
-            clone._iterator_class = SpecificIterator
+            clone._iterable_class = SpecificIterable
             return clone
         else:
             return self._clone(klass=SpecificQuerySet)
@@ -278,11 +280,11 @@ def specific_iterator(qs):
 # Django 1.9 changed how extending QuerySets with different iterators behaved
 # considerably, in a way that is not easily compatible between the two versions
 if DJANGO_VERSION >= (1, 9):
-    # TODO Test this once Wagtail runs under Django 1.9.
-    from django.db.models.query import BaseIterator
+    from django.db.models.query import BaseIterable
 
-    class SpecificIterator(BaseIterator):
-        __iter__ = specific_iterator
+    class SpecificIterable(BaseIterable):
+        def __iter__(self):
+            return specific_iterator(self.queryset)
 
 else:
     from django.db.models.query import QuerySet

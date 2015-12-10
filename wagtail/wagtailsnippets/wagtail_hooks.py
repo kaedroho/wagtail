@@ -24,14 +24,21 @@ class SnippetsMenuItem(MenuItem):
     def is_shown(self, request):
         return user_can_edit_snippets(request.user)
 
+
 @hooks.register('register_admin_menu_item')
 def register_snippets_menu_item():
-    return SnippetsMenuItem(_('Snippets'), urlresolvers.reverse('wagtailsnippets:index'), classnames='icon icon-snippet', order=500)
+    return SnippetsMenuItem(
+        _('Snippets'),
+        urlresolvers.reverse('wagtailsnippets:index'),
+        classnames='icon icon-snippet',
+        order=500
+    )
 
 
 @hooks.register('insert_editor_js')
 def editor_js():
-    return format_html("""
+    return format_html(
+        """
             <script src="{0}{1}"></script>
             <script>window.chooserUrls.snippetChooser = '{2}';</script>
         """,

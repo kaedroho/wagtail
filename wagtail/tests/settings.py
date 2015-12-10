@@ -62,9 +62,9 @@ if django.VERSION >= (1, 8):
             'APP_DIRS': True,
             'OPTIONS': {
                 'extensions': [
-                    'wagtail.wagtailcore.templatetags.jinja2.core',
-                    'wagtail.wagtailadmin.templatetags.jinja2.userbar',
-                    'wagtail.wagtailimages.templatetags.jinja2.images',
+                    'wagtail.wagtailcore.jinja2tags.core',
+                    'wagtail.wagtailadmin.jinja2tags.userbar',
+                    'wagtail.wagtailimages.jinja2tags.images',
                 ],
             },
         },
@@ -118,6 +118,7 @@ INSTALLED_APPS = (
     'wagtail.wagtailsnippets',
     'wagtail.wagtaildocs',
     'wagtail.wagtailadmin',
+    'wagtail.api',
     'wagtail.wagtailcore',
 
     'taggit',
