@@ -10,6 +10,10 @@ MEDIA_ROOT = os.path.join(WAGTAIL_ROOT, 'test-media')
 MEDIA_URL = '/media/'
 
 
+# Note: Django will disable this when running tests
+DEBUG = True
+
+
 DATABASES = {
     'default': {
         'ENGINE': os.environ.get('DATABASE_ENGINE', 'django.db.backends.sqlite3'),
