@@ -59,22 +59,22 @@ Testing
 
 From the root of the Wagtail codebase, run the following command to run all the tests::
 
-    python runtests.py
+    python manage.py test
 
 **Running only some of the tests**
 
 At the time of writing, Wagtail has well over 1000 tests, which takes a while to
 run. You can run tests for only one part of Wagtail by passing in the path as
-an argument to ``runtests.py``::
+an argument to ``manage.py test``::
 
-    python runtests.py wagtail.wagtailcore
+    python manage.py test wagtail.wagtailcore
 
 **Testing against PostgreSQL**
 
 By default, Wagtail tests against SQLite. You can switch to using PostgreSQL by
 using the ``--postgres`` argument::
 
-    python runtests.py --postgres
+    python manage.py test --postgres
 
 If you need to use a different user, password or host. Use the ``PGUSER``, ``PGPASSWORD`` and ``PGHOST`` environment variables.
 
@@ -83,7 +83,7 @@ If you need to use a different user, password or host. Use the ``PGUSER``, ``PGP
 If you need to test against a different database, set the ``DATABASE_ENGINE``
 environment variable to the name of the Django database backend to test against::
 
-    DATABASE_ENGINE=django.db.backends.mysql python runtests.py
+    DATABASE_ENGINE=django.db.backends.mysql python manage.py test
 
 This will create a new database called ``test_wagtail`` in MySQL and run
 the tests against it.
@@ -91,9 +91,9 @@ the tests against it.
 **Testing Elasticsearch**
 
 You can test Wagtail against Elasticsearch by passing the ``--elasticsearch``
-argument to ``runtests.py``::
+argument to ``manage.py test``::
 
-    python runtests.py --elasticsearch
+    python manage.py test --elasticsearch
 
 
 Wagtail will attempt to connect to a local instance of Elasticsearch
@@ -102,7 +102,7 @@ Wagtail will attempt to connect to a local instance of Elasticsearch
 If your Elasticsearch instance is located somewhere else, you can set the
 ``ELASTICSEARCH_URL`` environment variable to point to its location::
 
-    ELASTICSEARCH_URL=http://my-elasticsearch-instance:9200 python runtests.py --elasticsearch
+    ELASTICSEARCH_URL=http://my-elasticsearch-instance:9200 python manage.py test --elasticsearch
 
 Compiling static assets
 ~~~~~~~~~~~~~~~~~~~~~~~
