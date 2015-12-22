@@ -26,7 +26,7 @@ def runtests():
         os.environ.setdefault('ELASTICSEARCH_URL', 'http://localhost:9200')
         args.remove('--elasticsearch')
 
-    argv = sys.argv[:1] + ['test'] + args
+    argv = sys.argv[:1] + args
     try:
         execute_from_command_line(argv)
     finally:
