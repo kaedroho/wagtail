@@ -89,6 +89,18 @@ Cloudfront
 
 Within Amazon Web Services you will need at least one Cloudfront web distribution. If you don't have one, you can do this here: `Cloudfront getting started <https://aws.amazon.com/cloudfront/>`_
 
+Install the ``boto3`` client library and make sure it's added into your project's ``requirements.txt`` file:
+
+.. code-block:: shell
+
+    $ pip install "boto3<1.2"
+
+.. code-block::
+
+    # requirements.txt
+
+    boto3>=1.1,<1.2
+
 Add an item into the ``WAGTAILFRONTENDCACHE`` and set the ``BACKEND`` parameter to ``wagtail.contrib.wagtailfrontendcache.backends.CloudfrontBackend``. This backend requires one extra parameter, ``DISTRIBUTION_ID`` (your Cloudfront generated distrubition id).
 
 .. code-block:: python

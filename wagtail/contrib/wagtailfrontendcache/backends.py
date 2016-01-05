@@ -1,5 +1,3 @@
-import boto3
-import botocore
 import json
 import logging
 import uuid
@@ -90,10 +88,15 @@ class CloudflareBackend(BaseBackend):
 
 class CloudfrontBackend(BaseBackend):
     def __init__(self, params):
+        # boto3 is an optional dependency so this may raise ImportError
+        import boto3
+
         self.client = boto3.client('cloudfront')
         self.cloudfront_distribution_id = params.pop('DISTRIBUTION_ID')
 
     def purge(self, url):
+        import botocore
+
         try:
             self.client.create_invalidation(
                 DistributionId=self.cloudfront_distribution_id,
