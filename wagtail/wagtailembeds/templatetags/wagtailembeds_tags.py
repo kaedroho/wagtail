@@ -14,3 +14,11 @@ def embed(url, max_width=None):
         return mark_safe(embed.html)
     except embeds.EmbedException:
         return ''
+
+
+@register.simple_tag(name='embed')
+def embed_tag(url, max_width=None):
+    try:
+        return embeds.get_embed(url, max_width=max_width)
+    except embeds.EmbedException:
+        pass
