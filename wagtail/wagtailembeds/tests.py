@@ -31,6 +31,7 @@ from wagtail.wagtailembeds.finders import get_finders
 from wagtail.wagtailembeds.templatetags.wagtailembeds_tags import embed as embed_filter
 from wagtail.wagtailembeds.blocks import EmbedBlock, EmbedValue
 from wagtail.wagtailembeds.models import Embed
+from wagtail.wagtailembeds import oembed_providers
 
 
 class TestGetFinders(TestCase):
@@ -423,6 +424,14 @@ class TestOembed(TestCase):
             'height': 'test_height',
             'html': 'test_html'
         })
+
+    def test_oembed_accepts_known_provider(self):
+        finder = OEmbedFinder(providers=[oembed_providers.youtube])
+        self.assertTrue(finder.accept("http://www.youtube.com/watch/"))
+
+    def test_oembed_doesnt_accept_unknown_provider(self):
+        finder = OEmbedFinder(providers=[oembed_providers.twitter])
+        self.assertFalse(finder.accept("http://www.youtube.com/watch/"))
 
 
 class TestEmbedFilter(TestCase):
