@@ -53,6 +53,44 @@ class TestGetFinders(TestCase):
         self.assertEqual(len(finders), 1)
         self.assertIsInstance(finders[0], OEmbedFinder)
 
+    @override_settings(WAGTAILEMBEDS_EMBED_FINDERS=[
+        {
+            'class': 'wagtail.wagtailembeds.finders.embedly',
+            'key': 'foo',
+        }
+    ])
+    def test_new_find_embedly(self):
+        finders = get_finders()
+
+        self.assertEqual(len(finders), 1)
+        self.assertIsInstance(finders[0], EmbedlyFinder)
+        self.assertEqual(finders[0].get_key(), 'foo')
+
+    @override_settings(WAGTAILEMBEDS_EMBED_FINDERS=[
+        {
+            'class': 'wagtail.wagtailembeds.finders.embedly',
+        }
+    ], WAGTAILEMBEDS_EMBEDLY_KEY='bar')
+    def test_new_find_embedly_still_uses_old_key_setting(self):
+        finders = get_finders()
+
+        self.assertEqual(len(finders), 1)
+        self.assertIsInstance(finders[0], EmbedlyFinder)
+        self.assertEqual(finders[0].get_key(), 'bar')
+
+    @override_settings(WAGTAILEMBEDS_EMBED_FINDERS=[
+        {
+            'class': 'wagtail.wagtailembeds.finders.embedly',
+            'key': 'foo',
+        }
+    ], WAGTAILEMBEDS_EMBEDLY_KEY='bar')
+    def test_new_find_embedly_key_setting_precedence(self):
+        finders = get_finders()
+
+        self.assertEqual(len(finders), 1)
+        self.assertIsInstance(finders[0], EmbedlyFinder)
+        self.assertEqual(finders[0].get_key(), 'foo')
+
     # Old settings
 
     @override_settings(WAGTAILEMBEDS_EMBEDLY_KEY='test')
@@ -61,6 +99,7 @@ class TestGetFinders(TestCase):
 
         self.assertEqual(len(finders), 1)
         self.assertIsInstance(finders[0], EmbedlyFinder)
+        self.assertEqual(finders[0].get_key(), 'test')
 
     @override_settings(WAGTAILEMBEDS_EMBED_FINDER='wagtail.wagtailembeds.finders.embedly.embedly')
     def test_old_find_embedly(self):
@@ -224,10 +263,10 @@ class TestEmbedly(TestCase):
             oembed.return_value = {'type': 'photo',
                                    'url': 'http://www.example.com'}
 
-            EmbedlyFinder().find_embed('http://www.example.com', key='foo')
+            EmbedlyFinder(key='foo').find_embed('http://www.example.com')
             oembed.assert_called_with('http://www.example.com', better=False)
 
-            EmbedlyFinder().find_embed('http://www.example.com', max_width=100, key='foo')
+            EmbedlyFinder(key='foo').find_embed('http://www.example.com', max_width=100)
             oembed.assert_called_with('http://www.example.com', maxwidth=100, better=False)
 
     @unittest.skipIf(no_embedly, "Embedly is not installed")
@@ -238,7 +277,7 @@ class TestEmbedly(TestCase):
                                    'error': True,
                                    'error_code': 401}
             self.assertRaises(AccessDeniedEmbedlyException,
-                              EmbedlyFinder().find_embed, 'http://www.example.com', key='foo')
+                              EmbedlyFinder(key='foo').find_embed, 'http://www.example.com')
 
     @unittest.skipIf(no_embedly, "Embedly is not installed")
     def test_embedly_403(self):
@@ -248,7 +287,7 @@ class TestEmbedly(TestCase):
                                    'error': True,
                                    'error_code': 403}
             self.assertRaises(AccessDeniedEmbedlyException,
-                              EmbedlyFinder().find_embed, 'http://www.example.com', key='foo')
+                              EmbedlyFinder(key='foo').find_embed, 'http://www.example.com')
 
     @unittest.skipIf(no_embedly, "Embedly is not installed")
     def test_embedly_404(self):
@@ -258,7 +297,7 @@ class TestEmbedly(TestCase):
                                    'error': True,
                                    'error_code': 404}
             self.assertRaises(EmbedNotFoundException,
-                              EmbedlyFinder().find_embed, 'http://www.example.com', key='foo')
+                              EmbedlyFinder(key='foo').find_embed, 'http://www.example.com')
 
     @unittest.skipIf(no_embedly, "Embedly is not installed")
     def test_embedly_other_error(self):
@@ -267,20 +306,20 @@ class TestEmbedly(TestCase):
                                    'url': 'http://www.example.com',
                                    'error': True,
                                    'error_code': 999}
-            self.assertRaises(EmbedlyException, EmbedlyFinder().find_embed,
-                              'http://www.example.com', key='foo')
+            self.assertRaises(EmbedlyException, EmbedlyFinder(key='foo').find_embed,
+                              'http://www.example.com')
 
     @unittest.skipIf(no_embedly, "Embedly is not installed")
     def test_embedly_html_conversion(self):
         with patch('embedly.Embedly.oembed') as oembed:
             oembed.return_value = {'type': 'photo',
                                    'url': 'http://www.example.com'}
-            result = EmbedlyFinder().find_embed('http://www.example.com', key='foo')
+            result = EmbedlyFinder(key='foo').find_embed('http://www.example.com')
             self.assertEqual(result['html'], '<img src="http://www.example.com" />')
 
             oembed.return_value = {'type': 'something else',
                                    'html': '<foo>bar</foo>'}
-            result = EmbedlyFinder().find_embed('http://www.example.com', key='foo')
+            result = EmbedlyFinder(key='foo').find_embed('http://www.example.com')
             self.assertEqual(result['html'], '<foo>bar</foo>')
 
     @unittest.skipIf(no_embedly, "Embedly is not installed")
@@ -288,7 +327,7 @@ class TestEmbedly(TestCase):
         with patch('embedly.Embedly.oembed') as oembed:
             oembed.return_value = {'type': 'something else',
                                    'html': '<foo>bar</foo>'}
-            result = EmbedlyFinder().find_embed('http://www.example.com', key='foo')
+            result = EmbedlyFinder(key='foo').find_embed('http://www.example.com')
             self.assertEqual(result, {
                 'title': '',
                 'author_name': '',
@@ -307,7 +346,7 @@ class TestEmbedly(TestCase):
                                    'width': 100,
                                    'height': 100,
                                    'html': '<foo>bar</foo>'}
-            result = EmbedlyFinder().find_embed('http://www.example.com', key='foo')
+            result = EmbedlyFinder(key='foo').find_embed('http://www.example.com')
             self.assertEqual(result, {'type': 'something else',
                                       'author_name': 'Alice',
                                       'provider_name': 'Bob',
