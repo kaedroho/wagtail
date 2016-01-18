@@ -15,6 +15,13 @@ from .base import EmbedFinder
 
 
 class OEmbedFinder(EmbedFinder):
+    options = {}
+
+    def __init__(self, options=None):
+        if options:
+            self.options = self.options.copy()
+            self.options.update(options)
+
     def accept(self, url):
         return get_oembed_provider(url) is not None
 
@@ -25,7 +32,9 @@ class OEmbedFinder(EmbedFinder):
             raise EmbedNotFoundException
 
         # Work out params
-        params = {'url': url, 'format': 'json'}
+        params = self.options.copy()
+        params['url'] = url
+        params['format'] = 'json'
         if max_width:
             params['maxwidth'] = max_width
 
