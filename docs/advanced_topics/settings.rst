@@ -62,7 +62,6 @@ Apps (``settings.py``)
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'compressor',
     'taggit',
     'modelcluster',
 
@@ -86,11 +85,6 @@ Wagtail requires several Django app modules, third-party apps, and defines sever
 
 Third-Party Apps
 ----------------
-
-``compressor``
-  Static asset combiner and minifier for Django. Compressor also enables for the use of preprocessors. See `Compressor Documentation`_.
-
-.. _Compressor Documentation: http://django-compressor.readthedocs.org/en/latest/
 
 ``taggit``
   Tagging framework for Django. This is used internally within Wagtail for image and document tagging and is available for your own models as well. See :ref:`tagging` for a Wagtail model recipe or the `Taggit Documentation`_.
@@ -422,7 +416,6 @@ These two files should reside in your project directory (``myproject/myproject/`
   STATICFILES_FINDERS = (
       'django.contrib.staticfiles.finders.FileSystemFinder',
       'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-      'compressor.finders.CompressorFinder',
   )
 
   # Make this unique, and don't share it with anybody.
@@ -464,7 +457,6 @@ These two files should reside in your project directory (``myproject/myproject/`
       'django.contrib.messages',
       'django.contrib.staticfiles',
 
-      'compressor',
       'taggit',
       'modelcluster',
 
