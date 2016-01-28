@@ -78,7 +78,7 @@ def page_revisions(request, page_id, template_name='wagtailadmin/revisions/revis
     )
 
 
-def preview_page_version(request, revision_id):
+def preview_page_version(request, page_id, revision_id):
     """
     Returns GET response for specified page preview.
 
@@ -86,7 +86,7 @@ def preview_page_version(request, revision_id):
     :param reversion_pk: the page revision ID.
     :rtype: django.http.HttpResponse.
     """
-    revision = get_object_or_404(PageRevision, pk=revision_id)
+    revision = get_object_or_404(PageRevision, page_id=page_id, pk=revision_id)
 
     if not revision.page.permissions_for_user(request.user).can_publish():
         raise PermissionDenied
@@ -97,7 +97,7 @@ def preview_page_version(request, revision_id):
     return page.serve_preview(request, page.default_preview_mode)
 
 
-def confirm_page_reversion(request, revision_id, template_name='wagtailadmin/revisions/confirm_reversion.html'):
+def confirm_page_reversion(request, page_id, revision_id, template_name='wagtailadmin/revisions/confirm_reversion.html'):
     """
     Handles page reversion process (GET and POST).
 
@@ -106,7 +106,7 @@ def confirm_page_reversion(request, revision_id, template_name='wagtailadmin/rev
     :param template_name: the template name.
     :rtype: django.http.HttpResponse.
     """
-    revision = get_object_or_404(PageRevision, pk=revision_id)
+    revision = get_object_or_404(PageRevision, page_id=page_id, pk=revision_id)
     page = revision.page
 
     if page.locked:
@@ -237,7 +237,7 @@ def get_related_serial(related):
     return serialised
 
 
-def preview_page_diff(request, revision_id, revision_2_id=None, template_name='wagtailadmin/revisions/diff.html'):
+def preview_page_diff(request, page_id, revision_id, revision_2_id=None, template_name='wagtailadmin/revisions/diff.html'):
     """
     Provides the ability to compare simple text values of two pages, and
     highlights chnages between them using difflib
@@ -246,7 +246,7 @@ def preview_page_diff(request, revision_id, revision_2_id=None, template_name='w
      - Handle relations (eg, Images, StreamFields, etc)
      - Nice messages for nodes that don't have any diffable text content.
     """
-    revision_1 = get_object_or_404(PageRevision, pk=revision_id)
+    revision_1 = get_object_or_404(PageRevision, page=page_id, pk=revision_id)
     page_1 = revision_1.as_page_object()
     page_perms = page_1.permissions_for_user(request.user)
 

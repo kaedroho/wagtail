@@ -37,9 +37,9 @@ urlpatterns = [
     url(r'^(\d+)/lock/$', pages.lock, name='lock'),
     url(r'^(\d+)/unlock/$', pages.unlock, name='unlock'),
 
-    url(r'^revisions/(?P<page_id>\d+)/$', revisions.page_revisions, name='page_revisions'),
-    url(r'^preview/(?P<revision_id>\d+)/$', revisions.preview_page_version, name='preview_page_version'),
-    url(r'^diff/(?P<revision_id>\d+)/$', revisions.preview_page_diff, name='preview_page_diff'),
-    url(r'^diff/(?P<revision_id>\d+)/(?P<revision_2_id>\d+)/$', revisions.preview_page_diff, name='preview_page_diff'),
-    url(r'^revert/(?P<revision_id>\d+)/$', revisions.confirm_page_reversion, name='confirm_page_reversion'),
+    url(r'^(\d+)/revisions/$', revisions.page_revisions, name='page_revisions'),
+    url(r'^(\d+)/revisions/(\d+)/preview/$', revisions.preview_page_version, name='preview_page_version'),
+    url(r'^(\d+)/revisions/compare/(\d+)\.\.\.latest/$', revisions.preview_page_diff, name='preview_page_diff'),
+    url(r'^(\d+)/revisions/compare/(\d+)\.\.\.(\d+)/$', revisions.preview_page_diff, name='preview_page_diff'),
+    url(r'^(\d+)/revisions/(\d+)/revert/$', revisions.confirm_page_reversion, name='confirm_page_reversion'),
 ]

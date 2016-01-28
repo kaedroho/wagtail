@@ -122,7 +122,7 @@ class TestRevisionPreviewView(TestCase, WagtailTestUtils):
     def get_url(self):
         return reverse(
             'wagtailadmin_pages:preview_page_version',
-            args=(self.child_page.get_latest_revision().id,)
+            args=(self.child_page.id, self.child_page.get_latest_revision().id)
         )
 
     def get_get_permission_denied(self):
@@ -166,7 +166,7 @@ class TestConfirmPageReversionView(TestCase, WagtailTestUtils):
     def get_url(self):
         return reverse(
             'wagtailadmin_pages:confirm_page_reversion',
-            args=(self.child_page.get_latest_revision().id,)
+            args=(self.child_page.id, self.child_page.get_latest_revision().id)
         )
 
     def get_get_permission_denied(self):
