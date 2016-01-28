@@ -40,11 +40,11 @@
                 {{ compare_with_str }}:
 
                 <select class="diff__revision-selector" name="" data-rev>
-                        <option value="{% url 'wagtailrollbacks:preview_page_diff' revision_id=revision.pk %}">
+                        <option value="{% url 'wagtailadmin_pages:preview_page_diff' revision_id=revision.pk %}">
                             {{ latest_str }}
                         </option>
                     {% for rev in revisions %}
-                        <option value="{% url 'wagtailrollbacks:preview_page_diff' revision_id=revision.pk revision_2_id=rev.pk %}" {% if diff_id == rev.id %}selected="selected"{% endif %}>
+                        <option value="{% url 'wagtailadmin_pages:preview_page_diff' revision_id=revision.pk revision_2_id=rev.pk %}" {% if diff_id == rev.id %}selected="selected"{% endif %}>
                             #{{ rev.pk}}: {{ rev.created_at }} by {{ rev.user }}
                         </option>
                     {% endfor %}
@@ -199,4 +199,3 @@
         })();
     </script>
 {% endblock %}
-
