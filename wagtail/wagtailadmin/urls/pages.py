@@ -38,7 +38,7 @@ urlpatterns = [
     url(r'^(\d+)/unlock/$', pages.unlock, name='unlock'),
 
     url(r'^(\d+)/revisions/$', revisions.page_revisions, name='page_revisions'),
-    url(r'^(\d+)/revisions/(\d+)/preview/$', revisions.preview_page_version, name='preview_page_version'),
+    url(r'^(\d+)/revisions/(\d+)/view/$', revisions.view, name='revisions_view'),
     url(r'^(\d+)/revisions/compare/(\d+)\.\.\.latest/$', revisions.preview_page_diff, name='preview_page_diff'),
     url(r'^(\d+)/revisions/compare/(\d+)\.\.\.(\d+)/$', revisions.preview_page_diff, name='preview_page_diff'),
     url(r'^(\d+)/revisions/(\d+)/revert/$', revisions.confirm_page_reversion, name='confirm_page_reversion'),

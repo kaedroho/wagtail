@@ -78,7 +78,7 @@ def page_revisions(request, page_id, template_name='wagtailadmin/revisions/revis
     )
 
 
-def preview_page_version(request, page_id, revision_id):
+def view(request, page_id, revision_id):
     """
     Returns GET response for specified page preview.
 
