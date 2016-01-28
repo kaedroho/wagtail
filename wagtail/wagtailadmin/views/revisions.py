@@ -125,10 +125,9 @@ def rollback(request, page_id, revision_id, template_name='wagtailadmin/revision
     if request.POST:
         is_publishing = bool(request.POST.get('action-publish')) and page_perms.can_publish()
         is_submitting = bool(request.POST.get('action-submit'))
-        new_revision = page.rollback(
-            revision_id=revision_id,
+        new_revision = revision.as_page_object().save_revision(
             user=request.user,
-            submitted_for_moderation=is_submitting
+            submitted_for_moderation=is_submitting,
         )
 
         if is_publishing:
