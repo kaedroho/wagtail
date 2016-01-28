@@ -1,37 +1,17 @@
-from operator import itemgetter
-from dictdiffer import diff, patch, swap, revert
-import six
 import difflib
-from difflib import HtmlDiff, SequenceMatcher
-from django.core.exceptions import ObjectDoesNotExist
+from dictdiffer import diff
 from datetime import date
+
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
-from django.db.models.fields.related import OneToOneField
-from modelcluster.models import ClusterableModel
-
-
-a = ['one', 'two', 'three', 'monkey']
-b = ['one', 'five', 'two', 'three', 'four']
-
-
-obj1 = {
-    'title': 'some title',
-    'some_list': ['a', 'b']
-}
-
-
-obj2 = {
-    'title': 'some other title',
-    'some_list': ['b', 'c', 'd']
-}
+from django.utils import six
 
 
 def string_diff(a, b):
-    s = SequenceMatcher(None, a, b)
+    s = difflib.SequenceMatcher(None, a, b)
     items = []
 
     for tag, i1, i2, j1, j2 in s.get_opcodes():
-        print ("%7s a[%d:%d] (%s) b[%d:%d] (%s)" % (tag, i1, i2, a[i1:i2], j1, j2, b[j1:j2]))
         items.append((tag, i1, i2, a[i1:i2], j1, j2, b[j1:j2]))
 
     return items
@@ -61,14 +41,13 @@ def model_diff(obj1, obj2, excluded_keys=['created_at', 'user', 'uid', '_state']
 
 
 def list_diff(a, b):
-    # print a, b
     pairs = zip(a, b)
 
     difference = sum(x != y for x, y in pairs)
     difference += abs(len(a) - len(b))
 
     if difference == 0:
-        print 'The lists are the same length and appear to contain the same items'
+        # The lists are the same length and appear to contain the same items
         return 0, [], [], []
 
     # added = in list b but not in list a
@@ -84,25 +63,24 @@ def list_diff(a, b):
         modified = modified_strings
 
     if len(modified_items):
-        print 'has modified items!'
+        # has modified items!
         modified = modified_items
 
     if len(modified_models):
-        print 'models!'
+        # models!
         modified = modified_models
 
     return (difference, added, removed, modified)
 
 
-def model_to_dict(obj, exclude=['AutoField', \
-    'OneToOneField', 'revisions']):
-    '''
-        serialize model object to dict with related objects
+def model_to_dict(obj, exclude=['AutoField', 'OneToOneField', 'revisions']):
+    """
+    serialize model object to dict with related objects
 
-        author: Vadym Zakovinko <vp@zakovinko.com>
-        date: January 31, 2011
-        http://djangosnippets.org/snippets/2342/
-    '''
+    author: Vadym Zakovinko <vp@zakovinko.com>
+    date: January 31, 2011
+    http://djangosnippets.org/snippets/2342/
+    """
     tree = {}
     for field_name in obj._meta.get_all_field_names():
         if field_name == 'revisions':
@@ -121,8 +99,7 @@ def model_to_dict(obj, exclude=['AutoField', \
                 exclude.append(obj.__class__.__name__)
             subtree = []
             for related_obj in getattr(obj, field_name).all():
-                value = model_to_dict(related_obj, \
-                    exclude=exclude)
+                value = model_to_dict(related_obj, exclude=exclude)
                 if value:
                     subtree.append(value)
             if subtree:
@@ -136,8 +113,7 @@ def model_to_dict(obj, exclude=['AutoField', \
 
         if field.__class__.__name__ == 'RelatedObject':
             exclude.append(field.model.__name__)
-            tree[field_name] = model_to_dict(getattr(obj, field_name), \
-                exclude=exclude)
+            tree[field_name] = model_to_dict(getattr(obj, field_name), exclude=exclude)
             continue
 
         value = getattr(obj, field_name)
@@ -187,8 +163,5 @@ def diff_fields(a, b):
 
     if isinstance(a, six.string_types) and isinstance(b, six.string_types):
         return diff_text(a, b)
-
-    if isinstance(a, list) and isinstance(b, list):
-        print 'hey it\'s a list!'
 
     return None
