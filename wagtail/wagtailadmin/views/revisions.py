@@ -237,7 +237,7 @@ def get_related_serial(related):
     return serialised
 
 
-def preview_page_diff(request, page_id, revision_id, revision_2_id=None, template_name='wagtailadmin/revisions/diff.html'):
+def compare(request, page_id, revision_id, revision_2_id=None, template_name='wagtailadmin/revisions/compare.html'):
     """
     Provides the ability to compare simple text values of two pages, and
     highlights chnages between them using difflib

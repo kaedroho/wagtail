@@ -39,7 +39,7 @@ urlpatterns = [
 
     url(r'^(\d+)/revisions/$', revisions.index, name='revisions_index'),
     url(r'^(\d+)/revisions/(\d+)/view/$', revisions.view, name='revisions_view'),
-    url(r'^(\d+)/revisions/compare/(\d+)\.\.\.latest/$', revisions.preview_page_diff, name='preview_page_diff'),
-    url(r'^(\d+)/revisions/compare/(\d+)\.\.\.(\d+)/$', revisions.preview_page_diff, name='preview_page_diff'),
+    url(r'^(\d+)/revisions/compare/(\d+)\.\.\.latest/$', revisions.compare, name='revisions_compare'),
+    url(r'^(\d+)/revisions/compare/(\d+)\.\.\.(\d+)/$', revisions.compare, name='revisions_compare'),
     url(r'^(\d+)/revisions/(\d+)/rollback/$', revisions.rollback, name='revisions_rollback'),
 ]
