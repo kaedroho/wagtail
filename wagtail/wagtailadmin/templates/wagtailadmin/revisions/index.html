@@ -36,12 +36,12 @@
         <ul>
             <li class="prev">
                 {% if revisions.has_previous %}
-                    <a href="{% url 'wagtailadmin_pages:page_revisions' page.pk %}?p={{ revisions.previous_page_number }}" class="icon icon-arrow-left-after">{% trans 'Previous' %}</a>
+                    <a href="{% url 'wagtailadmin_pages:revisions_index' page.pk %}?p={{ revisions.previous_page_number }}" class="icon icon-arrow-left-after">{% trans 'Previous' %}</a>
                 {% endif %}
             </li>
             <li class="next">
                 {% if revisions.has_next %}
-                    <a href="{% url 'wagtailadmin_pages:page_revisions' page.pk %}?p={{ revisions.next_page_number }}" class="icon icon-arrow-right-after">{% trans 'Next' %}</a>
+                    <a href="{% url 'wagtailadmin_pages:revisions_index' page.pk %}?p={{ revisions.next_page_number }}" class="icon icon-arrow-right-after">{% trans 'Next' %}</a>
                 {% endif %}
             </li>
         </ul>

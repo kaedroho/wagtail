@@ -49,7 +49,7 @@ class TestPageRevisionsView(TestCase, WagtailTestUtils):
             params = {}
 
         return self.client.get(
-            reverse('wagtailadmin_pages:page_revisions', args=(self.child_page.id,)),
+            reverse('wagtailadmin_pages:revisions_index', args=(self.child_page.id,)),
             params
         )
 
@@ -62,7 +62,7 @@ class TestPageRevisionsView(TestCase, WagtailTestUtils):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(
             response,
-            'wagtailadmin/revisions/revisions.html'
+            'wagtailadmin/revisions/index.html'
         )
         self.assertEqual(response.context['revisions'].number, page_num)
         self.assertContains(response, 'Page {0} of '.format(page_num))
@@ -75,7 +75,7 @@ class TestPageRevisionsView(TestCase, WagtailTestUtils):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(
             response,
-            'wagtailadmin/revisions/revisions.html'
+            'wagtailadmin/revisions/index.html'
         )
         self.assertEqual(response.context['revisions'].number, 1)
 
@@ -87,7 +87,7 @@ class TestPageRevisionsView(TestCase, WagtailTestUtils):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(
             response,
-            'wagtailadmin/revisions/revisions.html'
+            'wagtailadmin/revisions/index.html'
         )
         self.assertEqual(
             response.context['revisions'].number,

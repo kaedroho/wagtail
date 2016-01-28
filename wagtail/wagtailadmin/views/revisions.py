@@ -49,7 +49,7 @@ def get_revisions(page, page_num=1, paginator_number=10):
     return revisions
 
 
-def page_revisions(request, page_id, template_name='wagtailadmin/revisions/revisions.html'):
+def index(request, page_id, template_name='wagtailadmin/revisions/index.html'):
     """
     Returns GET response for specified page revisions.
 
