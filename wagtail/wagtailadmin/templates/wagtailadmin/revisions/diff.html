@@ -25,8 +25,8 @@
 
         <hr />
 
-        <div class="diff__page-title">
-            <h2 class="diff__column-header">
+        <div class="diff-page-title">
+            <h2 class="diff-column-header">
                 {{ revision_str }} #{{ revision.pk }}
             </h2>
             <p>
@@ -35,11 +35,11 @@
             <hr />
         </div>
 
-        <div class="diff__page-title">
-            <h2 class="diff__column-header">
+        <div class="diff-page-title">
+            <h2 class="diff-column-header">
                 {{ compare_with_str }}:
 
-                <select class="diff__revision-selector" name="" data-rev>
+                <select class="diff-revision-selector" name="" data-rev>
                         <option value="{% url 'wagtailadmin_pages:preview_page_diff' revision_id=revision.pk %}">
                             {{ latest_str }}
                         </option>
@@ -59,10 +59,10 @@
 
 
         {% if difference|length > 0 %}
-            <div class="diff__full-width">
+            <div class="diff-full-width">
             {% for change in difference %}
 
-                <h3 class="diff__title">
+                <h3 class="diff-title">
                     {{ change.title.label }}
 
                     {% if change.title.index != None %}
@@ -72,12 +72,12 @@
 
                 <table class="diff">
                     <tr>
-                        <td class='diff_header'>
+                        <td class='diff-header'>
 
                         </td>
                         <td>
                             {% if change.action == 'change' %}
-                                <span class="diff_sub">
+                                <span class="diff-sub">
                                     {{ change.change.0 }}
                                 </span>
                             {% endif %}
@@ -87,7 +87,7 @@
                         </td>
                         <td>
                             {% if change.action == 'change' %}
-                                <span class="diff_add">
+                                <span class="diff-add">
                                     {{ change.change.1 }}
                                 </span>
                             {% endif %}
@@ -101,11 +101,11 @@
                                                 {% for key, val in op.value.iteritems %}
                                                 <p>
                                                     <strong>{{ key }}</strong>
-                                                    <span class="diff_add">{{ val }}</span>
+                                                    <span class="diff-add">{{ val }}</span>
                                                 </p>
                                                 {% endfor %}
                                             {% else %}
-                                            <span class="diff_add">
+                                            <span class="diff-add">
                                                 {{ op.value }}
                                             </span>
                                             {% endif %}
@@ -127,16 +127,16 @@
 
 
         {% if deltas|length > 0 or related_object_diffs|length > 0 %}
-            <div class="diff__full-width">
+            <div class="diff-full-width">
                 {% for delta in deltas %}
-                    <h3 class="diff__title">
+                    <h3 class="diff-title">
                         {{ delta.field_name }}
                     </h3>
                     {{ delta.html|safe }}
                 {% endfor %}
             </div>
 
-            <div class="diff__full-width">
+            <div class="diff-full-width">
                 {% if related_object_diffs|length > 0 %}
 
                     {% if deltas|length > 0 %}
@@ -150,23 +150,23 @@
                 {% for object in related_object_diffs %}
 
                     {% if object.diff|length > 0 %}
-                        <h3 class="diff__title">{{ object.name }}</h3>
+                        <h3 class="diff-title">{{ object.name }}</h3>
                         {% for change in object.diff %}
-                            <h3 class="diff__title">
+                            <h3 class="diff-title">
                                {{ change.1.1 }}
                             </h3>
                             <table class="diff">
                                 <tr>
-                                    <td class='diff_header'>
+                                    <td class='diff-header'>
 
                                     </td>
                                     <td>
-                                        <span class="{% if change.0 == 'add' %}diff_add{% else %}diff_sub{% endif %}">
+                                        <span class="{% if change.0 == 'add' %}diff-add{% else %}diff-sub{% endif %}">
                                             {{ change.2.0 }}
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="diff_add">
+                                        <span class="diff-add">
                                             {{ change.2.1 }}
                                         </span>
                                     </td>
@@ -182,7 +182,7 @@
         {% endif %}
 
         {% if difference|length == 0 %}
-            <div class="diff__full-width">
+            <div class="diff-full-width">
                 <h2>
                     {{ identical_revision_message }}
                 </h2>
