@@ -11,7 +11,7 @@
         <p>
             {% blocktrans with created=revision.created_at %}Are you sure you want to rollback this page to the <b>{{ created }}</b> version?{% endblocktrans %}
         </p>
-        <form action="{% url 'wagtailadmin_pages:confirm_page_reversion' page.pk revision.pk %}" method="POST">
+        <form action="{% url 'wagtailadmin_pages:revisions_rollback' page.pk revision.pk %}" method="POST">
             {% csrf_token %}
             <input type="submit" value="{% trans 'Save version as draft' %}" class="button" {% if revision.page.locked %}disabled="true"{% endif %} />
             {% if page_perms.can_publish %}

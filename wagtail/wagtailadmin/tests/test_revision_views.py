@@ -165,7 +165,7 @@ class TestConfirmPageReversionView(TestCase, WagtailTestUtils):
 
     def get_url(self):
         return reverse(
-            'wagtailadmin_pages:confirm_page_reversion',
+            'wagtailadmin_pages:revisions_rollback',
             args=(self.child_page.id, self.child_page.get_latest_revision().id)
         )
 
@@ -191,7 +191,7 @@ class TestConfirmPageReversionView(TestCase, WagtailTestUtils):
 
         self.assertTemplateUsed(
             response,
-            'wagtailadmin/revisions/confirm_reversion.html'
+            'wagtailadmin/revisions/rollback.html'
         )
 
     def test_post_draft(self):

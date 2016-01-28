@@ -97,7 +97,7 @@ def view(request, page_id, revision_id):
     return page.serve_preview(request, page.default_preview_mode)
 
 
-def confirm_page_reversion(request, page_id, revision_id, template_name='wagtailadmin/revisions/confirm_reversion.html'):
+def rollback(request, page_id, revision_id, template_name='wagtailadmin/revisions/rollback.html'):
     """
     Handles page reversion process (GET and POST).
 

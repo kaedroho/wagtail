@@ -21,7 +21,7 @@
                     <td>
                         <h2>{% blocktrans with created=revision.created_at %}{{ created }}{% endblocktrans %}</h2>
                         <ul class="actions">
-                            <li><a href="{% url 'wagtailadmin_pages:confirm_page_reversion' page.pk revision.pk %}" class="button button-small button-secondary{% if page.locked %} disabled{% endif %}">{% trans 'Revert' %}</a></li>
+                            <li><a href="{% url 'wagtailadmin_pages:revisions_rollback' page.pk revision.pk %}" class="button button-small button-secondary{% if page.locked %} disabled{% endif %}">{% trans 'Rollback' %}</a></li>
                             <li><a href="{% url 'wagtailadmin_pages:preview_page_diff' page.pk revision.pk %}" class="button button-small button-secondary">{% trans 'Compare' %}</a></li>
                             <li><a href="{% url 'wagtailadmin_pages:revisions_view' page.pk revision.pk %}" class="button button-small button-secondary">{% trans 'View' %}</a></li>
                         </ul>

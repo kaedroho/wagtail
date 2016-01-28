@@ -41,5 +41,5 @@ urlpatterns = [
     url(r'^(\d+)/revisions/(\d+)/view/$', revisions.view, name='revisions_view'),
     url(r'^(\d+)/revisions/compare/(\d+)\.\.\.latest/$', revisions.preview_page_diff, name='preview_page_diff'),
     url(r'^(\d+)/revisions/compare/(\d+)\.\.\.(\d+)/$', revisions.preview_page_diff, name='preview_page_diff'),
-    url(r'^(\d+)/revisions/(\d+)/revert/$', revisions.confirm_page_reversion, name='confirm_page_reversion'),
+    url(r'^(\d+)/revisions/(\d+)/rollback/$', revisions.rollback, name='revisions_rollback'),
 ]
