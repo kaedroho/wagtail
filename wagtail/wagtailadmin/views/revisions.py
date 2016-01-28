@@ -1,6 +1,5 @@
-"""
-Contains application views.
-"""
+from dictdiffer import diff as dict_diff
+
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import (
     EmptyPage,
@@ -14,20 +13,13 @@ from django.shortcuts import (
     render
 )
 from django.utils.translation import ugettext as _
+from django.db.models.fields.related import OneToOneField
 
 from wagtail.wagtailadmin import messages
 from wagtail.wagtailadmin.utils import send_notification
 from wagtail.wagtailcore import hooks
-from wagtail.wagtailcore.models import (
-    Page,
-    PageRevision
-)
-
-
+from wagtail.wagtailcore.models import Page, PageRevision
 from wagtail.utils.diff_tools import model_to_dict
-from django.db.models.fields.related import OneToOneField
-from dictdiffer import diff as dict_diff
-
 
 
 def get_revisions(page, page_num=1, paginator_number=10):
@@ -185,8 +177,6 @@ def confirm_page_reversion(request, revision_id, template_name='wagtailadmin/rev
     )
 
 
-
-
 def get_revision_fields(page):
     """
     Filters system fields out of diffs
@@ -247,9 +237,6 @@ def get_related_serial(related):
     return serialised
 
 
-
-
-
 def preview_page_diff(request, revision_id, revision_2_id=None, template_name='wagtailadmin/revisions/diff.html'):
     """
     Provides the ability to compare simple text values of two pages, and
@@ -286,14 +273,10 @@ def preview_page_diff(request, revision_id, revision_2_id=None, template_name='w
 
     revisions = [rev for rev in revisions if rev.pk is not revision_1.pk]
 
-    # revision_1_fields, revision_1_related = get_revision_fields(page_1)
-    # revision_2_fields, revision_2_related = get_revision_fields(page_2)
-
     revision_1_fields = model_to_dict(page_1)
     revision_2_fields = model_to_dict(page_2)
 
     difference = list(dict_diff(revision_1_fields, revision_2_fields))
-
 
     formatted_difference = []
 
@@ -333,34 +316,6 @@ def preview_page_diff(request, revision_id, revision_2_id=None, template_name='w
             'change': new_change
         })
 
-    # print difference
-    # print formatted_difference
-
-    # # Don't compare things to themselves.
-    # text_deltas = []
-
-    # # Diff simple text fields
-    # for idx, field in enumerate(revision_1_fields):
-
-    #     if 'value' in revision_2_fields[idx]:
-    #         diff_result = diff_fields(field['value'], revision_2_fields[idx]['value'])
-
-    #         # TODO: Find a better way to determine if there's no differences
-    #         # in the diff results.
-    #         if diff_result is not None and 'No Differences Found' not in diff_result:
-    #             text_deltas.append({
-    #                 'html': diff_result,
-    #                 'field_name': field['name']
-    #             })
-
-    # # Diff related objects
-
-    # serial_a = get_related_serial(revision_1_related)
-    # serial_b = get_related_serial(revision_2_related)
-
-
-
-
     return render(
         request,
         template_name,
@@ -374,6 +329,5 @@ def preview_page_diff(request, revision_id, revision_2_id=None, template_name='w
             'revisions': revisions,
             'diff_id': revision_2_id,
             'difference': formatted_difference
-            # 'deltas': [d for d in text_deltas if d['html'] is not None]
         }
     )
