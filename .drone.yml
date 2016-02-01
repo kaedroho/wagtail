@@ -4,7 +4,7 @@ build:
   test:
     image: python:2.7
     commands:
-      - python -c "print 'hello' * 10000"
+      - python -c "print ('hello' * 10 + '\n') * 1000"
   flake8:
     image: python:3.5
     commands:
