@@ -1,6 +1,10 @@
 # The scripts for building the base images can be found in scripts/drone-images
 
 build:
+  test:
+    image: python:2.7
+    commands:
+      - python -c "print 'hello' * 10000"
   flake8:
     image: python:3.5
     commands:
