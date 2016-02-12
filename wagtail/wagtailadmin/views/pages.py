@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.core.exceptions import PermissionDenied
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
-from django.utils import timezone, formats
+from django.utils import timezone
 from django.utils.translation import ugettext as _
 from django.utils.http import is_safe_url
 from django.utils.safestring import mark_safe
