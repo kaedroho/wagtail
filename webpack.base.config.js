@@ -55,11 +55,13 @@ module.exports = function exports() {
       loaders: [
         {
           test: /\.js$/,
-          loader: 'babel'
+          loader: 'babel',
+          exclude: /node_modules/
         },
         {
           test: /\.jsx$/,
-          loader: 'babel'
+          loader: 'babel',
+          exclude: /node_modules/
         }
       ]
     }
