@@ -153,5 +153,14 @@ if 'ELASTICSEARCH_URL' in os.environ:
         'AUTO_UPDATE': False,
     }
 
+if 'ELASTICSEARCH2_URL' in os.environ:
+    WAGTAILSEARCH_BACKENDS['elasticsearch2'] = {
+        'BACKEND': 'wagtail.wagtailsearch.backends.elasticsearch2',
+        'URLS': [os.environ['ELASTICSEARCH2_URL']],
+        'TIMEOUT': 10,
+        'max_retries': 1,
+        'AUTO_UPDATE': False,
+    }
+
 
 WAGTAIL_SITE_NAME = "Test Site"
