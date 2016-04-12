@@ -1,10 +1,24 @@
 'use strict';
 
-function makeHalloRichTextEditable(id) {
+function makeHalloRichTextEditable(id, plugins, pluginSettings) {
     var input = $('#' + id);
     var richText = $('<div class="richtext"></div>').html(input.val());
     richText.insertBefore(input);
     input.hide();
+
+    // Process plugin configuration
+    // "plugins" is an ordered array of plugins to display in this widget
+    // "pluginSettings" is a mapping of plugin name to configuration. This
+    // allows overriding the default configuration of specific plugins
+    plugins = plugins || Object.keys(halloPlugins);
+    var processedPlugins = {};
+    for (var i = 0; i < plugins.length; i++) {
+        var pluginName = plugins[i];
+
+        if (pluginName in halloPlugins) {
+            processedPlugins[pluginName] = (pluginSettings && pluginSettings[pluginName]) || halloPlugins[pluginName];
+        }
+    }
 
     var removeStylingPending = false;
     function removeStyling() {
@@ -23,7 +37,7 @@ function makeHalloRichTextEditable(id) {
     richText.hallo({
         toolbar: 'halloToolbarFixed',
         toolbarCssClass: (closestObj.hasClass('full')) ? 'full' : (closestObj.hasClass('stream-field')) ? 'stream-field' : '',
-        plugins: halloPlugins
+        plugins: processedPlugins
     }).bind('hallomodified', function(event, data) {
         input.val(data.content);
         if (!removeStylingPending) {

@@ -13,6 +13,14 @@ from wagtail.wagtailcore.rich_text import DbWhitelister, expand_db_html
 
 
 class HalloRichTextArea(WidgetWithScript, widgets.Textarea):
+    def __init__(self, plugins=None, plugin_settings=None, **kwargs):
+        # plugins is an ordered list of plugins to display in this widget
+        # plugin_settings is a dictionary of plugin name to configuration. This
+        # allows overriding the default configuration of specific plugins
+        self.plugins = plugins
+        self.plugin_settings = plugin_settings
+        super(HalloRichTextArea, self).__init__(**kwargs)
+
     def get_panel(self):
         return RichTextFieldPanel
 
@@ -24,7 +32,7 @@ class HalloRichTextArea(WidgetWithScript, widgets.Textarea):
         return super(HalloRichTextArea, self).render(name, translated_value, attrs)
 
     def render_js_init(self, id_, name, value):
-        return "makeHalloRichTextEditable({0});".format(json.dumps(id_))
+        return "makeHalloRichTextEditable({0}, {1}, {2});".format(json.dumps(id_), json.dumps(self.plugins), json.dumps(self.plugin_settings))
 
     def value_from_datadict(self, data, files, name):
         original_value = super(HalloRichTextArea, self).value_from_datadict(data, files, name)
@@ -54,4 +62,5 @@ def get_rich_text_editor(name='default'):
     editor_settings = getattr(settings, 'WAGTAILADMIN_RICH_TEXT_EDITORS', DEFAULT_RICH_TEXT_EDITORS)
 
     editor = editor_settings[name]
-    return import_string(editor['WIDGET'])()
+    kwargs = editor.get('OPTIONS', {})
+    return import_string(editor['WIDGET'])(**kwargs)
