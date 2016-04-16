@@ -26,7 +26,7 @@ class PagesAdminAPIEndpoint(PagesAPIEndpoint):
         SearchFilter,
     ]
 
-    extra_meta_fields = PagesAPIEndpoint.extra_meta_fields + [
+    meta_fields = PagesAPIEndpoint.meta_fields + [
         'latest_revision_created_at',
         'status',
         'children',
@@ -94,11 +94,11 @@ class PagesAdminAPIEndpoint(PagesAPIEndpoint):
 class ImagesAdminAPIEndpoint(ImagesAPIEndpoint):
     base_serializer_class = AdminImageSerializer
 
-    extra_body_fields = ImagesAPIEndpoint.extra_body_fields + [
+    body_fields = ImagesAPIEndpoint.body_fields + [
         'thumbnail',
     ]
 
-    default_fields = ImagesAPIEndpoint.default_fields + [
+    soft_default_fields = ImagesAPIEndpoint.soft_default_fields + [
         'width',
         'height',
         'thumbnail',
