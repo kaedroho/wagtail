@@ -212,6 +212,7 @@ class BaseAPIEndpoint(GenericViewSet):
         # If showing details, add the parent field
         if isinstance(self, PagesAPIEndpoint) and self.action == 'detail_view':
             fields.insert(2, 'parent')
+            meta_fields.insert(2, 'parent')
 
         return get_serializer_class(model, fields, meta_fields=meta_fields, base=self.base_serializer_class)
 
@@ -283,7 +284,6 @@ class PagesAPIEndpoint(BaseAPIEndpoint):
         'seo_title',
         'search_description',
         'first_published_at',
-        'parent',
     ]
     default_fields = BaseAPIEndpoint.default_fields + [
         'title',

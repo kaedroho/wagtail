@@ -107,6 +107,9 @@ class TestAdminPageListing(AdminAPITestCase, TestPageListing):
 
     # FIELDS
 
+    # Not applicable to the admin API
+    test_parent_field_gives_error = None
+
     def test_fields_default(self):
         response = self.get_response(type='demosite.BlogEntryPage')
         content = json.loads(response.content.decode('UTF-8'))
@@ -162,7 +165,6 @@ class TestAdminPageListing(AdminAPITestCase, TestPageListing):
                 self.assertEqual(set(feed_image['meta'].keys()), {'type', 'detail_url'})
                 self.assertEqual(feed_image['meta']['type'], 'wagtailimages.Image')
                 self.assertEqual(feed_image['meta']['detail_url'], 'http://localhost/admin/api/v2beta/images/%d/' % feed_image['id'])
-
 
     def test_fields_parent(self):
         response = self.get_response(type='demosite.BlogEntryPage', fields='parent')
