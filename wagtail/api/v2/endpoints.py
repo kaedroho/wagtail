@@ -23,6 +23,7 @@ from .pagination import WagtailPagination
 from .serializers import (
     BaseSerializer, DocumentSerializer, ImageSerializer, PageSerializer, get_serializer_class)
 from .utils import BadRequestError, filter_page_type, page_models_from_string, parse_fields_parameter
+from .fields import Field
 
 
 class BaseAPIEndpoint(GenericViewSet):
@@ -53,6 +54,11 @@ class BaseAPIEndpoint(GenericViewSet):
         # Required by BrowsableAPIRenderer
         'format',
     ])
+    fields = [
+        Field('id', default=True),
+        Field('type', meta=True, default=True),
+        Field('detail_url', meta=True, default=True),
+    ]
     body_fields = ['id']
     meta_fields = ['type', 'detail_url']
     default_fields = ['id', 'type', 'detail_url']
@@ -98,7 +104,9 @@ class BaseAPIEndpoint(GenericViewSet):
         This returns a list of field names that are allowed to
         be used in the API (excluding the id field)
         """
-        fields = cls.body_fields[:]
+        fields = [
+            field.name for field in cls.fields if not field.meta
+        ]
 
         if hasattr(model, 'api_fields'):
             fields.extend(model.api_fields)
@@ -111,7 +119,9 @@ class BaseAPIEndpoint(GenericViewSet):
         This returns a list of field names that are allowed to
         be used in the meta section in the API (excluding type and detail_url).
         """
-        meta_fields = cls.meta_fields[:]
+        meta_fields = [
+            field.name for field in cls.fields if field.meta
+        ]
 
         if hasattr(model, 'api_meta_fields'):
             meta_fields.extend(model.api_meta_fields)
@@ -146,7 +156,9 @@ class BaseAPIEndpoint(GenericViewSet):
 
     @classmethod
     def get_default_fields(cls, model):
-        return cls.default_fields[:]
+        return [
+            field.name for field in cls.fields if field.default
+        ]
 
     def check_query_parameters(self, queryset):
         """
@@ -305,6 +317,15 @@ class PagesAPIEndpoint(BaseAPIEndpoint):
         'child_of',
         'descendant_of',
     ])
+    fields = BaseAPIEndpoint.fields + [
+        Field('title', default=True),
+        Field('html_url', meta=True, default=True),
+        Field('slug', meta=True, default=True),
+        Field('first_published_at', meta=True, default=True),
+        Field('show_in_menus', meta=True),
+        Field('seo_title', meta=True),
+        Field('search_description', meta=True),
+    ]
     body_fields = BaseAPIEndpoint.body_fields + [
         'title',
     ]
@@ -361,6 +382,12 @@ class PagesAPIEndpoint(BaseAPIEndpoint):
 class ImagesAPIEndpoint(BaseAPIEndpoint):
     base_serializer_class = ImageSerializer
     filter_backends = [FieldsFilter, OrderingFilter, SearchFilter]
+    fields = BaseAPIEndpoint.fields + [
+        Field('title', default=True),
+        Field('tags', meta=True, default=True),
+        Field('width'),
+        Field('height'),
+    ]
     body_fields = BaseAPIEndpoint.body_fields + ['title', 'width', 'height']
     meta_fields = BaseAPIEndpoint.meta_fields + ['tags']
     default_fields = BaseAPIEndpoint.default_fields + ['title', 'tags']
@@ -371,6 +398,11 @@ class ImagesAPIEndpoint(BaseAPIEndpoint):
 class DocumentsAPIEndpoint(BaseAPIEndpoint):
     base_serializer_class = DocumentSerializer
     filter_backends = [FieldsFilter, OrderingFilter, SearchFilter]
+    fields = BaseAPIEndpoint.fields + [
+        Field('title', default=True),
+        Field('tags', meta=True, default=True),
+        Field('download_url', meta=True, default=True),
+    ]
     body_fields = BaseAPIEndpoint.body_fields + ['title']
     meta_fields = BaseAPIEndpoint.meta_fields + ['tags', 'download_url']
     default_fields = BaseAPIEndpoint.default_fields + ['title', 'tags', 'download_url']

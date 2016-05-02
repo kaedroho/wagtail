@@ -3,6 +3,7 @@ from __future__ import absolute_import, unicode_literals
 from collections import OrderedDict
 
 from wagtail.api.v2.endpoints import DocumentsAPIEndpoint, ImagesAPIEndpoint, PagesAPIEndpoint
+from wagtail.api.v2.fields import Field
 from wagtail.api.v2.filters import (
     ChildOfFilter, DescendantOfFilter, FieldsFilter, OrderingFilter, SearchFilter)
 from wagtail.api.v2.utils import BadRequestError, filter_page_type, page_models_from_string
@@ -24,6 +25,14 @@ class PagesAdminAPIEndpoint(PagesAPIEndpoint):
         HasChildrenFilter,
         OrderingFilter,
         SearchFilter,
+    ]
+
+    fields = PagesAPIEndpoint.fields + [
+        Field('latest_revision_created_at', meta=True, default=True),
+        Field('status', meta=True, default=True),
+        Field('children', meta=True, default=True),
+        Field('descendants', meta=True),
+        Field('parent', meta=True),
     ]
 
     meta_fields = PagesAPIEndpoint.meta_fields + [
@@ -94,6 +103,12 @@ class PagesAdminAPIEndpoint(PagesAPIEndpoint):
 
 class ImagesAdminAPIEndpoint(ImagesAPIEndpoint):
     base_serializer_class = AdminImageSerializer
+
+    fields = ImagesAPIEndpoint.fields + [
+        Field('width', default=True),
+        Field('height', default=True),
+        Field('thumbnail', default=True),
+    ]
 
     body_fields = ImagesAPIEndpoint.body_fields + [
         'thumbnail',
