@@ -1,11 +1,31 @@
 from __future__ import absolute_import, unicode_literals
 
+import collections
+
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from wagtail.wagtailsearch.backends import get_search_backend
 from wagtail.wagtailsearch.index import get_indexed_models
+
+
+def get_model_root(model):
+    if model._meta.parents:
+        return list(model._meta.parents.items())[0][0]
+    else:
+        return model
+
+
+def group_models_by_root(models):
+    grouped_models = collections.OrderedDict()
+
+    for model in models:
+        root = get_model_root(model)
+        grouped_models.setdefault(root, [])
+        grouped_models[root].append(model)
+
+    return grouped_models
 
 
 class Command(BaseCommand):
@@ -15,6 +35,35 @@ class Command(BaseCommand):
 
         # Get backend
         backend = get_search_backend(backend_name)
+
+        for root_model, models in group_models_by_root(get_indexed_models()).items():
+            self.stdout.write(backend_name + ": Rebuilding index for %s" % root_model._meta.verbose_name_plural)
+
+            rebuilder = backend.get_rebuilder(backend.get_index_for_model(root_model))
+            index = rebuilder.start()
+
+            #self.stdout.write(backend_name + ": Writing schema")
+            for model in models:
+                index.add_model(model)
+
+            # Index objects
+            #self.stdout.write(backend_name + ": Writing objects")
+            object_count = 0
+            if not schema_only:
+                for model in models:
+                    # Add items (1000 at a time)
+                    for chunk in self.print_iter_progress(self.queryset_chunks(model.get_indexed_objects())):
+                        index.add_items(model, chunk)
+                        object_count += len(chunk)
+
+            rebuilder.finish()
+
+            self.print_newline()
+            self.stdout.write(backend_name + ": (indexed %d objects)" % object_count)
+            self.print_newline()
+            self.print_newline()
+
+        return
 
         # Get rebuilder
         rebuilder = backend.get_rebuilder()
@@ -99,8 +148,6 @@ class Command(BaseCommand):
                 self.stdout.write(' ', ending='')
 
             self.stdout.flush()
-
-        self.print_newline()
 
     # Atomic so the count of models doesnt change as it is iterated
     @transaction.atomic

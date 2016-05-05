@@ -698,30 +698,35 @@ class ElasticSearch(BaseSearch):
             timeout=self.timeout,
             **params)
 
-    def get_index(self):
-        return self.index_class(self, self.index_name)
+    def get_index_for_model(self, model):
+        if model._meta.parents:
+            model = list(model._meta.parents.items())[0][0]
+        return self.index_class(self, self.index_name + '_' + model._meta.app_label.lower() + '_' + model.__name__.lower())
 
-    def get_rebuilder(self):
-        return self.rebuilder_class(self.get_index())
+    def get_index(self):
+        raise Exception("WRONG METHOD")
+
+    def get_rebuilder(self, index):
+        return self.rebuilder_class(index)
 
     def reset_index(self):
         # Use the rebuilder to reset the index
         self.get_rebuilder().reset_index()
 
     def add_type(self, model):
-        self.get_index().add_model(model)
+        self.get_index_for_model(model).add_model(model)
 
     def refresh_index(self):
-        self.get_index().refresh()
+        self.get_index_for_model().refresh()
 
     def add(self, obj):
-        self.get_index().add_item(obj)
+        self.get_index_for_model(type(obj)).add_item(obj)
 
     def add_bulk(self, model, obj_list):
-        self.get_index().add_items(model, obj_list)
+        self.get_index_for_model(model).add_items(model, obj_list)
 
     def delete(self, obj):
-        self.get_index().delete_item(obj)
+        self.get_index_for_model(type(obj)).delete_item(obj)
 
 
 SearchBackend = ElasticSearch
