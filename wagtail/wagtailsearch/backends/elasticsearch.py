@@ -1,5 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 
+import collections
 import json
 
 from django.db import models
@@ -367,7 +368,7 @@ class ElasticSearchResults(BaseSearchResults):
     def _do_search(self):
         # Params for elasticsearch query
         params = dict(
-            index=self.backend.index_name,
+            index=self.backend.get_index_for_model(self.query.queryset.model).name,
             body=self._get_es_body(),
             _source=False,
             fields='pk',
@@ -398,7 +399,7 @@ class ElasticSearchResults(BaseSearchResults):
     def _do_count(self):
         # Get count
         hit_count = self.backend.es.count(
-            index=self.backend.index_name,
+            index=self.backend.get_index_for_model(self.query.queryset.model).name,
             body=self._get_es_body(for_count=True),
         )['count']
 
@@ -697,10 +698,18 @@ class ElasticSearch(BaseSearch):
             timeout=self.timeout,
             **params)
 
+    def get_index_for_model(self, model):
+        #return self.get_index()
+        if model._meta.parents:
+            model = list(model._meta.parents.items())[0][0]
+        return self.index_class(self, self.index_name + '_' + model._meta.app_label.lower() + '_' + model.__name__.lower())
+
     def get_index(self):
+        # DEPRECATED
         return self.index_class(self, self.index_name)
 
     def get_rebuilder(self):
+        # DEPRECATED
         return self.rebuilder_class(self.get_index())
 
     def reset_index(self):
@@ -708,19 +717,20 @@ class ElasticSearch(BaseSearch):
         self.get_rebuilder().reset_index()
 
     def add_type(self, model):
-        self.get_index().add_model(model)
+        self.get_index_for_model(model).add_model(model)
 
     def refresh_index(self):
+        # DEPRECATED
         self.get_index().refresh()
 
     def add(self, obj):
-        self.get_index().add_item(obj)
+        self.get_index_for_model(type(obj)).add_item(obj)
 
     def add_bulk(self, model, obj_list):
-        self.get_index().add_items(model, obj_list)
+        self.get_index_for_model(model).add_items(model, obj_list)
 
     def delete(self, obj):
-        self.get_index().delete_item(obj)
+        self.get_index_for_model(type(obj)).delete_item(obj)
 
 
 SearchBackend = ElasticSearch

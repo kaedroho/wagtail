@@ -1,11 +1,29 @@
 from __future__ import absolute_import, unicode_literals
 
+import collections
+
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from wagtail.wagtailsearch.backends import get_search_backend
 from wagtail.wagtailsearch.index import get_indexed_models
+
+
+def group_models_by_index(backend, models):
+    indices = {}
+    models_by_index = collections.OrderedDict()
+
+    for model in models:
+        index = backend.get_index_for_model(model)
+        indices.setdefault(index.name, index)
+        models_by_index.setdefault(index.name, [])
+        models_by_index[index.name].append(model)
+
+    return collections.OrderedDict([
+        (indices[index_name], models)
+        for index_name, models in models_by_index.items()
+    ])
 
 
 class Command(BaseCommand):
@@ -16,40 +34,32 @@ class Command(BaseCommand):
         # Get backend
         backend = get_search_backend(backend_name)
 
-        # Get rebuilder
-        rebuilder = backend.get_rebuilder()
+        for index, models in group_models_by_index(backend, get_indexed_models()).items():
+            self.stdout.write(backend_name + ": Rebuilding index %s" % index.name)
 
-        if not rebuilder:
-            self.stdout.write(backend_name + ": Backend doesn't require rebuild. Skipping")
-            return
+            rebuilder = backend.rebuilder_class(index)
+            index = rebuilder.start()
 
-        # Start rebuild
-        self.stdout.write(backend_name + ": Starting rebuild")
-        index = rebuilder.start()
-
-        for model in get_indexed_models():
-            self.stdout.write(backend_name + ": Indexing model '%s.%s'" % (
-                model._meta.app_label,
-                model.__name__,
-            ))
-
-            # Add model
-            index.add_model(model)
+            #self.stdout.write(backend_name + ": Writing schema")
+            for model in models:
+                index.add_model(model)
 
             # Index objects
+            #self.stdout.write(backend_name + ": Writing objects")
             object_count = 0
             if not schema_only:
-                # Add items (1000 at a time)
-                for chunk in self.print_iter_progress(self.queryset_chunks(model.get_indexed_objects())):
-                    index.add_items(model, chunk)
-                    object_count += len(chunk)
+                for model in models:
+                    # Add items (1000 at a time)
+                    for chunk in self.print_iter_progress(self.queryset_chunks(model.get_indexed_objects())):
+                        index.add_items(model, chunk)
+                        object_count += len(chunk)
 
-            self.stdout.write("(indexed %d objects)" % object_count)
+            rebuilder.finish()
+
             self.print_newline()
-
-        # Finish rebuild
-        self.stdout.write(backend_name + ": Finishing rebuild")
-        rebuilder.finish()
+            self.stdout.write(backend_name + ": (indexed %d objects)" % object_count)
+            self.print_newline()
+            self.print_newline()
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -99,8 +109,6 @@ class Command(BaseCommand):
                 self.stdout.write(' ', ending='')
 
             self.stdout.flush()
-
-        self.print_newline()
 
     # Atomic so the count of models doesnt change as it is iterated
     @transaction.atomic
