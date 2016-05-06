@@ -1,5 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 
+import inspect
+
 from django.apps import apps
 from django.db import models
 from django.db.models.fields import FieldDoesNotExist
@@ -113,7 +115,10 @@ class BaseField(object):
             field = self.get_field(cls)
             return field.model
         except models.fields.FieldDoesNotExist:
-            return cls
+            # Find where it was defined by walking the inheritance tree
+            for base_cls in inspect.getmro(cls):
+                if self.field_name in base_cls.__dict__:
+                    return base_cls
 
     def get_type(self, cls):
         if 'type' in self.kwargs:
