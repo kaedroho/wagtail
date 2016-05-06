@@ -1,4 +1,6 @@
-from .elasticsearch import ElasticsearchSearchBackend
+from wagtail.wagtailsearch.index import FilterField, RelatedFields, SearchField
+
+from .elasticsearch import ElasticsearchSearchBackend, ElasticsearchMapping, ElasticsearchSearchQuery
 
 
 def get_model_root(model):
@@ -8,7 +10,32 @@ def get_model_root(model):
     return model
 
 
+class Elasticsearch2Mapping(ElasticsearchMapping):
+    def get_field_column_name(self, field):
+        root_model = get_model_root(self.model)
+        definition_model = field.get_definition_model(self.model)
+
+        if definition_model != root_model:
+            prefix = definition_model._meta.app_label.lower() + '_' + definition_model.__name__.lower() + '__'
+        else:
+            prefix = ''
+
+        if isinstance(field, FilterField):
+            return prefix + field.get_attname(self.model) + '_filter'
+        elif isinstance(field, SearchField):
+            return prefix + field.get_attname(self.model)
+        elif isinstance(field, RelatedFields):
+            return prefix + field.field_name
+
+
+class Elasticsearch2SearchQuery(ElasticsearchSearchQuery):
+    mapping_class = Elasticsearch2Mapping
+
+
 class Elasticsearch2SearchBackend(ElasticsearchSearchBackend):
+    mapping_class = Elasticsearch2Mapping
+    query_class = Elasticsearch2SearchQuery
+
     def get_index_for_model(self, model):
         root_model = get_model_root(model)
         index_suffix = '__' + root_model._meta.app_label.lower() + '_' + root_model.__name__.lower()

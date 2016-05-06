@@ -108,6 +108,13 @@ class BaseField(object):
         except models.fields.FieldDoesNotExist:
             return self.field_name
 
+    def get_definition_model(self, cls):
+        try:
+            field = self.get_field(cls)
+            return field.model
+        except models.fields.FieldDoesNotExist:
+            return cls
+
     def get_type(self, cls):
         if 'type' in self.kwargs:
             return self.kwargs['type']
@@ -153,6 +160,10 @@ class RelatedFields(object):
 
     def get_field(self, cls):
         return cls._meta.get_field(self.field_name)
+
+    def get_definition_model(self, cls):
+        field = self.get_field(cls)
+        return field.model
 
     def get_value(self, obj):
         field = self.get_field(obj.__class__)
