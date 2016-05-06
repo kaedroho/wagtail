@@ -1,6 +1,6 @@
 from wagtail.wagtailsearch.index import FilterField, RelatedFields, SearchField
 
-from .elasticsearch import ElasticsearchSearchBackend, ElasticsearchMapping, ElasticsearchSearchQuery
+from .elasticsearch import ElasticsearchSearchBackend, ElasticsearchMapping, ElasticsearchSearchQuery, ElasticsearchSearchResults, ElasticsearchIndex
 
 
 def get_model_root(model):
@@ -32,9 +32,19 @@ class Elasticsearch2SearchQuery(ElasticsearchSearchQuery):
     mapping_class = Elasticsearch2Mapping
 
 
+class Elasticsearch2SearchResults(ElasticsearchSearchResults):
+    pass
+
+
+class Elasticsearch2Index(ElasticsearchIndex):
+    pass
+
+
 class Elasticsearch2SearchBackend(ElasticsearchSearchBackend):
-    mapping_class = Elasticsearch2Mapping
+    index_class = Elasticsearch2Index
     query_class = Elasticsearch2SearchQuery
+    results_class = Elasticsearch2SearchResults
+    mapping_class = Elasticsearch2Mapping
 
     def get_index_for_model(self, model):
         root_model = get_model_root(model)
