@@ -16,13 +16,13 @@ from elasticsearch.serializer import JSONSerializer
 
 from wagtail.tests.search import models
 from wagtail.wagtailsearch.backends import get_search_backend
-from wagtail.wagtailsearch.backends.elasticsearch import ElasticsearchSearchBackend
+from wagtail.wagtailsearch.backends.elasticsearch2 import Elasticsearch2SearchBackend
 
 from .test_backends import BackendTests
 
 
-class TestElasticsearchSearchBackend(BackendTests, TestCase):
-    backend_path = 'wagtail.wagtailsearch.backends.elasticsearch'
+class TestElasticsearch2SearchBackend(BackendTests, TestCase):
+    backend_path = 'wagtail.wagtailsearch.backends.elasticsearch2'
 
     def test_search_with_spaces_only(self):
         # Search for some space characters and hope it doesn't crash
@@ -249,14 +249,14 @@ class TestElasticsearchSearchBackend(BackendTests, TestCase):
         self.assertEqual(set(results), set())
 
 
-class TestElasticsearchSearchQuery(TestCase):
+class TestElasticsearch2SearchQuery(TestCase):
     def assertDictEqual(self, a, b):
         default = JSONSerializer().default
         self.assertEqual(
             json.dumps(a, sort_keys=True, default=default), json.dumps(b, sort_keys=True, default=default)
         )
 
-    query_class = ElasticsearchSearchBackend.query_class
+    query_class = Elasticsearch2SearchBackend.query_class
 
     def test_simple(self):
         # Create a query
@@ -548,7 +548,7 @@ class TestElasticsearchSearchQuery(TestCase):
         self.assertDictEqual(query.get_sort(), expected_result)
 
 
-class TestElasticsearchSearchResults(TestCase):
+class TestElasticsearch2SearchResults(TestCase):
     def assertDictEqual(self, a, b):
         default = JSONSerializer().default
         self.assertEqual(
@@ -562,7 +562,7 @@ class TestElasticsearchSearchResults(TestCase):
             self.objects.append(models.SearchTest.objects.create(title=str(i)))
 
     def get_results(self):
-        backend = ElasticsearchSearchBackend({})
+        backend = Elasticsearch2SearchBackend({})
         query = mock.MagicMock()
         query.queryset = models.SearchTest.objects.all()
         query.get_query.return_value = 'QUERY'
@@ -604,7 +604,7 @@ class TestElasticsearchSearchResults(TestCase):
             body={'query': 'QUERY'},
             _source=False,
             fields='pk',
-            index='wagtail'
+            index='wagtail__searchtests_searchtest'
         )
 
     @mock.patch('elasticsearch.Elasticsearch.search')
@@ -620,7 +620,7 @@ class TestElasticsearchSearchResults(TestCase):
             body={'query': 'QUERY'},
             _source=False,
             fields='pk',
-            index='wagtail',
+            index='wagtail__searchtests_searchtest',
             size=1
         )
 
@@ -636,7 +636,7 @@ class TestElasticsearchSearchResults(TestCase):
             body={'query': 'QUERY'},
             _source=False,
             fields='pk',
-            index='wagtail',
+            index='wagtail__searchtests_searchtest',
             size=3
         )
 
@@ -652,7 +652,7 @@ class TestElasticsearchSearchResults(TestCase):
             body={'query': 'QUERY'},
             _source=False,
             fields='pk',
-            index='wagtail',
+            index='wagtail__searchtests_searchtest',
             size=10
         )
 
@@ -669,7 +669,7 @@ class TestElasticsearchSearchResults(TestCase):
             body={'query': 'QUERY'},
             _source=False,
             fields='pk',
-            index='wagtail',
+            index='wagtail__searchtests_searchtest',
             size=1
         )
 
@@ -726,7 +726,7 @@ class TestElasticsearchSearchResults(TestCase):
         self.assertEqual(results[2], self.objects[0])
 
 
-class TestElasticsearchMapping(TestCase):
+class TestElasticsearch2Mapping(TestCase):
     def assertDictEqual(self, a, b):
         default = JSONSerializer().default
         self.assertEqual(
@@ -735,7 +735,7 @@ class TestElasticsearchMapping(TestCase):
 
     def setUp(self):
         # Create ES mapping
-        self.es_mapping = ElasticsearchSearchBackend.mapping_class(models.SearchTest)
+        self.es_mapping = Elasticsearch2SearchBackend.mapping_class(models.SearchTest)
 
         # Create ES document
         self.obj = models.SearchTest(title="Hello")
@@ -808,7 +808,7 @@ class TestElasticsearchMapping(TestCase):
         self.assertDictEqual(document, expected_result)
 
 
-class TestElasticsearchMappingInheritance(TestCase):
+class TestElasticsearch2MappingInheritance(TestCase):
     def assertDictEqual(self, a, b):
         default = JSONSerializer().default
         self.assertEqual(
@@ -817,7 +817,7 @@ class TestElasticsearchMappingInheritance(TestCase):
 
     def setUp(self):
         # Create ES mapping
-        self.es_mapping = ElasticsearchSearchBackend.mapping_class(models.SearchTestChild)
+        self.es_mapping = Elasticsearch2SearchBackend.mapping_class(models.SearchTestChild)
 
         # Create ES document
         self.obj = models.SearchTestChild(title="Hello", subtitle="World", page_id=1)
@@ -836,9 +836,9 @@ class TestElasticsearchMappingInheritance(TestCase):
             'searchtests_searchtest_searchtests_searchtestchild': {
                 'properties': {
                     # New
-                    'extra_content': {'type': 'string', 'include_in_all': True},
-                    'subtitle': {'type': 'string', 'include_in_all': True, 'analyzer': 'edgengram_analyzer', 'search_analyzer': 'standard'},
-                    'page': {
+                    'searchtests_searchtestchild__extra_content': {'type': 'string', 'include_in_all': True},
+                    'searchtests_searchtestchild__subtitle': {'type': 'string', 'include_in_all': True, 'analyzer': 'edgengram_analyzer', 'search_analyzer': 'standard'},
+                    'searchtests_searchtestchild__page': {
                         'type': 'nested',
                         'properties': {
                             'title': {'type': 'string', 'include_in_all': True, 'analyzer': 'edgengram_analyzer', 'search_analyzer': 'standard'},
@@ -887,9 +887,9 @@ class TestElasticsearchMappingInheritance(TestCase):
         # Check
         expected_result = {
             # New
-            'extra_content': '',
-            'subtitle': 'World',
-            'page': {
+            'searchtests_searchtestchild__extra_content': '',
+            'searchtests_searchtestchild__subtitle': 'World',
+            'searchtests_searchtestchild__page': {
                 'title': 'Root',
                 'search_description': '',
                 'live_filter': True,
@@ -915,12 +915,13 @@ class TestElasticsearchMappingInheritance(TestCase):
             ],
         }
 
+
         self.assertDictEqual(document, expected_result)
 
 
 class TestBackendConfiguration(TestCase):
     def test_default_settings(self):
-        backend = ElasticsearchSearchBackend(params={})
+        backend = Elasticsearch2SearchBackend(params={})
 
         self.assertEqual(len(backend.hosts), 1)
         self.assertEqual(backend.hosts[0]['host'], 'localhost')
@@ -929,7 +930,7 @@ class TestBackendConfiguration(TestCase):
 
     def test_hosts(self):
         # This tests that HOSTS goes to es_hosts
-        backend = ElasticsearchSearchBackend(params={
+        backend = Elasticsearch2SearchBackend(params={
             'HOSTS': [
                 {
                     'host': '127.0.0.1',
@@ -947,7 +948,7 @@ class TestBackendConfiguration(TestCase):
 
     def test_urls(self):
         # This test backwards compatibility with old URLS setting
-        backend = ElasticsearchSearchBackend(params={
+        backend = Elasticsearch2SearchBackend(params={
             'URLS': [
                 'http://localhost:12345',
                 'https://127.0.0.1:54321',
@@ -977,7 +978,7 @@ class TestBackendConfiguration(TestCase):
 
 
 @unittest.skipUnless(os.environ.get('ELASTICSEARCH_URL', False), "ELASTICSEARCH_URL not set")
-@unittest.skipUnless(os.environ.get('ELASTICSEARCH_VERSION', '1') == '1', "ELASTICSEARCH_VERSION not set to 1")
+@unittest.skipUnless(os.environ.get('ELASTICSEARCH_VERSION', '1') == '2', "ELASTICSEARCH_VERSION not set to 2")
 class TestRebuilder(TestCase):
     def assertDictEqual(self, a, b):
         default = JSONSerializer().default
@@ -1024,7 +1025,7 @@ class TestRebuilder(TestCase):
 
 
 @unittest.skipUnless(os.environ.get('ELASTICSEARCH_URL', False), "ELASTICSEARCH_URL not set")
-@unittest.skipUnless(os.environ.get('ELASTICSEARCH_VERSION', '1') == '1', "ELASTICSEARCH_VERSION not set to 1")
+@unittest.skipUnless(os.environ.get('ELASTICSEARCH_VERSION', '1') == '2', "ELASTICSEARCH_VERSION not set to 2")
 class TestAtomicRebuilder(TestCase):
     def setUp(self):
         self.backend = get_search_backend('elasticsearch')
