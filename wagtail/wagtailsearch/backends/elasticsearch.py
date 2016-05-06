@@ -46,6 +46,14 @@ class ElasticsearchMapping(object):
     def get_document_type(self):
         return self.model.indexed_get_content_type()
 
+    def get_field_column_name(self, field):
+        if isinstance(field, FilterField):
+            return field.get_attname(self.model) + '_filter'
+        elif isinstance(field, SearchField):
+            return field.get_attname(self.model)
+        elif isinstance(field, RelatedFields):
+            return field.field_name
+
     def get_field_mapping(self, field):
         if isinstance(field, RelatedFields):
             mapping = {'type': 'nested', 'properties': {}}
@@ -54,7 +62,7 @@ class ElasticsearchMapping(object):
                 sub_field_name, sub_field_mapping = self.get_field_mapping(sub_field)
                 mapping['properties'][sub_field_name] = sub_field_mapping
 
-            return field.get_index_name(self.model), mapping
+            return self.get_field_column_name(field), mapping
         else:
             mapping = {'type': self.type_map.get(field.get_type(self.model), 'string')}
 
@@ -76,7 +84,7 @@ class ElasticsearchMapping(object):
                 for key, value in field.kwargs['es_extra'].items():
                     mapping[key] = value
 
-            return field.get_index_name(self.model), mapping
+            return self.get_field_column_name(field), mapping
 
     def get_mapping(self):
         # Make field list
@@ -103,10 +111,11 @@ class ElasticsearchMapping(object):
         doc = {}
         partials = []
         model = type(obj)
+        mapping = type(self)(model)
 
         for field in fields:
             value = field.get_value(obj)
-            doc[field.get_index_name(model)] = value
+            doc[mapping.get_field_column_name(field)] = value
 
             # Check if this field should be added into _partials
             if isinstance(field, SearchField) and field.partial_match:
@@ -135,7 +144,7 @@ class ElasticsearchMapping(object):
                     value, extra_partials = self._get_nested_document(field.fields, value)
                     partials.extend(extra_partials)
 
-            doc[field.get_index_name(self.model)] = value
+            doc[self.get_field_column_name(field)] = value
 
             # Check if this field should be added into _partials
             if isinstance(field, SearchField) and field.partial_match:
@@ -155,7 +164,7 @@ class ElasticsearchSearchQuery(BaseSearchQuery):
 
     def _process_lookup(self, field, lookup, value):
         # Get the name of the field in the index
-        field_index_name = field.get_index_name(self.queryset.model)
+        field_index_name = self.mapping.get_field_column_name(field)
 
         if lookup == 'exact':
             if value is None:
@@ -336,7 +345,7 @@ class ElasticsearchSearchQuery(BaseSearchQuery):
                     field_name = order_by_field[1:]
 
                 field = self._get_filterable_field(field_name)
-                field_index_name = field.get_index_name(self.queryset.model)
+                field_index_name = self.mapping.get_field_column_name(field)
 
                 sort.append({
                     field_index_name: 'desc' if reverse else 'asc'
@@ -367,6 +376,7 @@ class ElasticsearchSearchResults(BaseSearchResults):
         return body
 
     def _do_search(self):
+        self.query.mapping = self.backend.mapping_class(self.query.queryset.model)
         # Params for elasticsearch query
         params = dict(
             index=self.backend.get_index_for_model(self.query.queryset.model).name,
@@ -398,6 +408,7 @@ class ElasticsearchSearchResults(BaseSearchResults):
         return [results[str(pk)] for pk in pks if results[str(pk)]]
 
     def _do_count(self):
+        self.query.mapping = self.backend.mapping_class(self.query.queryset.model)
         # Get count
         hit_count = self.backend.es.count(
             index=self.backend.get_index_for_model(self.query.queryset.model).name,
