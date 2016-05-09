@@ -48,11 +48,23 @@ matrix:
      python: 3.5
    - env: TOXENV=py35-dj19-sqlite-elasticsearch
      python: 3.5
+   - env: TOXENV=py27-dj18-sqlite-elasticsearch2
+     python: 2.7
+   - env: TOXENV=py27-dj19-postgres-elasticsearch2
+     python: 2.7
+   - env: TOXENV=py35-dj18-postgres-elasticsearch2
+     python: 3.5
+   - env: TOXENV=py35-dj19-sqlite-elasticsearch2
+     python: 3.5
   allow_failures:
     - env: TOXENV=py27-dj18-sqlite-elasticsearch
     - env: TOXENV=py27-dj19-postgres-elasticsearch
     - env: TOXENV=py35-dj18-postgres-elasticsearch
     - env: TOXENV=py35-dj19-sqlite-elasticsearch
+    - env: TOXENV=py27-dj18-sqlite-elasticsearch2
+    - env: TOXENV=py27-dj19-postgres-elasticsearch2
+    - env: TOXENV=py35-dj18-postgres-elasticsearch2
+    - env: TOXENV=py35-dj19-sqlite-elasticsearch2
 
 # Services
 services:
