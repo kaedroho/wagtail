@@ -62,7 +62,8 @@ class ElasticSearchMapping(object):
                     mapping['boost'] = field.boost
 
                 if field.partial_match:
-                    mapping['index_analyzer'] = 'edgengram_analyzer'
+                    mapping['analyzer'] = 'edgengram_analyzer'
+                    mapping['search_analyzer'] = 'standard'
 
                 mapping['include_in_all'] = True
 
@@ -81,7 +82,7 @@ class ElasticSearchMapping(object):
         fields = {
             'pk': dict(type='string', index='not_analyzed', store='yes', include_in_all=False),
             'content_type': dict(type='string', index='not_analyzed', include_in_all=False),
-            '_partials': dict(type='string', index_analyzer='edgengram_analyzer', include_in_all=False),
+            '_partials': dict(type='string', analyzer='edgengram_analyzer', search_analyzer='standard', include_in_all=False),
         }
 
         fields.update(dict(
@@ -367,7 +368,7 @@ class ElasticSearchResults(BaseSearchResults):
     def _do_search(self):
         # Params for elasticsearch query
         params = dict(
-            index=self.backend.index_name,
+            index=self.backend.get_index_for_model(self.query.queryset.model).name,
             body=self._get_es_body(),
             _source=False,
             fields='pk',
@@ -398,7 +399,7 @@ class ElasticSearchResults(BaseSearchResults):
     def _do_count(self):
         # Get count
         hit_count = self.backend.es.count(
-            index=self.backend.index_name,
+            index=self.backend.get_index_for_model(self.query.queryset.model).name,
             body=self._get_es_body(for_count=True),
         )['count']
 
@@ -697,30 +698,35 @@ class ElasticSearch(BaseSearch):
             timeout=self.timeout,
             **params)
 
-    def get_index(self):
-        return self.index_class(self, self.index_name)
+    def get_index_for_model(self, model):
+        if model._meta.parents:
+            model = list(model._meta.parents.items())[0][0]
+        return self.index_class(self, self.index_name + '_' + model._meta.app_label.lower() + '_' + model.__name__.lower())
 
-    def get_rebuilder(self):
-        return self.rebuilder_class(self.get_index())
+    def get_index(self):
+        raise Exception("WRONG METHOD")
+
+    def get_rebuilder(self, index):
+        return self.rebuilder_class(index)
 
     def reset_index(self):
         # Use the rebuilder to reset the index
         self.get_rebuilder().reset_index()
 
     def add_type(self, model):
-        self.get_index().add_model(model)
+        self.get_index_for_model(model).add_model(model)
 
     def refresh_index(self):
-        self.get_index().refresh()
+        self.get_index_for_model().refresh()
 
     def add(self, obj):
-        self.get_index().add_item(obj)
+        self.get_index_for_model(type(obj)).add_item(obj)
 
     def add_bulk(self, model, obj_list):
-        self.get_index().add_items(model, obj_list)
+        self.get_index_for_model(model).add_items(model, obj_list)
 
     def delete(self, obj):
-        self.get_index().delete_item(obj)
+        self.get_index_for_model(type(obj)).delete_item(obj)
 
 
 SearchBackend = ElasticSearch

@@ -93,6 +93,13 @@ def class_is_indexed(cls):
     return issubclass(cls, Indexed) and issubclass(cls, models.Model) and not cls._meta.abstract
 
 
+def get_model_root(model):
+    if model._meta.parents:
+        return list(model._meta.parents.items())[0][0]
+    else:
+        return model
+
+
 class BaseField(object):
     suffix = ''
 
@@ -110,8 +117,21 @@ class BaseField(object):
         except models.fields.FieldDoesNotExist:
             return self.field_name
 
+    def get_definition_class(self, cls):
+        try:
+            field = self.get_field(cls)
+            return field.model
+        except models.fields.FieldDoesNotExist:
+            return cls
+
     def get_index_name(self, cls):
-        return self.get_attname(cls) + self.suffix
+        prefix = ''
+
+        def_cls = self.get_definition_class(cls)
+        if get_model_root(def_cls) != def_cls:
+            prefix = def_cls._meta.app_label + '_' + def_cls.__name__.lower() + '__'
+
+        return prefix + self.get_attname(cls) + self.suffix
 
     def get_type(self, cls):
         if 'type' in self.kwargs:

@@ -225,6 +225,24 @@ class BaseSearch(object):
         if query_string == "":
             return []
 
+        # Check fields are indexed as SearchFields and convert them to their indexed name
+        if fields:
+            search_fields = {field.field_name: field for field in model.get_searchable_search_fields()}
+            unknown_fields = []
+            converted_fields = []
+            for field_name in fields:
+                if field_name in search_fields:
+                    converted_fields.append(search_fields[field_name].get_index_name(model))
+                elif field_name in ['_all', '_partials']:
+                    pass
+                else:
+                    unknown_fields.append(field_name)
+
+            if unknown_fields:
+                raise ValueError("unknown fields: %r" % unknown_fields)
+
+            fields = converted_fields
+
         # Apply filters to queryset
         if filters:
             queryset = queryset.filter(**filters)
