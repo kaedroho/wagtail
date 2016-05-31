@@ -144,6 +144,78 @@ class BaseAPIEndpoint(GenericViewSet):
         if unknown_parameters:
             raise BadRequestError("query parameter is not an operation or a recognised field: %s" % ', '.join(sorted(unknown_parameters)))
 
+    @classmethod
+    def _get_serializer_class(cls, router, model, fields_config, show_details=False):
+        # Get all available fields
+        body_fields = cls.get_body_fields(model)
+        meta_fields = cls.get_meta_fields(model)
+        all_fields = body_fields + meta_fields
+
+        # Remove any duplicates
+        all_fields = list(OrderedDict.fromkeys(all_fields))
+
+        if not show_details:
+            # Remove detail only fields
+            for field in self.detail_only_fields:
+                try:
+                    all_fields.remove(field)
+                except KeyError:
+                    pass
+
+        # Get list of configured fields
+        fields = set(cls.get_default_fields(model))
+
+        # If first field is '*' start with all fields
+        if fields_config and fields_config[0][0] == '*':
+            fields = set(all_fields)
+            fields_config = fields_config[1:]
+
+        mentioned_fields = set()
+        sub_fields = {}
+
+        for field_name, negated, field_sub_fields in fields_config:
+            if negated:
+                try:
+                    fields.remove(field_name)
+                except KeyError:
+                    pass
+            else:
+                fields.add(field_name)
+                if field_sub_fields:
+                    sub_fields[field_name] = field_sub_fields
+
+            mentioned_fields.add(field_name)
+
+        unknown_fields = mentioned_fields - set(all_fields)
+
+        if unknown_fields:
+            raise BadRequestError("unknown fields: %s" % ', '.join(sorted(unknown_fields)))
+
+        # Build nested serialisers
+        child_serializer_classes = {}
+
+        for field_name in fields:
+            try:
+                django_field = model._meta.get_field(field_name)
+            except FieldDoesNotExist:
+                django_field = None
+
+            if django_field and django_field.is_relation:
+                # Get a serializer class for the related object
+                child_model = django_field.related_model
+                child_endpoint_class = router.get_model_endpoint(child_model)
+                child_endpoint_class = child_endpoint_class[1] if child_endpoint_class else BaseAPIEndpoint
+                child_serializer_classes[field_name] = child_endpoint_class._get_serializer_class(router, child_model, sub_fields.get(field_name, []))
+
+            else:
+                if field_name in sub_fields:
+                    # Sub fields were given for a non-related field
+                    raise BadRequestError("'%s' does not support nested fields" % field_name)
+
+        # Reorder fields so it matches the order of all_fields
+        fields = [field for field in all_fields if field in fields]
+
+        return get_serializer_class(model, fields, meta_fields=meta_fields, child_serializer_classes=child_serializer_classes, base=cls.base_serializer_class)
 
     def get_serializer_class(self):
         request = self.request
@@ -154,21 +226,7 @@ class BaseAPIEndpoint(GenericViewSet):
         else:
             model = type(self.get_object())
 
-        # Get all available fields
-        body_fields = self.get_body_fields(model)
-        meta_fields = self.get_meta_fields(model)
-        all_fields = body_fields + meta_fields
-
-        # Remove any duplicates
-        all_fields = list(OrderedDict.fromkeys(all_fields))
-
         if self.action == 'listing_view':
-            # Remove detail only fields
-            for field in self.detail_only_fields:
-                try:
-                    all_fields.remove(field)
-                except KeyError:
-                    pass
 
             # Listing views just show the title field and any other allowed field the user specified
             if 'fields' in request.GET:
