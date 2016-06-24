@@ -16,12 +16,12 @@ from elasticsearch.serializer import JSONSerializer
 
 from wagtail.tests.search import models
 from wagtail.wagtailsearch.backends import get_search_backend
-from wagtail.wagtailsearch.backends.elasticsearch import ElasticSearch
+from wagtail.wagtailsearch.backends.elasticsearch import ElasticsearchSearchBackend
 
 from .test_backends import BackendTests
 
 
-class TestElasticSearchBackend(BackendTests, TestCase):
+class TestElasticsearchSearchBackend(BackendTests, TestCase):
     backend_path = 'wagtail.wagtailsearch.backends.elasticsearch'
 
     def test_search_with_spaces_only(self):
@@ -249,14 +249,14 @@ class TestElasticSearchBackend(BackendTests, TestCase):
         self.assertEqual(set(results), set())
 
 
-class TestElasticSearchQuery(TestCase):
+class TestElasticsearchSearchQuery(TestCase):
     def assertDictEqual(self, a, b):
         default = JSONSerializer().default
         self.assertEqual(
             json.dumps(a, sort_keys=True, default=default), json.dumps(b, sort_keys=True, default=default)
         )
 
-    query_class = ElasticSearch.query_class
+    query_class = ElasticsearchSearchBackend.query_class
 
     def test_simple(self):
         # Create a query
@@ -548,7 +548,7 @@ class TestElasticSearchQuery(TestCase):
         self.assertDictEqual(query.get_sort(), expected_result)
 
 
-class TestElasticSearchResults(TestCase):
+class TestElasticsearchSearchResults(TestCase):
     def assertDictEqual(self, a, b):
         default = JSONSerializer().default
         self.assertEqual(
@@ -562,7 +562,7 @@ class TestElasticSearchResults(TestCase):
             self.objects.append(models.SearchTest.objects.create(title=str(i)))
 
     def get_results(self):
-        backend = ElasticSearch({})
+        backend = ElasticsearchSearchBackend({})
         query = mock.MagicMock()
         query.queryset = models.SearchTest.objects.all()
         query.get_query.return_value = 'QUERY'
@@ -726,7 +726,7 @@ class TestElasticSearchResults(TestCase):
         self.assertEqual(results[2], self.objects[0])
 
 
-class TestElasticSearchMapping(TestCase):
+class TestElasticsearchMapping(TestCase):
     def assertDictEqual(self, a, b):
         default = JSONSerializer().default
         self.assertEqual(
@@ -735,7 +735,7 @@ class TestElasticSearchMapping(TestCase):
 
     def setUp(self):
         # Create ES mapping
-        self.es_mapping = ElasticSearch.mapping_class(models.SearchTest)
+        self.es_mapping = ElasticsearchSearchBackend.mapping_class(models.SearchTest)
 
         # Create ES document
         self.obj = models.SearchTest(title="Hello")
@@ -755,17 +755,17 @@ class TestElasticSearchMapping(TestCase):
                 'properties': {
                     'pk': {'index': 'not_analyzed', 'type': 'string', 'store': 'yes', 'include_in_all': False},
                     'content_type': {'index': 'not_analyzed', 'type': 'string', 'include_in_all': False},
-                    '_partials': {'index_analyzer': 'edgengram_analyzer', 'include_in_all': False, 'type': 'string'},
+                    '_partials': {'analyzer': 'edgengram_analyzer', 'search_analyzer': 'standard', 'include_in_all': False, 'type': 'string'},
                     'live_filter': {'index': 'not_analyzed', 'type': 'boolean', 'include_in_all': False},
                     'published_date_filter': {'index': 'not_analyzed', 'type': 'date', 'include_in_all': False},
-                    'title': {'type': 'string', 'include_in_all': True, 'index_analyzer': 'edgengram_analyzer'},
+                    'title': {'type': 'string', 'include_in_all': True, 'analyzer': 'edgengram_analyzer', 'search_analyzer': 'standard'},
                     'title_filter': {'index': 'not_analyzed', 'type': 'string', 'include_in_all': False},
                     'content': {'type': 'string', 'include_in_all': True},
                     'callable_indexed_field': {'type': 'string', 'include_in_all': True},
                     'tags': {
                         'type': 'nested',
                         'properties': {
-                            'name': {'type': 'string', 'include_in_all': True, 'index_analyzer': 'edgengram_analyzer'},
+                            'name': {'type': 'string', 'include_in_all': True, 'analyzer': 'edgengram_analyzer', 'search_analyzer': 'standard'},
                             'slug_filter': {'index': 'not_analyzed', 'type': 'string', 'include_in_all': False},
                         }
                     },
@@ -808,7 +808,7 @@ class TestElasticSearchMapping(TestCase):
         self.assertDictEqual(document, expected_result)
 
 
-class TestElasticSearchMappingInheritance(TestCase):
+class TestElasticsearchMappingInheritance(TestCase):
     def assertDictEqual(self, a, b):
         default = JSONSerializer().default
         self.assertEqual(
@@ -817,7 +817,7 @@ class TestElasticSearchMappingInheritance(TestCase):
 
     def setUp(self):
         # Create ES mapping
-        self.es_mapping = ElasticSearch.mapping_class(models.SearchTestChild)
+        self.es_mapping = ElasticsearchSearchBackend.mapping_class(models.SearchTestChild)
 
         # Create ES document
         self.obj = models.SearchTestChild(title="Hello", subtitle="World", page_id=1)
@@ -837,11 +837,11 @@ class TestElasticSearchMappingInheritance(TestCase):
                 'properties': {
                     # New
                     'extra_content': {'type': 'string', 'include_in_all': True},
-                    'subtitle': {'type': 'string', 'include_in_all': True, 'index_analyzer': 'edgengram_analyzer'},
+                    'subtitle': {'type': 'string', 'include_in_all': True, 'analyzer': 'edgengram_analyzer', 'search_analyzer': 'standard'},
                     'page': {
                         'type': 'nested',
                         'properties': {
-                            'title': {'type': 'string', 'include_in_all': True, 'index_analyzer': 'edgengram_analyzer'},
+                            'title': {'type': 'string', 'include_in_all': True, 'analyzer': 'edgengram_analyzer', 'search_analyzer': 'standard'},
                             'search_description': {'type': 'string', 'include_in_all': True},
                             'live_filter': {'index': 'not_analyzed', 'type': 'boolean', 'include_in_all': False},
                         }
@@ -850,17 +850,17 @@ class TestElasticSearchMappingInheritance(TestCase):
                     # Inherited
                     'pk': {'index': 'not_analyzed', 'type': 'string', 'store': 'yes', 'include_in_all': False},
                     'content_type': {'index': 'not_analyzed', 'type': 'string', 'include_in_all': False},
-                    '_partials': {'index_analyzer': 'edgengram_analyzer', 'include_in_all': False, 'type': 'string'},
+                    '_partials': {'analyzer': 'edgengram_analyzer', 'search_analyzer': 'standard', 'include_in_all': False, 'type': 'string'},
                     'live_filter': {'index': 'not_analyzed', 'type': 'boolean', 'include_in_all': False},
                     'published_date_filter': {'index': 'not_analyzed', 'type': 'date', 'include_in_all': False},
-                    'title': {'type': 'string', 'include_in_all': True, 'index_analyzer': 'edgengram_analyzer'},
+                    'title': {'type': 'string', 'include_in_all': True, 'analyzer': 'edgengram_analyzer', 'search_analyzer': 'standard'},
                     'title_filter': {'index': 'not_analyzed', 'type': 'string', 'include_in_all': False},
                     'content': {'type': 'string', 'include_in_all': True},
                     'callable_indexed_field': {'type': 'string', 'include_in_all': True},
                     'tags': {
                         'type': 'nested',
                         'properties': {
-                            'name': {'type': 'string', 'include_in_all': True, 'index_analyzer': 'edgengram_analyzer'},
+                            'name': {'type': 'string', 'include_in_all': True, 'analyzer': 'edgengram_analyzer', 'search_analyzer': 'standard'},
                             'slug_filter': {'index': 'not_analyzed', 'type': 'string', 'include_in_all': False},
                         }
                     },
@@ -920,7 +920,7 @@ class TestElasticSearchMappingInheritance(TestCase):
 
 class TestBackendConfiguration(TestCase):
     def test_default_settings(self):
-        backend = ElasticSearch(params={})
+        backend = ElasticsearchSearchBackend(params={})
 
         self.assertEqual(len(backend.hosts), 1)
         self.assertEqual(backend.hosts[0]['host'], 'localhost')
@@ -929,7 +929,7 @@ class TestBackendConfiguration(TestCase):
 
     def test_hosts(self):
         # This tests that HOSTS goes to es_hosts
-        backend = ElasticSearch(params={
+        backend = ElasticsearchSearchBackend(params={
             'HOSTS': [
                 {
                     'host': '127.0.0.1',
@@ -947,7 +947,7 @@ class TestBackendConfiguration(TestCase):
 
     def test_urls(self):
         # This test backwards compatibility with old URLS setting
-        backend = ElasticSearch(params={
+        backend = ElasticsearchSearchBackend(params={
             'URLS': [
                 'http://localhost:12345',
                 'https://127.0.0.1:54321',

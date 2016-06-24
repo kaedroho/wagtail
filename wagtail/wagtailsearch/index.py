@@ -152,8 +152,12 @@ class BaseField(object):
         except models.fields.FieldDoesNotExist:
             return self.field_name
 
-    def get_index_name(self, cls):
-        return self.get_attname(cls) + self.suffix
+    def get_definition_model(self, cls):
+        try:
+            field = self.get_field(cls)
+            return field.model
+        except models.fields.FieldDoesNotExist:
+            return cls
 
     def get_type(self, cls):
         if 'type' in self.kwargs:
@@ -190,7 +194,7 @@ class SearchField(BaseField):
 
 
 class FilterField(BaseField):
-    suffix = '_filter'
+    pass
 
 
 class RelatedFields(object):
@@ -198,11 +202,12 @@ class RelatedFields(object):
         self.field_name = field_name
         self.fields = fields
 
-    def get_index_name(self, cls):
-        return self.field_name
-
     def get_field(self, cls):
         return cls._meta.get_field(self.field_name)
+
+    def get_definition_model(self, cls):
+        field = self.get_field(cls)
+        return field.model
 
     def get_value(self, obj):
         field = self.get_field(obj.__class__)
