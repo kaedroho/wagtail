@@ -1,0 +1,14 @@
+{
+  "name": "sstest",
+  "version": "1.0.0",
+  "description": "",
+  "main": "shoot.js",
+  "scripts": {
+    "shoot": "node shoot"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "webshot": "^0.18.0"
+  }
+}

@@ -1,6 +1,9 @@
 from __future__ import absolute_import, unicode_literals
 
+from django.conf import settings
 from django.conf.urls import include, url
+from django.conf.urls.static import static
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 from wagtail.api.v2.endpoints import PagesAPIEndpoint
 from wagtail.api.v2.router import WagtailAPIRouter
@@ -40,3 +43,6 @@ urlpatterns = [
     # Wagtail's serving mechanism
     url(r'', include(wagtail_urls)),
 ]
+
+urlpatterns += staticfiles_urlpatterns()
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
