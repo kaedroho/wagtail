@@ -6,6 +6,7 @@ let tests = [
         selector: 'div.nav-wrapper',
         sizes: [
             [1024, 768],
+            [1024, 500],
         ]
     },
 
@@ -15,6 +16,8 @@ let tests = [
         user: null,
         sizes: [
             [1024, 768],
+            [640, 480],
+            [1920, 1200],
         ]
     },
     {
@@ -30,7 +33,9 @@ let tests = [
         path: '/admin/',
         user: 'admin',
         sizes: [
-            [1024, 768],
+          [1024, 768],
+          [640, 480],
+          [1920, 1200],
         ]
     },
     {
