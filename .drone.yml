@@ -26,13 +26,17 @@ build:
 #      - XDG_CACHE_HOME=/drone/pip-cache pip install wheel
 #      - XDG_CACHE_HOME=/drone/pip-cache pip install -e .[testing,docs]
 #      - python runtests.py
-  screenshot_tests:
+  generate_screenshots:
     image: python:3.5
     commands:
-      - git merge-base HEAD master
+      - XDG_CACHE_HOME=/drone/pip-cache pip install wheel
+      - XDG_CACHE_HOME=/drone/pip-cache pip install -e .[testing,docs]
+      - python screenshooter/manage.py migrate
+      - python screenshooter/manage.py createcachetable
+      - python screenshooter/manage.py loaddata test.json
+      - python screenshooter/manage.py loaddata demosite.json
+      - python screenshooter/manage.py runserver &
       - env
-    when:
-      event: pull_request
 
 cache:
   mount:
