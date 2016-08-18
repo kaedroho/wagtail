@@ -27,18 +27,33 @@ build:
 #      - XDG_CACHE_HOME=/drone/pip-cache pip install -e .[testing,docs]
 #      - python runtests.py
   generate_screenshots:
-    image: node:4.2.4
+    image: python:3.5
     commands:
+      # Install NodeJS
+      - curl -sL https://deb.nodesource.com/setup_5.x -o node_setup.bash
+      - bash node_setup.bash
+      - apt-get install -y nodejs
+
+      # PIP requirements
       - XDG_CACHE_HOME=/drone/pip-cache pip install wheel
       - XDG_CACHE_HOME=/drone/pip-cache pip install -e .[testing,docs]
+
       - cd screenshooter
+
+      # NPM requirements
       - npm install
+
+      # Setup database
       - python manage.py migrate
       - python manage.py createcachetable
       - python manage.py loaddata test.json
       - python manage.py loaddata demosite.json
+
+      # Start Django server in background
       - python manage.py runserver &
       - sleep 3
+
+      # Cheese!
       - npm run shoot
 
 cache:
