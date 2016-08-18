@@ -10,10 +10,11 @@ build:
 #      - XDG_CACHE_HOME=/drone/pip-cache pip install wheel
 #      - XDG_CACHE_HOME=/drone/pip-cache pip install -e .[testing,docs]
 #      - isort --check-only --diff --recursive wagtail
-#  js:
-#    image: node:4.2.4
-#    commands:
-#      - npm install --quiet
+  js:
+    image: node:4.2.4
+    commands:
+      - npm install --quiet
+      - npm run build  # Required by generate_screenshots
 #      - npm run lint
 #      - npm run test:unit
 #  scss-lint:
