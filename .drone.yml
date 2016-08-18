@@ -27,17 +27,19 @@ build:
 #      - XDG_CACHE_HOME=/drone/pip-cache pip install -e .[testing,docs]
 #      - python runtests.py
   generate_screenshots:
-    image: python:3.5
+    image: node:4.2.4
     commands:
       - XDG_CACHE_HOME=/drone/pip-cache pip install wheel
       - XDG_CACHE_HOME=/drone/pip-cache pip install -e .[testing,docs]
       - cd screenshooter
+      - npm install
       - python manage.py migrate
       - python manage.py createcachetable
       - python manage.py loaddata test.json
       - python manage.py loaddata demosite.json
       - python manage.py runserver &
-      - env
+      - sleep 3
+      - npm run shoot
 
 cache:
   mount:
