@@ -1,31 +1,39 @@
 build:
-  flake8:
+#  flake8:
+#    image: python:3.5
+#    commands:
+#      - XDG_CACHE_HOME=/drone/pip-cache pip install flake8
+#      - flake8 wagtail
+#  isort:
+#    image: python:3.5
+#    commands:
+#      - XDG_CACHE_HOME=/drone/pip-cache pip install wheel
+#      - XDG_CACHE_HOME=/drone/pip-cache pip install -e .[testing,docs]
+#      - isort --check-only --diff --recursive wagtail
+#  js:
+#    image: node:4.2.4
+#    commands:
+#      - npm install --quiet
+#      - npm run lint
+#      - npm run test:unit
+#  scss-lint:
+#    image: torchbox/scss-lint
+#    commands:
+#      - scss-lint
+#  unittest:
+#    image: python:3.5
+#    commands:
+#      - XDG_CACHE_HOME=/drone/pip-cache pip install wheel
+#      - XDG_CACHE_HOME=/drone/pip-cache pip install -e .[testing,docs]
+#      - python runtests.py
+  screenshot_tests:
     image: python:3.5
     commands:
-      - XDG_CACHE_HOME=/drone/pip-cache pip install flake8
-      - flake8 wagtail
-  isort:
-    image: python:3.5
-    commands:
-      - XDG_CACHE_HOME=/drone/pip-cache pip install wheel
-      - XDG_CACHE_HOME=/drone/pip-cache pip install -e .[testing,docs]
-      - isort --check-only --diff --recursive wagtail
-  js:
-    image: node:4.2.4
-    commands:
-      - npm install --quiet
-      - npm run lint
-      - npm run test:unit
-  scss-lint:
-    image: torchbox/scss-lint
-    commands:
-      - scss-lint
-  unittest:
-    image: python:3.5
-    commands:
-      - XDG_CACHE_HOME=/drone/pip-cache pip install wheel
-      - XDG_CACHE_HOME=/drone/pip-cache pip install -e .[testing,docs]
-      - python runtests.py
+      - XDG_CACHE_HOME=/drone/pip-cache pip install requests
+      - python screenshot_tests/utils/get_base_commit.py
+      - env
+    when:
+      event: pull_request
 
 cache:
   mount:
