@@ -31,11 +31,12 @@ build:
     commands:
       - XDG_CACHE_HOME=/drone/pip-cache pip install wheel
       - XDG_CACHE_HOME=/drone/pip-cache pip install -e .[testing,docs]
-      - python screenshooter/manage.py migrate
-      - python screenshooter/manage.py createcachetable
-      - python screenshooter/manage.py loaddata test.json
-      - python screenshooter/manage.py loaddata demosite.json
-      - python screenshooter/manage.py runserver &
+      - cd screenshooter
+      - python manage.py migrate
+      - python manage.py createcachetable
+      - python manage.py loaddata test.json
+      - python manage.py loaddata demosite.json
+      - python manage.py runserver &
       - env
 
 cache:
