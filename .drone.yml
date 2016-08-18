@@ -30,7 +30,7 @@ build:
     image: python:3.5
     commands:
       # Install NodeJS
-      - curl -sL https://deb.nodesource.com/setup_5.x -o node_setup.bash
+      - curl -sL https://deb.nodesource.com/setup_6.x -o node_setup.bash
       - bash node_setup.bash
       - apt-get install -y nodejs
 
