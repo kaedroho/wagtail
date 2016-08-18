@@ -1,5 +1,5 @@
 {
-  "name": "sstest",
+  "name": "wagtail_screenshot_tests",
   "version": "1.0.0",
   "description": "",
   "main": "shoot.js",
