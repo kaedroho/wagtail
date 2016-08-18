@@ -29,6 +29,7 @@ build:
   screenshot_tests:
     image: python:3.5
     commands:
+      - git merge-base HEAD master
       - env
     when:
       event: pull_request
