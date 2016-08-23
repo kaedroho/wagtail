@@ -1,31 +1,61 @@
 build:
-  flake8:
-    image: python:3.5
-    commands:
-      - XDG_CACHE_HOME=/drone/pip-cache pip install flake8
-      - flake8 wagtail
-  isort:
-    image: python:3.5
-    commands:
-      - XDG_CACHE_HOME=/drone/pip-cache pip install wheel
-      - XDG_CACHE_HOME=/drone/pip-cache pip install -e .[testing,docs]
-      - isort --check-only --diff --recursive wagtail
+#  flake8:
+#    image: python:3.5
+#    commands:
+#      - XDG_CACHE_HOME=/drone/pip-cache pip install flake8
+#      - flake8 wagtail
+#  isort:
+#    image: python:3.5
+#    commands:
+#      - XDG_CACHE_HOME=/drone/pip-cache pip install wheel
+#      - XDG_CACHE_HOME=/drone/pip-cache pip install -e .[testing,docs]
+#      - isort --check-only --diff --recursive wagtail
   js:
     image: node:4.2.4
     commands:
       - npm install --quiet
-      - npm run lint
-      - npm run test:unit
-  scss-lint:
-    image: torchbox/scss-lint
-    commands:
-      - scss-lint
-  unittest:
+      - npm run build  # Required by generate_screenshots
+#      - npm run lint
+#      - npm run test:unit
+#  scss-lint:
+#    image: torchbox/scss-lint
+#    commands:
+#      - scss-lint
+#  unittest:
+#    image: python:3.5
+#    commands:
+#      - XDG_CACHE_HOME=/drone/pip-cache pip install wheel
+#      - XDG_CACHE_HOME=/drone/pip-cache pip install -e .[testing,docs]
+#      - python runtests.py
+  generate_screenshots:
     image: python:3.5
     commands:
+      # Install NodeJS
+      - curl -sL https://deb.nodesource.com/setup_6.x -o node_setup.bash
+      - bash node_setup.bash
+      - apt-get install -y nodejs
+
+      # PIP requirements
       - XDG_CACHE_HOME=/drone/pip-cache pip install wheel
       - XDG_CACHE_HOME=/drone/pip-cache pip install -e .[testing,docs]
-      - python runtests.py
+
+      - cd screenshooter
+
+      # NPM requirements
+      - npm install
+
+      # Setup database
+      - python manage.py migrate
+      - python manage.py createcachetable
+      - python manage.py loaddata test.json
+      - python manage.py loaddata demosite.json
+
+      # Start Django server in background
+      - python manage.py runserver &
+      - sleep 3
+
+      # Cheese!
+      - npm run shoot
 
 cache:
   mount:

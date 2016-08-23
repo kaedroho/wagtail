@@ -2,10 +2,14 @@ from __future__ import absolute_import, unicode_literals
 
 import os
 
+DEBUG = True
+
 WAGTAIL_ROOT = os.path.dirname(os.path.dirname(__file__))
 STATIC_ROOT = os.path.join(WAGTAIL_ROOT, 'tests', 'test-static')
 MEDIA_ROOT = os.path.join(WAGTAIL_ROOT, 'tests', 'test-media')
 MEDIA_URL = '/media/'
+
+ALLOWED_HOSTS = ['localhost']
 
 DATABASES = {
     'default': {
@@ -75,6 +79,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'wagtail.tests.middleware.HeaderRemoteUserMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -160,6 +165,13 @@ if 'ELASTICSEARCH_URL' in os.environ:
         'max_retries': 1,
         'AUTO_UPDATE': False,
     }
+
+
+# Remote user authentication. Required by screenshot tests in /sstests
+if os.environ.get('REMOTE_USER_AUTH', 'false') == 'true':
+    AUTHENTICATION_BACKENDS = [
+        'django.contrib.auth.backends.RemoteUserBackend',
+    ]
 
 
 WAGTAIL_SITE_NAME = "Test Site"
