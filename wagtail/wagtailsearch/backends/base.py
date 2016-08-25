@@ -7,6 +7,8 @@ from django.db.models.sql.where import SubqueryConstraint, WhereNode
 from django.utils.six import text_type
 
 from wagtail.wagtailsearch.index import class_is_indexed
+from wagtail.wagtailsearch.query import MatchQuery, MatchAllQuery, FilterQuery
+from wagtail.wagtailsearch.utils import convert_where_node_to_query
 
 
 class FilterError(Exception):
@@ -255,8 +257,26 @@ class BaseSearchBackend(object):
             if operator not in ['or', 'and']:
                 raise ValueError("operator must be either 'or' or 'and'")
 
+        if query_string is not None:
+            query = MatchQuery(query_string, fields=fields, operator=operator)
+        else:
+            query = MatchAllQuery()
+
+        query_filter = convert_where_node_to_query(queryset.query.where)
+        query = FilterQuery(query, include=query_filter)
+
+        # Ordering
+        if order_by_relevance is False:
+            if queryset.ordered:
+                order_by = queryset.query.order_by
+            else:
+                order_by = ['pk']
+        else:
+            # Order by relevance
+            order_by = None
+
         # Search
         search_query = self.query_class(
-            queryset, query_string, fields=fields, operator=operator, order_by_relevance=order_by_relevance
+            model, query, order_by=order_by
         )
         return self.results_class(self, search_query)

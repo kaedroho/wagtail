@@ -10,10 +10,17 @@ class Query(object):
 
 
 class MatchQuery(Query):
-    def __init__(self, query_string, fields=None, operator='or'):
+    def __init__(self, query_string, fields=None, operator=None):
         self.query_string = query_string
         self.fields = fields
-        self.operator = operator
+        self.operator = operator or 'or'
+
+    def __repr__(self):
+        return '<Match [{}]: "{}" {}>'.format(
+            ','.join(self.fields) if self.fields else ['all'],
+            self.query_string,
+            self.operator,
+        )
 
 
 class TermQuery(Query):
@@ -21,11 +28,17 @@ class TermQuery(Query):
         self.field = field
         self.value = value
 
+    def __repr__(self):
+        return '<Term {}: "{}">'.format(self.field, self.value)
+
 
 class PrefixQuery(Query):
     def __init__(self, field, prefix):
         self.field = field
         self.prefix = prefix
+
+    def __repr__(self):
+        return '<Prefix {}: "{}">'.format(self.field, self.prefix)
 
 
 class RangeQuery(Query):
@@ -36,19 +49,24 @@ class RangeQuery(Query):
         self.to_included = to_included
         self.to = to
 
+    def __repr__(self):
+        return '<Range {}...{}>'.format(self.from_, self.to)
+
 
 class MatchAllQuery(Query):
     """
     A query that matches everything
     """
-    pass
+    def __repr__(self):
+        return '<All>'
 
 
 class MatchNoneQuery(Query):
     """
     A query that matches nothing
     """
-    pass
+    def __repr__(self):
+        return '<None>'
 
 
 class ConjunctionQuery(Query):
@@ -59,6 +77,9 @@ class ConjunctionQuery(Query):
     def __init__(self, subqueries):
         self.subqueries = subqueries
 
+    def __repr__(self):
+        return '<Conjunction [{}]>'.format(','.join([repr(query) for query in self.subqueries]))
+
 
 class DisjunctionQuery(Query):
     """
@@ -67,6 +88,9 @@ class DisjunctionQuery(Query):
     """
     def __init__(self, subqueries):
         self.subqueries = subqueries
+
+    def __repr__(self):
+        return '<Disjunction [{}]>'.format(','.join([repr(query) for query in self.subqueries]))
 
 
 class FilterQuery(Query):
@@ -78,3 +102,6 @@ class FilterQuery(Query):
         self.query = query
         self.include = include
         self.exclude = exclude
+
+    def __repr__(self):
+        return '<Filter {} include={} exclude={}>'.format(repr(self.query), repr(self.include), repr(self.exclude))

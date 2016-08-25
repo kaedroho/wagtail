@@ -13,6 +13,7 @@ from wagtail.utils.deprecation import RemovedInWagtail18Warning
 from wagtail.wagtailsearch.backends.base import (
     BaseSearchBackend, BaseSearchQuery, BaseSearchResults)
 from wagtail.wagtailsearch.index import FilterField, RelatedFields, SearchField, class_is_indexed
+from wagtail.wagtailsearch.query import FilterQuery, PrefixQuery
 
 
 class ElasticsearchMapping(object):
@@ -380,6 +381,123 @@ class ElasticsearchSearchQuery(BaseSearchQuery):
         return json.dumps(self.get_query())
 
 
+class NewElasticsearchSearchQuery(object):
+    mapping_class = ElasticsearchMapping
+
+    def __init__(self, model, query, order_by=None):
+        self.model = model
+        self.query = query
+        self.order_by = order_by
+        self.mapping = self.mapping_class(self.model)
+
+    def get_filters(self):
+        filters = []
+
+        # Filter by content type
+        filters.append({
+            'prefix': {
+                'content_type': self.queryset.model.indexed_get_content_type()
+            }
+        })
+
+        # Apply filters from queryset
+        queryset_filters = self._get_filters_from_queryset()
+        if queryset_filters:
+            filters.append(queryset_filters)
+
+        return filters
+
+    def query_to_elasticsearch_dsl(self, query):
+        from wagtail.wagtailsearch.query import (
+            MatchQuery, TermQuery, PrefixQuery, RangeQuery, MatchAllQuery,
+            MatchNoneQuery, ConjunctionQuery, DisjunctionQuery, FilterQuery
+        )
+
+        if isinstance(query, MatchQuery):
+            # Convert fields into indexed names
+            if query.fields:
+                fields = []
+                searchable_fields = {f.field_name: f for f in self.model.get_searchable_search_fields()}
+                for field_name in query.fields:
+                    if field_name in searchable_fields:
+                        field_name = self.mapping.get_field_column_name(searchable_fields[field_name])
+
+                    fields.append(field_name)
+            else:
+                fields = ['_all', '_partials']
+
+            if len(fields) == 1:
+                if query.operator == 'or':
+                    return {
+                        'match': {
+                            fields[0]: query.query_string,
+                        }
+                    }
+                else:
+                    return {
+                        'match': {
+                            fields[0]: {
+                                'query': query.query_string,
+                                'operator': query.operator,
+                            }
+                        }
+                    }
+            else:
+                query = {
+                    'multi_match': {
+                        'query': query.query_string,
+                        'fields': fields,
+                    }
+                }
+
+                if query.operator != 'or':
+                    query['multi_match']['operator'] = query.operator
+
+                return query
+
+        else:
+            query = {
+                'match_all': {}
+            }
+            return {
+                "match": {
+
+                }
+            }
+        elif isinstance(query, TermQuery):
+
+
+    def get_query(self):
+        # Filter by content type
+        query = FilterQuery(self.query, include=PrefixQuery('content_type', self.model.indexed_get_content_type()))
+
+        return self.query_to_elasticsearch_dsl(query)
+
+    def get_sort(self):
+        # Ordering by relevance is the default in Elasticsearch
+        if self.order_by is None:
+            return
+
+        sort = []
+
+        for order_by_field in self.order_by:
+            reverse = False
+            field_name = order_by_field
+
+            if order_by_field.startswith('-'):
+                reverse = True
+                field_name = order_by_field[1:]
+
+            field = self._get_filterable_field(field_name)
+            column_name = self.mapping.get_field_column_name(field)
+
+            sort.append({
+                column_name: 'desc' if reverse else 'asc'
+            })
+
+        return sort
+
+
 class ElasticsearchSearchResults(BaseSearchResults):
     def _get_es_body(self, for_count=False):
         body = {
@@ -397,7 +515,7 @@ class ElasticsearchSearchResults(BaseSearchResults):
     def _do_search(self):
         # Params for elasticsearch query
         params = dict(
-            index=self.backend.get_index_for_model(self.query.queryset.model).name,
+            index=self.backend.get_index_for_model(self.query.model).name,
             body=self._get_es_body(),
             _source=False,
             fields='pk',
@@ -418,7 +536,7 @@ class ElasticsearchSearchResults(BaseSearchResults):
         results = dict((str(pk), None) for pk in pks)
 
         # Find objects in database and add them to dict
-        queryset = self.query.queryset.filter(pk__in=pks)
+        queryset = self.query.model.objects.filter(pk__in=pks)
         for obj in queryset:
             results[str(obj.pk)] = obj
 
@@ -428,7 +546,7 @@ class ElasticsearchSearchResults(BaseSearchResults):
     def _do_count(self):
         # Get count
         hit_count = self.backend.es.count(
-            index=self.backend.get_index_for_model(self.query.queryset.model).name,
+            index=self.backend.get_index_for_model(self.query.model).name,
             body=self._get_es_body(for_count=True),
         )['count']
 
@@ -633,7 +751,7 @@ class ElasticsearchAtomicIndexRebuilder(ElasticsearchIndexRebuilder):
 
 class ElasticsearchSearchBackend(BaseSearchBackend):
     index_class = ElasticsearchIndex
-    query_class = ElasticsearchSearchQuery
+    query_class = NewElasticsearchSearchQuery
     results_class = ElasticsearchSearchResults
     mapping_class = ElasticsearchMapping
     basic_rebuilder_class = ElasticsearchIndexRebuilder
