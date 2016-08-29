@@ -7,6 +7,8 @@ from django.db.models.sql.where import SubqueryConstraint, WhereNode
 from django.utils.six import text_type
 
 from wagtail.wagtailsearch.index import class_is_indexed
+from wagtail.wagtailsearch.query import MatchQuery, MatchAllQuery, FilterQuery
+from wagtail.wagtailsearch.utils import convert_where_node_to_query
 
 
 class FilterError(Exception):
@@ -18,13 +20,9 @@ class FieldError(Exception):
 
 
 class BaseSearchQuery(object):
-    DEFAULT_OPERATOR = 'or'
-
-    def __init__(self, queryset, query_string, fields=None, operator=None, order_by_relevance=True):
+    def __init__(self, queryset, query, order_by_relevance=True):
         self.queryset = queryset
-        self.query_string = query_string
-        self.fields = fields
-        self.operator = operator or self.DEFAULT_OPERATOR
+        self.query = query
         self.order_by_relevance = order_by_relevance
 
     def _get_filterable_field(self, field_attname):
@@ -35,64 +33,6 @@ class BaseSearchQuery(object):
         ).get(field_attname, None)
 
         return field
-
-    def _process_lookup(self, field, lookup, value):
-        raise NotImplementedError
-
-    def _connect_filters(self, filters, connector, negated):
-        raise NotImplementedError
-
-    def _process_filter(self, field_attname, lookup, value):
-        # Get the field
-        field = self._get_filterable_field(field_attname)
-
-        if field is None:
-            raise FieldError(
-                'Cannot filter search results with field "' + field_attname + '". Please add index.FilterField(\'' +
-                field_attname + '\') to ' + self.queryset.model.__name__ + '.search_fields.'
-            )
-
-        # Process the lookup
-        result = self._process_lookup(field, lookup, value)
-
-        if result is None:
-            raise FilterError(
-                'Could not apply filter on search results: "' + field_attname + '__' +
-                lookup + ' = ' + text_type(value) + '". Lookup "' + lookup + '"" not recognised.'
-            )
-
-        return result
-
-    def _get_filters_from_where_node(self, where_node):
-        # Check if this is a leaf node
-        if isinstance(where_node, Lookup):
-            field_attname = where_node.lhs.target.attname
-            lookup = where_node.lookup_name
-            value = where_node.rhs
-
-            # Ignore pointer fields that show up in specific page type queries
-            if field_attname.endswith('_ptr_id'):
-                return
-
-            # Process the filter
-            return self._process_filter(field_attname, lookup, value)
-
-        elif isinstance(where_node, SubqueryConstraint):
-            raise FilterError('Could not apply filter on search results: Subqueries are not allowed.')
-
-        elif isinstance(where_node, WhereNode):
-            # Get child filters
-            connector = where_node.connector
-            child_filters = [self._get_filters_from_where_node(child) for child in where_node.children]
-            child_filters = [child_filter for child_filter in child_filters if child_filter]
-
-            return self._connect_filters(child_filters, connector, where_node.negated)
-
-        else:
-            raise FilterError('Could not apply filter on search results: Unknown where node: ' + str(type(where_node)))
-
-    def _get_filters_from_queryset(self):
-        return self._get_filters_from_where_node(self.queryset.query.where)
 
 
 class BaseSearchResults(object):
@@ -180,6 +120,8 @@ class BaseSearchResults(object):
 
 
 class BaseSearchBackend(object):
+    DEFAULT_OPERATOR = 'or'
+
     query_class = None
     results_class = None
     rebuilder_class = None
@@ -210,6 +152,24 @@ class BaseSearchBackend(object):
 
     def delete(self, obj):
         raise NotImplementedError
+
+    @classmethod
+    def build_query(cls, queryset, query_string, fields=None, operator=None):
+        # Check operator
+        if operator is not None:
+            operator = operator.lower()
+            if operator not in ['or', 'and']:
+                raise ValueError("operator must be either 'or' or 'and'")
+
+        # Build query
+        if query_string is not None:
+            query = MatchQuery(query_string, fields=fields, operator=operator or cls.DEFAULT_OPERATOR)
+        else:
+            query = MatchAllQuery()
+
+        query = FilterQuery(query, include=convert_where_node_to_query(queryset.query.where))
+
+        return query
 
     def search(self, query_string, model_or_queryset, fields=None, filters=None,
                prefetch_related=None, operator=None, order_by_relevance=True):
@@ -249,14 +209,8 @@ class BaseSearchBackend(object):
             for prefetch in prefetch_related:
                 queryset = queryset.prefetch_related(prefetch)
 
-        # Check operator
-        if operator is not None:
-            operator = operator.lower()
-            if operator not in ['or', 'and']:
-                raise ValueError("operator must be either 'or' or 'and'")
-
         # Search
         search_query = self.query_class(
-            queryset, query_string, fields=fields, operator=operator, order_by_relevance=order_by_relevance
+            queryset, self.build_query(queryset, query_string, fields=fields, operator=operator), order_by_relevance=order_by_relevance
         )
         return self.results_class(self, search_query)

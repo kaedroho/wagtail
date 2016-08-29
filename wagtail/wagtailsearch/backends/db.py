@@ -10,8 +10,6 @@ from wagtail.wagtailsearch.backends.base import (
 
 
 class DatabaseSearchQuery(BaseSearchQuery):
-    DEFAULT_OPERATOR = 'and'
-
     def _process_lookup(self, field, lookup, value):
         return models.Q(**{field.get_attname(self.queryset.model) + '__' + lookup: value})
 
@@ -31,12 +29,10 @@ class DatabaseSearchQuery(BaseSearchQuery):
         return q
 
     def get_extra_q(self):
-        # Run _get_filters_from_queryset to test that no fields that are not
-        # a FilterField have been used in the query.
-        self._get_filters_from_queryset()
-
         q = models.Q()
         model = self.queryset.model
+
+        return q
 
         if self.query_string is not None:
             # Get fields
@@ -83,6 +79,8 @@ class DatabaseSearchResults(BaseSearchResults):
 
 
 class DatabaseSearchBackend(BaseSearchBackend):
+    DEFAULT_OPERATOR = 'and'
+
     query_class = DatabaseSearchQuery
     results_class = DatabaseSearchResults
 

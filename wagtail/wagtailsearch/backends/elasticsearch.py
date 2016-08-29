@@ -183,141 +183,124 @@ class ElasticsearchSearchQuery(BaseSearchQuery):
     def __init__(self, *args, **kwargs):
         super(ElasticsearchSearchQuery, self).__init__(*args, **kwargs)
         self.mapping = self.mapping_class(self.queryset.model)
+        self.searchable_fields = {f.field_name: f for f in self.queryset.model.get_searchable_search_fields()}
 
-        # Convert field names into index column names
-        if self.fields:
-            fields = []
-            searchable_fields = {f.field_name: f for f in self.queryset.model.get_searchable_search_fields()}
-            for field_name in self.fields:
-                if field_name in searchable_fields:
-                    field_name = self.mapping.get_field_column_name(searchable_fields[field_name])
+    def get_field_column_name(self, field_name):
+        return self.mapping.get_field_column_name(self.searchable_fields[field_name])
 
-                fields.append(field_name)
+    def to_dsl(self, query):
+        from wagtail.wagtailsearch.query import (
+            MatchQuery, TermQuery, PrefixQuery, RangeQuery, MatchAllQuery,
+            MatchNoneQuery, ConjunctionQuery, DisjunctionQuery, FilterQuery
+        )
 
-            self.fields = fields
-
-    def _process_lookup(self, field, lookup, value):
-        column_name = self.mapping.get_field_column_name(field)
-
-        if lookup == 'exact':
-            if value is None:
-                return {
-                    'missing': {
-                        'field': column_name,
-                    }
-                }
+        if isinstance(query, MatchQuery):
+            if query.fields:
+                fields = [
+                    self.get_field_column_name(field)
+                    for field in query.fields
+                ]
             else:
-                return {
-                    'term': {
-                        column_name: value,
-                    }
-                }
-
-        if lookup == 'isnull':
-            if value:
-                return {
-                    'missing': {
-                        'field': column_name,
-                    }
-                }
-            else:
-                return {
-                    'not': {
-                        'missing': {
-                            'field': column_name,
-                        }
-                    }
-                }
-
-        if lookup in ['startswith', 'prefix']:
-            return {
-                'prefix': {
-                    column_name: value,
-                }
-            }
-
-        if lookup in ['gt', 'gte', 'lt', 'lte']:
-            return {
-                'range': {
-                    column_name: {
-                        lookup: value,
-                    }
-                }
-            }
-
-        if lookup == 'range':
-            lower, upper = value
-
-            return {
-                'range': {
-                    column_name: {
-                        'gte': lower,
-                        'lte': upper,
-                    }
-                }
-            }
-
-        if lookup == 'in':
-            return {
-                'terms': {
-                    column_name: list(value),
-                }
-            }
-
-    def _connect_filters(self, filters, connector, negated):
-        if filters:
-            if len(filters) == 1:
-                filter_out = filters[0]
-            else:
-                filter_out = {
-                    connector.lower(): [
-                        fil for fil in filters if fil is not None
-                    ]
-                }
-
-            if negated:
-                filter_out = {
-                    'not': filter_out
-                }
-
-            return filter_out
-
-    def get_inner_query(self):
-        if self.query_string is not None:
-            fields = self.fields or ['_all', '_partials']
+                fields = ['_all', '_partials']
 
             if len(fields) == 1:
-                if self.operator == 'or':
-                    query = {
+                if query.operator == 'or':
+                    qdsl = {
                         'match': {
-                            fields[0]: self.query_string,
+                            fields[0]: query.query_string,
                         }
                     }
                 else:
-                    query = {
+                    qdsl = {
                         'match': {
                             fields[0]: {
-                                'query': self.query_string,
-                                'operator': self.operator,
+                                'query': query.query_string,
+                                'operator': query.operator,
                             }
                         }
                     }
             else:
-                query = {
+                qdsl = {
                     'multi_match': {
-                        'query': self.query_string,
+                        'query': query.query_string,
                         'fields': fields,
                     }
                 }
 
-                if self.operator != 'or':
-                    query['multi_match']['operator'] = self.operator
-        else:
-            query = {
+                if query.operator != 'or':
+                    qdsl['multi_match']['operator'] = query.operator
+
+            return qdsl
+
+        elif isinstance(query, TermQuery):
+            field_colname = self.get_field_column_name(query.field)
+
+            return {
+                'term': {
+                    field_colname: query.value,
+                }
+            }
+
+        elif isinstance(query, PrefixQuery):
+            field_colname = self.get_field_column_name(query.field)
+
+            return {
+                'prefix': {
+                    field_colname: query.prefix,
+                }
+            }
+
+        elif isinstance(query, RangeQuery):
+            pass  # TODO
+
+        elif isinstance(query, MatchAllQuery):
+            return {
                 'match_all': {}
             }
 
-        return query
+        elif isinstance(query, MatchNoneQuery):
+            return {
+                'bool': {
+                    'must_not': {
+                        'match_all': {}
+                    }
+                }
+            }
+
+        elif isinstance(query, ConjunctionQuery):
+            return {
+                'bool': {
+                    'must': [
+                        self.to_dsl(subquery)
+                        for subquery in query.subqueries
+                    ]
+                }
+            }
+
+        elif isinstance(query, DisjunctionQuery):
+            return {
+                'bool': {
+                    'should': [
+                        self.to_dsl(subquery)
+                        for subquery in query.subqueries
+                    ]
+                }
+            }
+
+        elif isinstance(query, FilterQuery):
+            qdsl = {
+                'bool': {
+                    'must': self.to_dsl(query.query),
+                }
+            }
+
+            if query.include:
+                qdsl['bool']['filter'] = self.to_dsl(query.include)
+
+            if query.exclude:
+                qdsl['bool']['must_not'] = self.to_dsl(query.exclude)
+
+            return qdsl
 
     def get_content_type_filter(self):
         return {
@@ -326,41 +309,16 @@ class ElasticsearchSearchQuery(BaseSearchQuery):
             }
         }
 
-    def get_filters(self):
-        filters = []
-
-        # Filter by content type
-        filters.append(self.get_content_type_filter())
-
-        # Apply filters from queryset
-        queryset_filters = self._get_filters_from_queryset()
-        if queryset_filters:
-            filters.append(queryset_filters)
-
-        return filters
+    def get_inner_query(self):
+        return self.to_dsl(self.query)
 
     def get_query(self):
-        inner_query = self.get_inner_query()
-        filters = self.get_filters()
-
-        if len(filters) == 1:
-            return {
-                'filtered': {
-                    'query': inner_query,
-                    'filter': filters[0],
-                }
+        return {
+            'filtered': {
+                'query': self.get_inner_query(),
+                'filter': self.get_content_type_filter(),
             }
-        elif len(filters) > 1:
-            return {
-                'filtered': {
-                    'query': inner_query,
-                    'filter': {
-                        'and': filters,
-                    }
-                }
-            }
-        else:
-            return inner_query
+        }
 
     def get_sort(self):
         # Ordering by relevance is the default in Elasticsearch
@@ -381,7 +339,7 @@ class ElasticsearchSearchQuery(BaseSearchQuery):
                     field_name = order_by_field[1:]
 
                 field = self._get_filterable_field(field_name)
-                column_name = self.mapping.get_field_column_name(field)
+                column_name = self.get_field_column_name(field)
 
                 sort.append({
                     column_name: 'desc' if reverse else 'asc'
