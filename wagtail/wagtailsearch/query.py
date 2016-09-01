@@ -1,9 +1,9 @@
 class Query(object):
     def __and__(self, other):
-        return ConjunctionQuery([self, other])
+        return AndQuery([self, other])
 
     def __or__(self, other):
-        return DisjunctionQuery([self, other])
+        return OrQuery([self, other])
 
     def __invert__(self):
         return FilterQuery(MatchAllQuery(), exclude=self)
@@ -51,7 +51,7 @@ class MatchNoneQuery(Query):
     pass
 
 
-class ConjunctionQuery(Query):
+class AndQuery(Query):
     """
     Combines multiple queries so that only results that match all sub queries
     are returned
@@ -60,7 +60,7 @@ class ConjunctionQuery(Query):
         self.subqueries = subqueries
 
 
-class DisjunctionQuery(Query):
+class OrQuery(Query):
     """
     Combines multiple queries so that results that match any of the sub queries
     are returned

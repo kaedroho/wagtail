@@ -65,7 +65,7 @@ def convert_where_node_to_query(where_node):
             return query.RangeQuery(field, from_=lower, from_included=True, to=upper, to_included=True)
 
         if lookup == 'in':
-            return query.DisjunctionQuery([
+            return query.OrQuery([
                 query.TermQuery(field, term)
                 for term in value
             ])
@@ -80,9 +80,9 @@ def convert_where_node_to_query(where_node):
             if len(filters) == 1:
                 filter_out = filters[0]
             elif connector.lower() == 'or':
-                filter_out = query.DisjunctionQuery([fil for fil in filters if fil is not None])
+                filter_out = query.OrQuery([fil for fil in filters if fil is not None])
             elif connector.lower() == 'and':
-                filter_out = query.ConjunctionQuery([fil for fil in filters if fil is not None])
+                filter_out = query.AndQuery([fil for fil in filters if fil is not None])
 
             if negated:
                 filter_out = ~filter_out
