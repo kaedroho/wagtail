@@ -7,6 +7,8 @@ from django.db.models.sql.where import SubqueryConstraint, WhereNode
 from django.utils.six import text_type
 
 from wagtail.wagtailsearch.index import class_is_indexed
+from wagtail.wagtailsearch.query import MatchQuery, MatchAllQuery, FilterQuery
+from wagtail.wagtailsearch.utils import convert_where_node_to_query
 
 
 class FilterError(Exception):
@@ -96,10 +98,11 @@ class BaseSearchQuery(object):
 
 
 class BaseSearchResults(object):
-    def __init__(self, backend, query, prefetch_related=None):
+    def __init__(self, backend, queryset, query, order_by_relevance=True):
         self.backend = backend
+        self.queryset = queryset
         self.query = query
-        self.prefetch_related = prefetch_related
+        self.order_by_relevance = order_by_relevance
         self.start = 0
         self.stop = None
         self._results_cache = None
@@ -120,7 +123,7 @@ class BaseSearchResults(object):
 
     def _clone(self):
         klass = self.__class__
-        new = klass(self.backend, self.query, prefetch_related=self.prefetch_related)
+        new = klass(self.backend, self.queryset, self.query, self.order_by_relevance)
         new.start = self.start
         new.stop = self.stop
         return new
@@ -255,8 +258,12 @@ class BaseSearchBackend(object):
             if operator not in ['or', 'and']:
                 raise ValueError("operator must be either 'or' or 'and'")
 
-        # Search
-        search_query = self.query_class(
-            queryset, query_string, fields=fields, operator=operator, order_by_relevance=order_by_relevance
-        )
-        return self.results_class(self, search_query)
+        # Build query
+        if query_string is not None:
+            query = MatchQuery(query_string, fields=fields, operator=operator)
+        else:
+            query = MatchAllQuery()
+
+        query = FilterQuery(query=query, include=convert_where_node_to_query(queryset.query.where))
+
+        return self.results_class(self, queryset, query, order_by_relevance=order_by_relevance)
