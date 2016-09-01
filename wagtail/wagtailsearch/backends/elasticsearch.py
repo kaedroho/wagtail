@@ -310,7 +310,7 @@ class ElasticsearchSearchQuery(BaseSearchQuery):
         }
 
     def get_inner_query(self):
-        return self.to_dsl(self.query)
+        return self.to_dsl(self.query.rewrite())
 
     def get_query(self):
         return {
