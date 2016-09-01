@@ -17,7 +17,7 @@ class TestCombinators(TestCase):
 
         combined = query_a & query_b
 
-        self.assertIsInstance(combined, query.ConjunctionQuery)
+        self.assertIsInstance(combined, query.AndQuery)
         self.assertListEqual(combined.subqueries, [query_a, query_b])
 
     def test_or(self):
@@ -26,7 +26,7 @@ class TestCombinators(TestCase):
 
         combined = query_a | query_b
 
-        self.assertIsInstance(combined, query.DisjunctionQuery)
+        self.assertIsInstance(combined, query.OrQuery)
         self.assertListEqual(combined.subqueries, [query_a, query_b])
 
     def test_invert(self):
@@ -137,7 +137,7 @@ class TestConvertWhereNodeToQuery(TestCase):
 
         q = convert_where_node_to_query(qs.query.where)
 
-        self.assertIsInstance(q, query.ConjunctionQuery)
+        self.assertIsInstance(q, query.AndQuery)
         for subquery in q.subqueries:
             self.assertIsInstance(subquery, query.TermQuery)
             self.assertEqual(subquery.field, 'title')
@@ -152,7 +152,7 @@ class TestConvertWhereNodeToQuery(TestCase):
 
         q = convert_where_node_to_query(qs.query.where)
 
-        self.assertIsInstance(q, query.DisjunctionQuery)
+        self.assertIsInstance(q, query.OrQuery)
         for subquery in q.subqueries:
             self.assertIsInstance(subquery, query.TermQuery)
             self.assertEqual(subquery.field, 'title')
@@ -166,7 +166,7 @@ class TestConvertWhereNodeToQuery(TestCase):
         q = convert_where_node_to_query(qs.query.where)
 
         subqueries_dict = {}
-        self.assertIsInstance(q, query.ConjunctionQuery)
+        self.assertIsInstance(q, query.AndQuery)
         for subquery in q.subqueries:
             self.assertIsInstance(subquery, query.TermQuery)
             subqueries_dict[subquery.field] = subquery.value
