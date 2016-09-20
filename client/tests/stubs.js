@@ -18,6 +18,7 @@ global.wagtailConfig = {
     LOADING: 'Loading...',
     NO_RESULTS: 'No results',
     SEE_CHILDREN: 'See Children',
+    NO_DATE: 'No date',
   },
 };
 
