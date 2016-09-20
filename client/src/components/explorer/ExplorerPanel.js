@@ -54,13 +54,13 @@ export default class ExplorerPanel extends Component {
     this.props.init();
 
     document.body.style.overflow = 'hidden';
-    document.body.classList.add('u-explorer-open');
+    document.body.classList.add('explorer-open');
     document.addEventListener('click', this._clickOutside);
   }
 
   componentWillUnmount() {
     document.body.style.overflow = '';
-    document.body.classList.remove('u-explorer-open');
+    document.body.classList.remove('explorer-open');
     document.removeEventListener('click', this._clickOutside);
   }
 
@@ -78,10 +78,7 @@ export default class ExplorerPanel extends Component {
 
   _getStyle() {
     const { top, left } = this.props;
-    return {
-      left: left + 'px',
-      top: top + 'px'
-    };
+    return {};
   }
 
   _getClass() {

@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <Explorer
         type="sidebar"
         top={0}
-        left={toggleNode.getBoundingClientRect().right}
+        left={0}
         defaultPage={1}
       />
     </Provider>

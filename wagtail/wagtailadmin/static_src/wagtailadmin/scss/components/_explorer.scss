@@ -1,15 +1,14 @@
 // min z-index: 500;
 // max z-index: unknown;
 
+// TODO Clean-up unused code in the new version of the explorer
 $explorer-z-index: 500;
 
 .explorer {
-    pointer-events: none;
     width: 100%;
     position: relative;
     top: 0;
     left: 0;
-    display: none;
 
     ul {
         background: $color-grey-1;
