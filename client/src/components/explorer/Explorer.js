@@ -47,8 +47,6 @@ class Explorer extends Component {
       nodes,
       resolved,
       ref: 'explorer',
-      left: this.props.left,
-      top: this.props.top,
       onPop: this.props.onPop,
       onItemClick: this.props.onItemClick,
       onClose: this.props.onClose,

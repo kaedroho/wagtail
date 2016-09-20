@@ -34,12 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const explorer = (
     <Provider store={store}>
-      <Explorer
-        type="sidebar"
-        top={0}
-        left={0}
-        defaultPage={1}
-      />
+      <Explorer type="sidebar" defaultPage={1} />
     </Provider>
   );
 

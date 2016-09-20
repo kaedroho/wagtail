@@ -76,11 +76,6 @@ export default class ExplorerPanel extends Component {
     }
   }
 
-  _getStyle() {
-    const { top, left } = this.props;
-    return {};
-  }
-
   _getClass() {
     let { type } = this.props;
     let cls = ['c-explorer'];
@@ -197,7 +192,7 @@ export default class ExplorerPanel extends Component {
     }
 
     return (
-      <div style={this._getStyle()} className={this._getClass()} ref='explorer'>
+      <div className={this._getClass()} ref='explorer'>
         <ExplorerHeader {...headerProps} transName={this.state.animation} />
         <div className='c-explorer__drawer'>
           <CSSTransitionGroup {...transitionProps}>
