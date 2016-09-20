@@ -2,7 +2,7 @@ import 'babel-polyfill';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
-import { createStore, applyMiddleware } from 'redux';
+import { createStore, applyMiddleware, compose } from 'redux';
 import createLogger from 'redux-logger';
 import thunkMiddleware from 'redux-thunk';
 
@@ -14,12 +14,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const explorerNode = document.querySelector('#explorer');
   const toggleNode = document.querySelector('[data-explorer-menu-url]');
 
-  const loggerMiddleware = createLogger();
+  const middleware = [
+    // TODO Get rid of redux-logger, solely use the Chrome DevTools extension?
+    createLogger(),
+    thunkMiddleware,
+  ];
 
-  const store = createStore(
-    rootReducer,
-    applyMiddleware(loggerMiddleware, thunkMiddleware)
-  );
+  const store = createStore(rootReducer, {}, compose(
+    applyMiddleware(...middleware),
+    // Expose store to Redux DevTools extension.
+    window.devToolsExtension ? window.devToolsExtension() : f => f
+  ));
 
   const toggle = (
     <Provider store={store}>
