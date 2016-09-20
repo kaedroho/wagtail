@@ -3,24 +3,16 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 import { createStore, applyMiddleware } from 'redux';
-import createLogger from 'redux-logger'
-import thunkMiddleware from 'redux-thunk'
+import createLogger from 'redux-logger';
+import thunkMiddleware from 'redux-thunk';
 
 import Explorer from 'components/explorer/Explorer';
 import ExplorerToggle from 'components/explorer/toggle';
 import rootReducer from 'components/explorer/reducers';
 
-
-document.addEventListener('DOMContentLoaded', e => {
-  const top = document.querySelector('.wrapper');
-  const div = document.createElement('div');
-  const trigger = document.querySelector('[data-explorer-menu-url]');
-
-  let rect = trigger.getBoundingClientRect();
-  let triggerParent = trigger.parentNode;
-  let label = trigger.innerText;
-
-  top.parentNode.appendChild(div);
+document.addEventListener('DOMContentLoaded', () => {
+  const explorerNode = document.querySelector('#explorer');
+  const toggleNode = document.querySelector('[data-explorer-menu-url]');
 
   const loggerMiddleware = createLogger();
 
@@ -29,19 +21,23 @@ document.addEventListener('DOMContentLoaded', e => {
     applyMiddleware(loggerMiddleware, thunkMiddleware)
   );
 
-  ReactDOM.render((
-      <Provider store={store}>
-        <ExplorerToggle label={label} />
-      </Provider>
-    ),
-    triggerParent
-  );
-
-  ReactDOM.render(
+  const toggle = (
     <Provider store={store}>
-      <Explorer type={'sidebar'} top={0} left={rect.right} defaultPage={1} />
-    </Provider>,
-    div
+      <ExplorerToggle label={toggleNode.innerText} />
+    </Provider>
   );
 
+  const explorer = (
+    <Provider store={store}>
+      <Explorer
+        type="sidebar"
+        top={0}
+        left={toggleNode.getBoundingClientRect().right}
+        defaultPage={1}
+      />
+    </Provider>
+  );
+
+  ReactDOM.render(toggle, toggleNode.parentNode);
+  ReactDOM.render(explorer, explorerNode);
 });
