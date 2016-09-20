@@ -1,4 +1,5 @@
 import 'babel-polyfill';
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
@@ -10,6 +11,9 @@ import Explorer from 'components/explorer/Explorer';
 import ExplorerToggle from 'components/explorer/toggle';
 import rootReducer from 'components/explorer/reducers';
 
+/**
+ * Admin JS entry point. Add in here code to run once the page is loaded.
+ */
 document.addEventListener('DOMContentLoaded', () => {
   const explorerNode = document.querySelector('#explorer');
   const toggleNode = document.querySelector('[data-explorer-menu-url]');

@@ -1,14 +1,18 @@
-import React, { Component, PropTypes } from 'react';
+import React from 'react';
 import moment from 'moment';
 
-
-const PublishedTime = ({publishedAt}) => {
-  let date = moment(publishedAt);
-  let str = publishedAt ?  date.format('DD.MM.YYYY') : 'No date';
+// TODO Should be a format function not a React component?
+const PublishedTime = ({ publishedAt }) => {
+  const date = moment(publishedAt);
+  const str = publishedAt ?  date.format('DD.MM.YYYY') : 'No date';
 
   return (
     <span>{str}</span>
   );
-}
+};
+
+PublishedTime.propTypes = {
+  publishedAt: React.PropTypes.string,
+};
 
 export default PublishedTime;

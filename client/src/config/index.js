@@ -9,8 +9,9 @@ export const EXPLORER_ANIM_DURATION = 220;
 
 export const ADMIN_PAGES = global.wagtailConfig.urls.pages;
 
+// TODO Add back in when we want to support explorer that displays pages
+// without children (API call without has_children=1).
 export const EXPLORER_FILTERS = [
-  // TODO Add back in when we want to support explorer without has_children=1
   // { id: 1, label: 'A', filter: null },
   // { id: 2, label: 'B', filter: 'has_children=1' }
 ];
