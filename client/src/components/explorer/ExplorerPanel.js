@@ -12,10 +12,8 @@ export default class ExplorerPanel extends Component {
     super(props);
     this._clickOutside = this._clickOutside.bind(this);
     this._onItemClick = this._onItemClick.bind(this);
-    this.closeModal = this.closeModal.bind(this);
 
     this.state = {
-      modalIsOpen: false,
       animation: 'push',
     }
   }
@@ -85,14 +83,6 @@ export default class ExplorerPanel extends Component {
     }
 
     return cls.join(' ');
-  }
-
-  closeModal() {
-    const { dispatch } = this.props;
-    dispatch(clearError());
-    this.setState({
-      modalIsOpen: false
-    });
   }
 
   _onItemClick(id) {
