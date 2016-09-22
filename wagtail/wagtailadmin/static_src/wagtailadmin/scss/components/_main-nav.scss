@@ -234,6 +234,8 @@ body.nav-open {
 
 // Explorer open condition, widens navigation area
 body.explorer-open {
+    overflow: hidden;
+    
     .wrapper {
         transform: translate3d($menu-width*2, 0, 0);
         -webkit-transform: translate3d($menu-width*2, 0, 0);

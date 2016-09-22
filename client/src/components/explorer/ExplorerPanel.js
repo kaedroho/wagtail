@@ -51,13 +51,11 @@ export default class ExplorerPanel extends Component {
   componentDidMount() {
     this.props.init();
 
-    document.body.style.overflow = 'hidden';
     document.body.classList.add('explorer-open');
     document.addEventListener('click', this._clickOutside);
   }
 
   componentWillUnmount() {
-    document.body.style.overflow = '';
     document.body.classList.remove('explorer-open');
     document.removeEventListener('click', this._clickOutside);
   }
