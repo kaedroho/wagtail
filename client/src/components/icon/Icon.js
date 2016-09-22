@@ -3,9 +3,9 @@ import React, { PropTypes } from 'react';
 const Icon = ({ name, className, title }) => (
   <span className={`icon icon-${name} ${className}`} aria-hidden={!title}>
     {title ? (
-        <span aria-role="presentation">
-            {title}
-        </span>
+      <span className="visuallyhidden">
+        {title}
+      </span>
     ) : null}
   </span>
 );

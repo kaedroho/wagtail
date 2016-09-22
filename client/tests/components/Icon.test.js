@@ -25,6 +25,6 @@ describe('Icon', () => {
   it('has accessible label if specified', () => {
     const label = shallow(<Icon name="test" title="For screen readers" />).childAt(0);
     expect(label.text()).to.contain('For screen readers');
-    expect(label.html()).to.contain('aria-role="presentation"');
+    expect(label.html()).to.contain('visuallyhidden');
   });
 });
