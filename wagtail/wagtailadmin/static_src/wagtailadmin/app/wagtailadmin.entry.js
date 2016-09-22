@@ -4,7 +4,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 import { createStore, applyMiddleware, compose } from 'redux';
-import createLogger from 'redux-logger';
 import thunkMiddleware from 'redux-thunk';
 
 import Explorer from 'components/explorer/Explorer';
@@ -17,8 +16,6 @@ const initExplorer = () => {
 
   if (explorerNode && toggleNode) {
     const middleware = [
-      // TODO Get rid of redux-logger, solely use the Chrome DevTools extension?
-      createLogger(),
       thunkMiddleware,
     ];
 
