@@ -15,9 +15,9 @@ describe('Explorer', () => {
     const props = {
       data: {
         meta: {
-            children: {
-                count: 0,
-            }
+          children: {
+            count: 0,
+          }
         }
       },
     };
@@ -27,11 +27,11 @@ describe('Explorer', () => {
     });
 
     it('has item metadata', () => {
-        expect(shallow(<ExplorerItem {...props} />).find('.c-explorer__meta')).to.have.lengthOf(1);
+      expect(shallow(<ExplorerItem {...props} />).find('.c-explorer__meta')).to.have.lengthOf(1);
     });
 
     it('metadata contains item type', () => {
-        expect(shallow(<ExplorerItem {...props} typeName="Foo" />).find('.c-explorer__meta').text()).to.contain('Foo');
+      expect(shallow(<ExplorerItem {...props} typeName="Foo" />).find('.c-explorer__meta').text()).to.contain('Foo');
     });
   });
 });

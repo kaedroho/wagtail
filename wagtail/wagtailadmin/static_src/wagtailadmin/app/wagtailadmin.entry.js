@@ -7,7 +7,7 @@ import { createStore, applyMiddleware, compose } from 'redux';
 import thunkMiddleware from 'redux-thunk';
 
 import Explorer from 'components/explorer/Explorer';
-import ExplorerToggle from 'components/explorer/toggle';
+import ExplorerToggle from 'components/explorer/ExplorerToggle';
 import rootReducer from 'components/explorer/reducers';
 
 const initExplorer = () => {
@@ -27,7 +27,7 @@ const initExplorer = () => {
 
     const toggle = (
       <Provider store={store}>
-        <ExplorerToggle label={toggleNode.innerText} />
+        <ExplorerToggle>{toggleNode.innerText}</ExplorerToggle>
       </Provider>
     );
 
