@@ -15,7 +15,7 @@ export default class ExplorerPanel extends Component {
 
     this.state = {
       animation: 'push',
-    }
+    };
   }
 
   componentWillReceiveProps(newProps) {
@@ -83,8 +83,11 @@ export default class ExplorerPanel extends Component {
     return cls.join(' ');
   }
 
-  _onItemClick(id) {
+  _onItemClick(id, e) {
     let node = this.props.nodes[id];
+
+    e.preventDefault();
+    e.stopPropagation();
 
     if (node.isLoaded) {
       this.props.pushPage(id);
@@ -114,7 +117,7 @@ export default class ExplorerPanel extends Component {
         filter,
       };
 
-      return <ExplorerItem {...props} />
+      return <ExplorerItem {...props} />;
     });
   }
 
@@ -124,9 +127,9 @@ export default class ExplorerPanel extends Component {
 
     if (page) {
       if (page.children.items.length) {
-        return this.renderChildren(page)
+        return this.renderChildren(page);
       } else {
-        return <ExplorerEmpty />
+        return <ExplorerEmpty />;
       }
     }
   }
@@ -148,7 +151,7 @@ export default class ExplorerPanel extends Component {
 
     // Don't show anything until the tree is resolved.
     if (!this.props.resolved) {
-      return <div />
+      return <div />;
     }
 
     const headerProps = {
@@ -158,31 +161,31 @@ export default class ExplorerPanel extends Component {
       onClose,
       onFilter,
       filter
-    }
+    };
 
     const transitionTargetProps = {
       key: path.length,
       className: 'c-explorer__transition-group'
-    }
+    };
 
     const transitionProps = {
       component: 'div',
       transitionEnterTimeout: EXPLORER_ANIM_DURATION,
       transitionLeaveTimeout: EXPLORER_ANIM_DURATION,
       transitionName: `explorer-${this.state.animation}`
-    }
+    };
 
     const innerTransitionProps = {
       component: 'div',
       transitionEnterTimeout: EXPLORER_ANIM_DURATION,
       transitionLeaveTimeout: EXPLORER_ANIM_DURATION,
-      transitionName: `explorer-fade`
-    }
+      transitionName: 'explorer-fade'
+    };
 
     return (
-      <div className={this._getClass()} ref='explorer'>
+      <div className={this._getClass()} ref="explorer">
         <ExplorerHeader {...headerProps} transName={this.state.animation} />
-        <div className='c-explorer__drawer'>
+        <div className="c-explorer__drawer">
           <CSSTransitionGroup {...transitionProps}>
             <div {...transitionTargetProps}>
               <CSSTransitionGroup {...innerTransitionProps}>
@@ -197,10 +200,10 @@ export default class ExplorerPanel extends Component {
           </CSSTransitionGroup>
         </div>
       </div>
-    )
+    );
   }
 }
 
 ExplorerPanel.propTypes = {
 
-}
+};

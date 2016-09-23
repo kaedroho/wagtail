@@ -1,16 +1,16 @@
-import React, { Component, PropTypes } from 'react';
+import React from 'react';
 import CSSTransitionGroup from 'react-addons-css-transition-group';
-import { connect } from 'react-redux'
+import { connect } from 'react-redux';
 
 import * as actions from './actions';
 import { EXPLORER_ANIM_DURATION } from 'config';
 import ExplorerPanel from './ExplorerPanel';
 
-
-class Explorer extends Component {
+// TODO To refactor.
+class Explorer extends React.Component {
   constructor(props) {
     super(props);
-    this._init = this._init.bind(this);
+    this.init = this.init.bind(this);
   }
 
   componentDidMount() {
@@ -19,7 +19,7 @@ class Explorer extends Component {
     }
   }
 
-  _init(id) {
+  init() {
     if (this.props.page && this.props.page.isLoaded) {
       return;
     }
@@ -27,15 +27,15 @@ class Explorer extends Component {
     this.props.onShow(this.props.page ? this.props.page : this.props.defaultPage);
   }
 
-  _getPage() {
-    let { nodes, depth, path } = this.props;
-    let id = path[path.length - 1];
+  getPage() {
+    const { nodes, depth, path } = this.props;
+    const id = path[path.length - 1];
     return nodes[id];
   }
 
   render() {
-    let { visible, depth, nodes, path, pageTypes, items, type, filter, fetching, resolved } = this.props;
-    let page = this._getPage();
+    const { visible, depth, nodes, path, pageTypes, items, type, filter, fetching, resolved } = this.props;
+    const page = this.getPage();
 
     const explorerProps = {
       path,
@@ -48,47 +48,50 @@ class Explorer extends Component {
       resolved,
       ref: 'explorer',
       onPop: this.props.onPop,
-      onItemClick: this.props.onItemClick,
       onClose: this.props.onClose,
       transport: this.props.transport,
       onFilter: this.props.onFilter,
       getChildren: this.props.getChildren,
       loadItemWithChildren: this.props.loadItemWithChildren,
       pushPage: this.props.pushPage,
-      init: this._init
-    }
+      init: this.init,
+    };
 
     const transProps = {
       component: 'div',
       transitionEnterTimeout: EXPLORER_ANIM_DURATION,
       transitionLeaveTimeout: EXPLORER_ANIM_DURATION,
       transitionName: 'explorer-toggle'
-    }
+    };
 
     return (
       <CSSTransitionGroup {...transProps}>
-        { visible ? <ExplorerPanel {...explorerProps} /> : null }
+        {visible ? <ExplorerPanel {...explorerProps} /> : null}
       </CSSTransitionGroup>
     );
   }
 }
 
 Explorer.propTypes = {
-  onPageSelect: PropTypes.func,
-  initialPath: PropTypes.string,
-  apiPath: PropTypes.string,
-  size: PropTypes.number,
-  position: PropTypes.object,
-  page: PropTypes.number,
-  defaultPage: PropTypes.number,
+  transport: React.PropTypes.object.isRequired,
+  onPageSelect: React.PropTypes.func,
+  initialPath: React.PropTypes.string,
+  apiPath: React.PropTypes.string,
+  size: React.PropTypes.number,
+  position: React.PropTypes.object,
+  page: React.PropTypes.number,
+  defaultPage: React.PropTypes.number,
+  onPop: React.PropTypes.func.isRequired,
+  setDefaultPage: React.PropTypes.func.isRequired,
+  onShow: React.PropTypes.func.isRequired,
+  onClose: React.PropTypes.func.isRequired,
+  onFilter: React.PropTypes.func.isRequired,
+  getChildren: React.PropTypes.func.isRequired,
+  loadItemWithChildren: React.PropTypes.func.isRequired,
+  pushPage: React.PropTypes.func.isRequired,
 };
 
-
-// =============================================================================
-// Connector
-// =============================================================================
-
-const mapStateToProps = (state, ownProps) => ({
+const mapStateToProps = (state) => ({
   visible: state.explorer.isVisible,
   page: state.explorer.currentPage,
   depth: state.explorer.depth,
@@ -105,20 +108,15 @@ const mapStateToProps = (state, ownProps) => ({
   transport: state.transport
 });
 
-const mapDispatchToProps = (dispatch) => {
-  return {
-    setDefaultPage: (id) => { dispatch(actions.setDefaultPage(id)) },
-    getChildren: (id) => { dispatch(actions.fetchChildren(id)) },
-    onShow: (id) => { dispatch(actions.fetchRoot()) },
-    onFilter: (filter) => { dispatch(actions.setFilter(filter)) },
-    loadItemWithChildren: (id) => { dispatch(actions.fetchPage(id)) },
-    pushPage: (id) => { dispatch(actions.pushPage(id)) },
-    onPop: () => { dispatch(actions.popPage()) },
-    onClose: () => { dispatch(actions.toggleExplorer()) }
-  }
-}
+const mapDispatchToProps = (dispatch) => ({
+  setDefaultPage: (id) => dispatch(actions.setDefaultPage(id)),
+  getChildren: (id) => dispatch(actions.fetchChildren(id)),
+  onShow: () => dispatch(actions.fetchRoot()),
+  onFilter: (filter) => dispatch(actions.setFilter(filter)),
+  loadItemWithChildren: (id) => dispatch(actions.fetchPage(id)),
+  pushPage: (id) => dispatch(actions.pushPage(id)),
+  onPop: () => dispatch(actions.popPage()),
+  onClose: () => dispatch(actions.toggleExplorer()),
+});
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(Explorer);
+export default connect(mapStateToProps, mapDispatchToProps)(Explorer);

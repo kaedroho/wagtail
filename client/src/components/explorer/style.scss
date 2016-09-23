@@ -124,9 +124,13 @@ $c-explorer-easing: cubic-bezier(0.075, 0.820, 0.165, 1.000);
         text-transform: capitalize;
     }
 
-.c-explorer__item:hover {
-    background: rgba(0, 0, 0, 0.25);
-    color: #fff;
+.c-explorer__item {
+    display: block;
+    
+    &:hover {
+        background: rgba(0, 0, 0, 0.25);
+        color: #fff;
+    }
 }
 
 .c-explorer__see-more {
@@ -153,6 +157,7 @@ $c-explorer-easing: cubic-bezier(0.075, 0.820, 0.165, 1.000);
 
     &:hover {
         background: rgba(0,0,0,0.5);
+        color: #fff;
     }
 }
 

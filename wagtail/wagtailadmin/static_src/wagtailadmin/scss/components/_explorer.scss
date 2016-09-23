@@ -29,33 +29,6 @@ $explorer-z-index: 500;
         }
     }
 
-    a {
-        text-decoration: none;
-        padding: 0.9em;
-        color: $color-white;
-        display: block;
-        position: relative;
-        outline: none;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
-
-        &:before {
-            opacity: 0.5;
-            margin-right: 0.5em;
-            font-size: 1.5em;
-        }
-
-        &:hover {
-            background: $color-teal-dark;
-            color: $color-white;
-        }
-    }
-
-    .has-children a {
-        padding-right: 5em;
-    }
-
     .children {
         position: absolute;
         z-index: $explorer-z-index + 1;

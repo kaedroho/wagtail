@@ -1,4 +1,6 @@
-const stateDefaults = {
+import _ from 'lodash';
+
+const defaultState = {
   isVisible: false,
   isFetching: false,
   isResolved: false,
@@ -11,86 +13,86 @@ const stateDefaults = {
   filter: 'has_children=1',
   // Coming from the API in order to get translated / pluralised labels.
   pageTypes: {},
-}
+};
 
-export default function explorer(state = stateDefaults, action) {
-
+export default function explorer(state = defaultState, action) {
   let newNodes = state.path;
 
   switch (action.type) {
-    case 'SET_DEFAULT_PAGE':
-      return Object.assign({}, state, {
-        defaultPage: action.payload
-      });
+  case 'SET_DEFAULT_PAGE':
+    return _.assign({}, state, {
+      defaultPage: action.payload
+    });
 
-    case 'RESET_TREE':
-      return Object.assign({}, state, {
-        isFetching: true,
-        isResolved: false,
-        currentPage: action.payload,
-        path: [],
-      });
+  case 'RESET_TREE':
+    return _.assign({}, state, {
+      isFetching: true,
+      isResolved: false,
+      currentPage: action.payload,
+      path: [],
+    });
 
-    case 'TREE_RESOLVED':
-      return Object.assign({}, state, {
-        isFetching: false,
-        isResolved: true
-      });
+  case 'TREE_RESOLVED':
+    return _.assign({}, state, {
+      isFetching: false,
+      isResolved: true
+    });
 
-    case 'TOGGLE_EXPLORER':
-      return Object.assign({}, state, {
-        isVisible: !state.isVisible,
-        currentPage: action.payload ? action.payload : state.defaultPage,
-      });
+  case 'TOGGLE_EXPLORER':
+    return _.assign({}, state, {
+      isVisible: !state.isVisible,
+      currentPage: action.payload ? action.payload : state.defaultPage,
+    });
 
-    case 'FETCH_START':
-      return Object.assign({}, state, {
-        isFetching: true
-      });
+  case 'FETCH_START':
+    return _.assign({}, state, {
+      isFetching: true
+    });
 
-    case 'FETCH_BRANCH_SUCCESS':
-      if (state.path.indexOf(action.payload.id) < 0) {
-        newNodes = [action.payload.id].concat(state.path);
-      }
+  case 'FETCH_BRANCH_SUCCESS':
+    if (state.path.indexOf(action.payload.id) < 0) {
+      newNodes = [action.payload.id].concat(state.path);
+    }
 
-      return Object.assign({}, state, {
-        path: newNodes,
-        currentPage: state.currentPage ? state.currentPage : action.payload.id
-      });
+    return _.assign({}, state, {
+      path: newNodes,
+      currentPage: state.currentPage ? state.currentPage : action.payload.id
+    });
 
     // called on fetch page...
-    case 'FETCH_SUCCESS':
-      if (state.path.indexOf(action.payload.id) < 0) {
-        newNodes = state.path.concat([action.payload.id]);
-      }
+  case 'FETCH_SUCCESS':
+    if (state.path.indexOf(action.payload.id) < 0) {
+      newNodes = state.path.concat([action.payload.id]);
+    }
 
-      return Object.assign({}, state, {
-        isFetching: false,
-        path: newNodes,
-      });
+    return _.assign({}, state, {
+      isFetching: false,
+      path: newNodes,
+    });
 
-    case 'PUSH_PAGE':
-      return Object.assign({}, state, {
-        path: state.path.concat([action.payload])
-      });
-      return state;
+  case 'PUSH_PAGE':
+    return _.assign({}, state, {
+      path: state.path.concat([action.payload])
+    });
 
-    case 'POP_PAGE':
-      let poppedNodes = state.path.length > 1 ? state.path.slice(0, -1) : state.path;
-      return Object.assign({}, state, {
-        path: poppedNodes,
-      });
+  case 'POP_PAGE':
+    const poppedNodes = state.path.length > 1 ? state.path.slice(0, -1) : state.path;
+    return _.assign({}, state, {
+      path: poppedNodes,
+    });
 
-    case 'FETCH_CHILDREN_SUCCESS':
-      return Object.assign({}, state, {
-        isFetching: false,
-        pageTypes: Object.assign({}, state.pageTypes, action.payload.json.__types),
-      });
+  case 'FETCH_CHILDREN_SUCCESS':
+    return _.assign({}, state, {
+      isFetching: false,
+      pageTypes: _.assign({}, state.pageTypes, action.payload.json.__types),
+    });
 
-    case 'SET_FILTER':
-      return Object.assign({}, state, {
-        filter: action.filter
-      });
+  case 'SET_FILTER':
+    return _.assign({}, state, {
+      filter: action.filter
+    });
+
+  default:
+    return state;
   }
-  return state;
 }

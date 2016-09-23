@@ -1,15 +1,13 @@
-import React, { PropTypes } from 'react';
+import React from 'react';
 
-const PublishStatus = ({ status }) => {
-  return status ? (
-    <span className={`o-pill c-status${status.live ? ' c-status--live' : ''}`}>
-      {status.status}
-    </span>
-  ) : null;
-};
+const PublishStatus = ({ status }) => (status ? (
+  <span className={`o-pill c-status${status.live ? ' c-status--live' : ''}`}>
+    {status.status}
+  </span>
+) : null);
 
 PublishStatus.propTypes = {
-    status: PropTypes.object,
+  status: React.PropTypes.object,
 };
 
 export default PublishStatus;

@@ -1,4 +1,4 @@
-import React, { PropTypes } from 'react';
+import React from 'react';
 
 const Icon = ({ name, className, title }) => (
   <span className={`icon icon-${name} ${className}`} aria-hidden={!title}>
@@ -11,9 +11,9 @@ const Icon = ({ name, className, title }) => (
 );
 
 Icon.propTypes = {
-  name: PropTypes.string.isRequired,
-  className: PropTypes.string,
-  title: PropTypes.string,
+  name: React.PropTypes.string.isRequired,
+  className: React.PropTypes.string,
+  title: React.PropTypes.string,
 };
 
 Icon.defaultProps = {
