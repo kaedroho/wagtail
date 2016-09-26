@@ -19,7 +19,7 @@ import { Explorer } from 'wagtail';
 
 ## Available components
 
-TODO
+TODO define what components should be reusable and how best to make them reusable
 
 - [ ] Explorer
 - [ ] Modal
