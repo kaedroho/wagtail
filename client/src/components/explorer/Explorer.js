@@ -3,7 +3,7 @@ import CSSTransitionGroup from 'react-addons-css-transition-group';
 import { connect } from 'react-redux';
 
 import * as actions from './actions';
-import { EXPLORER_ANIM_DURATION } from 'config';
+import { EXPLORER_ANIM_DURATION } from '../../config';
 import ExplorerPanel from './ExplorerPanel';
 
 // TODO To refactor.
@@ -28,13 +28,13 @@ class Explorer extends React.Component {
   }
 
   getPage() {
-    const { nodes, depth, path } = this.props;
+    const { nodes, path } = this.props;
     const id = path[path.length - 1];
     return nodes[id];
   }
 
   render() {
-    const { visible, depth, nodes, path, pageTypes, items, type, filter, fetching, resolved } = this.props;
+    const { isVisible, nodes, path, pageTypes, type, filter, fetching, resolved } = this.props;
     const page = this.getPage();
 
     const explorerProps = {
@@ -66,19 +66,21 @@ class Explorer extends React.Component {
 
     return (
       <CSSTransitionGroup {...transProps}>
-        {visible ? <ExplorerPanel {...explorerProps} /> : null}
+        {isVisible ? <ExplorerPanel {...explorerProps} /> : null}
       </CSSTransitionGroup>
     );
   }
 }
 
 Explorer.propTypes = {
+  isVisible: React.PropTypes.bool.isRequired,
+  fetching: React.PropTypes.bool.isRequired,
+  resolved: React.PropTypes.bool.isRequired,
+  path: React.PropTypes.array,
+  type: React.PropTypes.string.isRequired,
+  filter: React.PropTypes.string.isRequired,
+  nodes: React.PropTypes.object.isRequired,
   transport: React.PropTypes.object.isRequired,
-  onPageSelect: React.PropTypes.func,
-  initialPath: React.PropTypes.string,
-  apiPath: React.PropTypes.string,
-  size: React.PropTypes.number,
-  position: React.PropTypes.object,
   page: React.PropTypes.number,
   defaultPage: React.PropTypes.number,
   onPop: React.PropTypes.func.isRequired,
@@ -89,13 +91,12 @@ Explorer.propTypes = {
   getChildren: React.PropTypes.func.isRequired,
   loadItemWithChildren: React.PropTypes.func.isRequired,
   pushPage: React.PropTypes.func.isRequired,
+  pageTypes: React.PropTypes.object.isRequired,
 };
 
 const mapStateToProps = (state) => ({
-  visible: state.explorer.isVisible,
+  isVisible: state.explorer.isVisible,
   page: state.explorer.currentPage,
-  depth: state.explorer.depth,
-  loading: state.explorer.isLoading,
   fetching: state.explorer.isFetching,
   resolved: state.explorer.isResolved,
   path: state.explorer.path,

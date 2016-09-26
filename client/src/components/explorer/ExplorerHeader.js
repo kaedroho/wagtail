@@ -1,8 +1,8 @@
 import React from 'react';
 import CSSTransitionGroup from 'react-addons-css-transition-group';
-import { EXPLORER_ANIM_DURATION, EXPLORER_FILTERS, STRINGS } from 'config';
+import { EXPLORER_ANIM_DURATION, EXPLORER_FILTERS, STRINGS } from '../../config';
 
-import Icon from 'components/icon/Icon';
+import Icon from '../../components/icon/Icon';
 import Filter from '../../components/explorer/Filter';
 
 const ExplorerHeader = ({ page, depth, filter, onPop, onFilter, transName }) => {
@@ -21,30 +21,27 @@ const ExplorerHeader = ({ page, depth, filter, onPop, onFilter, transName }) => 
     <div className="c-explorer__header">
       <span className={`c-explorer__trigger${depth > 1 ? ' c-explorer__trigger--enabled' : ''}`} onClick={onPop}>
         <span className="u-overflow c-explorer__overflow">
-        <CSSTransitionGroup {...transitionProps}>
-          <span className="c-explorer__parent-name" key={depth}>
-            {depth > 1 ? (
-              <span className="c-explorer__back">
-                <Icon name="arrow-left" />
-              </span>
-            ) : null}
-            {title}
-          </span>
-        </CSSTransitionGroup>
+          <CSSTransitionGroup {...transitionProps}>
+            <span className="c-explorer__parent-name" key={depth}>
+              {depth > 1 ? (
+                <span className="c-explorer__back">
+                  <Icon name="arrow-left" />
+                </span>
+              ) : null}
+              {title}
+            </span>
+          </CSSTransitionGroup>
         </span>
       </span>
       <span className="c-explorer__filter">
-        {EXPLORER_FILTERS.map((item) => {
-          // TODO Do not pass props down with destructuring.
-          return (
-            <Filter
-              key={item.id}
-              {...item}
-              activeFilter={filter}
-              onFilter={onFilter}
-            />
-          );
-        })}
+        {EXPLORER_FILTERS.map((item) => (
+          <Filter
+            key={item.id}
+            {...item}
+            activeFilter={filter}
+            onFilter={onFilter}
+          />
+        ))}
       </span>
     </div>
   );

@@ -1,8 +1,8 @@
 import { createAction } from 'redux-actions';
 
-import { API_PAGES, PAGES_ROOT_ID } from 'config';
+import { API_PAGES, PAGES_ROOT_ID } from '../../../config';
 
-function _getHeaders() {
+function getHeaders() {
   const headers = new Headers();
   headers.append('Content-Type', 'application/json');
 
@@ -13,15 +13,13 @@ function _getHeaders() {
   };
 }
 
-function _get(url) {
-  return fetch(url, _getHeaders()).then(response => response.json());
+function get(url) {
+  return fetch(url, getHeaders()).then(response => response.json());
 }
 
 export const fetchStart = createAction('FETCH_START');
 
-export const fetchSuccess = createAction('FETCH_SUCCESS', (id, body) => {
-  return { id, body };
-});
+export const fetchSuccess = createAction('FETCH_SUCCESS', (id, body) => ({ id, body }));
 
 export const fetchFailure = createAction('FETCH_FAILURE');
 
@@ -29,9 +27,7 @@ export const pushPage = createAction('PUSH_PAGE');
 
 export const popPage = createAction('POP_PAGE');
 
-export const fetchBranchSuccess = createAction('FETCH_BRANCH_SUCCESS', (id, json) => {
-  return { id, json };
-});
+export const fetchBranchSuccess = createAction('FETCH_BRANCH_SUCCESS', (id, json) => ({ id, json }));
 
 export const fetchBranchStart = createAction('FETCH_BRANCH_START');
 
@@ -46,7 +42,7 @@ export function fetchTree(id = 1) {
   return (dispatch) => {
     dispatch(fetchBranchStart(id));
 
-    return _get(`${API_PAGES}${id}/`)
+    return get(`${API_PAGES}${id}/`)
       .then(json => {
         dispatch(fetchBranchSuccess(id, json));
 
@@ -66,10 +62,9 @@ export function fetchRoot() {
     // TODO Should not need an id.
     dispatch(resetTree(1));
 
-    return _get(`${API_PAGES}?child_of=${PAGES_ROOT_ID}`)
+    return get(`${API_PAGES}?child_of=${PAGES_ROOT_ID}`)
       .then(json => {
-        // TODO right now, only works for a single homepage.
-        // TODO What do we do if there is no homepage?
+        // TODO right now, only works for a single homepage. What do we do if there is no homepage?
         const rootId = json.items[0].id;
 
         dispatch(fetchTree(rootId));
@@ -79,9 +74,7 @@ export function fetchRoot() {
 
 export const toggleExplorer = createAction('TOGGLE_EXPLORER');
 
-export const fetchChildrenSuccess = createAction('FETCH_CHILDREN_SUCCESS', (id, json) => {
-  return { id, json };
-});
+export const fetchChildrenSuccess = createAction('FETCH_CHILDREN_SUCCESS', (id, json) => ({ id, json }));
 
 export const fetchChildrenStart = createAction('FETCH_CHILDREN_START');
 
@@ -104,7 +97,7 @@ export function fetchChildren(id = 'root') {
 
     dispatch(fetchChildrenStart(id));
 
-    return _get(api)
+    return get(api)
       .then(json => dispatch(fetchChildrenSuccess(id, json)));
   };
 }
@@ -117,9 +110,9 @@ export function setFilter(filter) {
     dispatch({
       payload: {
         filter,
-        id
+        id,
       },
-      type: 'SET_FILTER'
+      type: 'SET_FILTER',
     });
 
     dispatch(fetchChildren(id));
@@ -132,7 +125,7 @@ export function setFilter(filter) {
 export function fetchPage(id = 1) {
   return dispatch => {
     dispatch(fetchStart(id));
-    return _get(`${API_PAGES}${id}/`)
+    return get(`${API_PAGES}${id}/`)
       .then(json => dispatch(fetchSuccess(id, json)))
       .then(json => dispatch(fetchChildren(id, json)))
       .catch(json => dispatch(fetchFailure(new Error(JSON.stringify(json)))));

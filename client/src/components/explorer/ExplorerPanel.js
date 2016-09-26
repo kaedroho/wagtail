@@ -1,67 +1,65 @@
-import React, { Component, PropTypes } from 'react';
+import React from 'react';
 import CSSTransitionGroup from 'react-addons-css-transition-group';
-import { EXPLORER_ANIM_DURATION, STRINGS } from 'config';
+import { EXPLORER_ANIM_DURATION } from '../../config';
 
 import ExplorerEmpty from './ExplorerEmpty';
 import ExplorerHeader from './ExplorerHeader';
 import ExplorerItem from './ExplorerItem';
 import LoadingSpinner from './LoadingSpinner';
 
-export default class ExplorerPanel extends Component {
+export default class ExplorerPanel extends React.Component {
   constructor(props) {
     super(props);
-    this._clickOutside = this._clickOutside.bind(this);
-    this._onItemClick = this._onItemClick.bind(this);
+    this.clickOutside = this.clickOutside.bind(this);
+    this.onItemClick = this.onItemClick.bind(this);
 
     this.state = {
+      // TODO Refactor value to constant.
       animation: 'push',
     };
   }
 
   componentWillReceiveProps(newProps) {
-    let oldProps = this.props;
+    const { path } = this.props;
 
-    if (!oldProps.path) {
-      return;
-    }
+    if (path) {
+      const isPush = newProps.path.length > path.length;
+      const animation = isPush ? 'push' : 'pop';
 
-    if (newProps.path.length > oldProps.path.length) {
-      return this.setState({ animation: 'push' });
-    } else {
-      return this.setState({ animation: 'pop' });
+      this.setState({
+        animation: animation,
+      });
     }
   }
 
-  _loadChildren() {
-    let { page } = this.props;
+  loadChildren() {
+    const { page, getChildren } = this.props;
 
-    if (!page || page.children.isFetching) {
-      return false;
-    }
-
-    if (page.meta.children.count && !page.children.length && !page.children.isFetching && !page.children.isLoaded) {
-      this.props.getChildren(page.id);
+    if (page && !page.children.isFetching) {
+      if (page.meta.children.count && !page.children.length && !page.children.isFetching && !page.children.isLoaded) {
+        getChildren(page.id);
+      }
     }
   }
 
   componentDidUpdate() {
-    this._loadChildren();
+    this.loadChildren();
   }
 
   componentDidMount() {
     this.props.init();
 
     document.body.classList.add('explorer-open');
-    document.addEventListener('click', this._clickOutside);
+    document.addEventListener('click', this.clickOutside);
   }
 
   componentWillUnmount() {
     document.body.classList.remove('explorer-open');
-    document.removeEventListener('click', this._clickOutside);
+    document.removeEventListener('click', this.clickOutside);
   }
 
-  _clickOutside(e) {
-    let { explorer } = this.refs;
+  clickOutside(e) {
+    const { explorer } = this.refs;
 
     if (!explorer) {
       return;
@@ -72,9 +70,9 @@ export default class ExplorerPanel extends Component {
     }
   }
 
-  _getClass() {
-    let { type } = this.props;
-    let cls = ['c-explorer'];
+  getClass() {
+    const { type } = this.props;
+    const cls = ['c-explorer'];
 
     if (type) {
       cls.push(`c-explorer--${type}`);
@@ -83,8 +81,8 @@ export default class ExplorerPanel extends Component {
     return cls.join(' ');
   }
 
-  _onItemClick(id, e) {
-    let node = this.props.nodes[id];
+  onItemClick(id, e) {
+    const node = this.props.nodes[id];
 
     e.preventDefault();
     e.stopPropagation();
@@ -97,52 +95,54 @@ export default class ExplorerPanel extends Component {
   }
 
   renderChildren(page) {
-    let { nodes, pageTypes, filter } = this.props;
+    const { nodes, pageTypes, filter } = this.props;
 
     if (!page || !page.children.items) {
       return [];
     }
 
-    return page.children.items.map(index => {
-      return nodes[index];
-    }).map(item => {
-      const typeName = pageTypes[item.meta.type] ? pageTypes[item.meta.type].verbose_name : item.meta.type;
-      const props = {
-        onItemClick: this._onItemClick,
-        parent: page,
-        key: item.id,
-        title: item.title,
-        typeName,
-        data: item,
-        filter,
-      };
+    return page.children.items
+      .map(index => nodes[index])
+      .map((item) => {
+        const typeName = pageTypes[item.meta.type] ? pageTypes[item.meta.type].verbose_name : item.meta.type;
+        const props = {
+          onItemClick: this.onItemClick,
+          parent: page,
+          key: item.id,
+          title: item.title,
+          typeName,
+          data: item,
+          filter,
+        };
 
-      return <ExplorerItem {...props} />;
-    });
+        return (
+          <ExplorerItem {...props} />
+        );
+      });
   }
 
-  _getContents() {
-    let { page } = this.props;
-    let contents = null;
+  getContents() {
+    const { page } = this.props;
+    let ret;
 
     if (page) {
       if (page.children.items.length) {
-        return this.renderChildren(page);
+        ret = this.renderChildren(page);
       } else {
-        return <ExplorerEmpty />;
+        ret = (
+          <ExplorerEmpty />
+        );
       }
     }
+
+    return ret;
   }
 
   render() {
-    let {
+    const {
       page,
       onPop,
       onClose,
-      loading,
-      type,
-      pageData,
-      transport,
       onFilter,
       filter,
       path,
@@ -150,7 +150,7 @@ export default class ExplorerPanel extends Component {
     } = this.props;
 
     // Don't show anything until the tree is resolved.
-    if (!this.props.resolved) {
+    if (!resolved) {
       return <div />;
     }
 
@@ -183,7 +183,7 @@ export default class ExplorerPanel extends Component {
     };
 
     return (
-      <div className={this._getClass()} ref="explorer">
+      <div className={this.getClass()} ref="explorer">
         <ExplorerHeader {...headerProps} transName={this.state.animation} />
         <div className="c-explorer__drawer">
           <CSSTransitionGroup {...transitionProps}>
@@ -191,7 +191,7 @@ export default class ExplorerPanel extends Component {
               <CSSTransitionGroup {...innerTransitionProps}>
                 {page.isFetching ? <LoadingSpinner key={1} /> : (
                   <div key={0}>
-                    {this._getContents()}
+                    {this.getContents()}
                   </div>
               )}
               </CSSTransitionGroup>
@@ -205,5 +205,18 @@ export default class ExplorerPanel extends Component {
 }
 
 ExplorerPanel.propTypes = {
-
+  page: React.PropTypes.object,
+  onPop: React.PropTypes.func.isRequired,
+  onClose: React.PropTypes.func.isRequired,
+  type: React.PropTypes.string.isRequired,
+  onFilter: React.PropTypes.func.isRequired,
+  filter: React.PropTypes.string.isRequired,
+  path: React.PropTypes.array,
+  resolved: React.PropTypes.bool.isRequired,
+  init: React.PropTypes.func.isRequired,
+  getChildren: React.PropTypes.func.isRequired,
+  pushPage: React.PropTypes.func.isRequired,
+  loadItemWithChildren: React.PropTypes.func.isRequired,
+  nodes: React.PropTypes.object.isRequired,
+  pageTypes: React.PropTypes.object.isRequired,
 };

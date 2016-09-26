@@ -1,10 +1,10 @@
 import React from 'react';
 
-import { ADMIN_PAGES, STRINGS } from 'config';
-import Icon from 'components/icon/Icon';
-import Button from 'components/Button/Button';
-import PublishStatus from 'components/publish-status/PublishStatus';
-import PublishedTime from 'components/published-time/PublishedTime';
+import { ADMIN_PAGES, STRINGS } from '../../config';
+import Icon from '../../components/icon/Icon';
+import Button from '../../components/Button/Button';
+import PublishStatus from '../../components/publish-status/PublishStatus';
+import PublishedTime from '../../components/published-time/PublishedTime';
 
 const ExplorerItem = ({ title, typeName, data, filter, onItemClick }) => {
   const { id, meta } = data;

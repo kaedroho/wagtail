@@ -76,14 +76,14 @@ export default function explorer(state = defaultState, action) {
     });
 
   case 'POP_PAGE':
-    const poppedNodes = state.path.length > 1 ? state.path.slice(0, -1) : state.path;
     return _.assign({}, state, {
-      path: poppedNodes,
+      path: state.path.length > 1 ? state.path.slice(0, -1) : state.path,
     });
 
   case 'FETCH_CHILDREN_SUCCESS':
     return _.assign({}, state, {
       isFetching: false,
+      // eslint-disable-next-line no-underscore-dangle
       pageTypes: _.assign({}, state.pageTypes, action.payload.json.__types),
     });
 
