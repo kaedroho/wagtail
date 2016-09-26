@@ -12,7 +12,10 @@ const ExplorerItem = ({ title, typeName, data, filter, onItemClick }) => {
   // If we only want pages with children, get this info by
   // looking at the descendants count vs children count.
   // // TODO refactor.
-  const count = filter.match(/has_children/) ? meta.descendants.count - meta.children.count : meta.children.count;
+  let count = 0;
+  if (meta) {
+    count = filter.match(/has_children/) ? meta.descendants.count - meta.children.count : meta.children.count;
+  }
 
   return (
     <Button href={`${ADMIN_PAGES}${id}`} className="c-explorer__item">
@@ -27,7 +30,7 @@ const ExplorerItem = ({ title, typeName, data, filter, onItemClick }) => {
       </h3>
 
       <p className="c-explorer__meta">
-        <span className="c-explorer__meta__type">{typeName}</span> | <PublishedTime publishedAt={meta.latest_revision_created_at} /> | <PublishStatus status={meta.status} />
+        <span className="c-explorer__meta__type">{typeName}</span> | <PublishedTime publishedAt={meta ? meta.latest_revision_created_at : null} /> | <PublishStatus status={meta ? meta.status : null} />
       </p>
     </Button>
   );
@@ -43,6 +46,7 @@ ExplorerItem.propTypes = {
 
 ExplorerItem.defaultProps = {
   filter: '',
+  data: {},
   onItemClick: () => {},
 };
 
