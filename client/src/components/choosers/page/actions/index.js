@@ -21,8 +21,8 @@ function get(url) {
 
 export const setView = createAction('SET_VIEW', (viewName, viewOptions) => ({ viewName, viewOptions }));
 
-export const fetchPagesStart = createAction('FETCH_PAGES_START');
-export const fetchPagesSuccess = createAction('FETCH_PAGES_SUCCESS', (json) => ({ json }));
+export const fetchPagesStart = createAction('FETCH_START');
+export const fetchPagesSuccess = createAction('FETCH_SUCCESS', (json) => ({ json }));
 
 
 export function browse(parentPageID, pageNumber) {

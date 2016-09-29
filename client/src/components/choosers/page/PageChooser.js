@@ -72,7 +72,7 @@ class PageChooser extends BaseChooser {
 const mapStateToProps = (state) => ({
     viewName: state.viewName,
     viewOptions: state.viewOptions,
-    items: state.pages,
+    items: state.items,
     totalItems: state.totalItems,
     pageTypes: state.pageTypes,
 });
