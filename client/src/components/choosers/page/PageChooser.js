@@ -13,6 +13,10 @@ import PageChooserSearchView from './views/PageChooserSearchView';
 // TODO PageChooserEmailView
 
 
+function getTotalPages(totalItems, itemsPerPage) {
+    return Math.ceil(totalItems / itemsPerPage);
+}
+
 class PageChooser extends BaseChooser {
     renderModalContents() {
         // Event handlers
@@ -29,15 +33,26 @@ class PageChooser extends BaseChooser {
             this.props.browse(page.id, 1);
         };
 
+        let onChangePage = (newPageNumber) => {
+            switch (this.props.viewName) {
+                case 'browse':
+                    this.props.browse(this.props.viewOptions.parentPageID, newPageNumber);
+                    break;
+                case 'search':
+                    this.props.search(this.props.viewOptions.queryString, newPageNumber);
+                    break;
+            }
+        };
+
         // Views
         let view = null;
         switch (this.props.viewName) {
-            case 'search':
-                view = <PageChooserSearchView items={this.props.items} onPageChosen={this.props.onPageChosen} onNavigate={onNavigate} />;
-                break;
             case 'browse':
-            default:
-                view = <PageChooserBrowseView items={this.props.items} onPageChosen={this.props.onPageChosen} onNavigate={onNavigate} />;
+                view = <PageChooserBrowseView items={this.props.items} pageNumber={this.props.viewOptions.pageNumber} totalPages={getTotalPages(this.props.totalItems, 20)} onPageChosen={this.props.onPageChosen} onNavigate={onNavigate} onChangePage={onChangePage} />;
+                break;
+            case 'search':
+                view = <PageChooserSearchView items={this.props.items} pageNumber={this.props.viewOptions.pageNumber} totalPages={getTotalPages(this.props.totalItems, 20)} onPageChosen={this.props.onPageChosen} onNavigate={onNavigate} onChangePage={onChangePage} />;
+                break;
         }
 
         return (
@@ -58,6 +73,7 @@ const mapStateToProps = (state) => ({
     viewName: state.viewName,
     viewOptions: state.viewOptions,
     items: state.pages,
+    totalItems: state.totalItems,
     pageTypes: state.pageTypes,
 });
 

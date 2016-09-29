@@ -160,7 +160,7 @@ export default class PageChooserResultSet extends React.Component {
                 </tbody>
             </table>
 
-            <PageChooserPagination pageNumber={1} totalPages={1} />
+            <PageChooserPagination pageNumber={this.props.pageNumber} totalPages={this.props.totalPages} onChangePage={this.props.onChangePage} />
         </div>;
     }
 }

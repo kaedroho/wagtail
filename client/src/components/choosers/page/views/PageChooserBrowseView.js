@@ -11,7 +11,7 @@ export default class PageChooserBrowseView extends React.Component {
             </p>
             <h2>Explorer</h2>
             <ul className="breadcrumb"></ul>
-            <PageChooserResultSet pageNumber={1} totalPages={1} items={this.props.items} onPageChosen={this.props.onPageChosen} onNavigate={this.props.onNavigate} />
+            <PageChooserResultSet pageNumber={this.props.pageNumber} totalPages={this.props.totalPages} items={this.props.items} onPageChosen={this.props.onPageChosen} onNavigate={this.props.onNavigate} onChangePage={this.props.onChangePage} />
         </div>;
     }
 }
