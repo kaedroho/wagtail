@@ -48,7 +48,7 @@ class PageChooser extends BaseChooser {
         let view = null;
         switch (this.props.viewName) {
             case 'browse':
-                view = <PageChooserBrowseView items={this.props.items} pageNumber={this.props.viewOptions.pageNumber} totalPages={getTotalPages(this.props.totalItems, 20)} onPageChosen={this.props.onPageChosen} onNavigate={onNavigate} onChangePage={onChangePage} />;
+                view = <PageChooserBrowseView parentPage={this.props.parent} items={this.props.items} pageNumber={this.props.viewOptions.pageNumber} totalPages={getTotalPages(this.props.totalItems, 20)} onPageChosen={this.props.onPageChosen} onNavigate={onNavigate} onChangePage={onChangePage} />;
                 break;
             case 'search':
                 view = <PageChooserSearchView items={this.props.items} pageNumber={this.props.viewOptions.pageNumber} totalPages={getTotalPages(this.props.totalItems, 20)} onPageChosen={this.props.onPageChosen} onNavigate={onNavigate} onChangePage={onChangePage} />;
@@ -72,6 +72,7 @@ class PageChooser extends BaseChooser {
 const mapStateToProps = (state) => ({
     viewName: state.viewName,
     viewOptions: state.viewOptions,
+    parent: state.parent,
     items: state.items,
     totalItems: state.totalItems,
     pageTypes: state.pageTypes,
