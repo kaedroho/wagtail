@@ -9,8 +9,9 @@ class PageChooserResult extends React.Component {
             return <td className="title" data-listing-page-title="" valign="top">
                 <h2>
                     <a
+                        onClick={this.props.onChoose}
                         className="choose-page"
-                        href="#2"
+                        href="#"
                         data-id={this.props.page.id}
                         data-title={this.props.page.title}
                         data-url={this.props.page.meta.html_url}
@@ -56,9 +57,10 @@ class PageChooserResult extends React.Component {
     }
 
     renderChildren() {
-        if (this.props.hasChoosableChildren) {
+        if (this.props.isNavigable) {
             return <td className="children">
                 <a
+                    onClick={this.props.onNavigate}
                     className="icon text-replace icon-arrow-right navigate-pages"
                     title={`Explore subpages of '${this.props.page.title}'`}>
 
@@ -97,13 +99,27 @@ class PageChooserResultSet extends React.Component {
         let resultsRendered = [];
 
         for (let i in this.props.items) {
-            // TODO: set isChoosable and hasChoosableChildren
+            let page = this.props.items[i];
+
+            let onChoose = (e) => {
+                this.props.onPageChosen(page);
+                e.preventDefault();
+            };
+
+            let onNavigate = (e) => {
+                this.props.onNavigate(page);
+                e.preventDefault();
+            };
+
+            // TODO: set isChoosable and isNavigable
             resultsRendered.push(
                 <PageChooserResult
                     key={i}
                     page={this.props.items[i]}
                     isChoosable={true}
-                    hasChoosableChildren={true}
+                    isNavigable={true}
+                    onChoose={onChoose}
+                    onNavigate={onNavigate}
                 />
             );
         }
@@ -158,7 +174,7 @@ export default class PageChooserExplorerView extends React.Component {
             </p>
             <h2>Explorer</h2>
             <ul className="breadcrumb"></ul>
-            <PageChooserResultSet pageNumber={1} totalPages={1} items={this.props.items} />
+            <PageChooserResultSet pageNumber={1} totalPages={1} items={this.props.items} onPageChosen={this.props.onPageChosen} onNavigate={this.props.onNavigate} />
         </div>;
     }
 }
