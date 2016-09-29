@@ -19,9 +19,6 @@ export default function pageChooser(state = defaultState, action) {
     switch (action.type) {
         case 'SET_VIEW':
             return _.assign({}, state, {
-                parent: null,
-                items: [],
-                totalItems: 0,
                 viewName: action.payload.viewName,
                 viewOptions: action.payload.viewOptions,
             });
