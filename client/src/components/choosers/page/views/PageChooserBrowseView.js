@@ -166,7 +166,7 @@ class PageChooserResultSet extends React.Component {
 }
 
 
-export default class PageChooserExplorerView extends React.Component {
+export default class PageChooserBrowseView extends React.Component {
     render() {
         return <div className="nice-padding">
             <p className="link-types">
