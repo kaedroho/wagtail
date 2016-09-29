@@ -40,8 +40,12 @@ export class PageChooserResult extends React.Component {
     }
 
     renderType() {
-        // TODO: Human-readable type
-        return <td className="type" valign="top">{this.props.page.meta.type}</td>;
+        let pageType = this.props.page.meta.type;
+        if (this.props.pageTypes && pageType in this.props.pageTypes) {
+            pageType = this.props.pageTypes[pageType].verbose_name;
+        }
+
+        return <td className="type" valign="top">{pageType}</td>;
     }
 
     renderStatus() {
@@ -124,6 +128,7 @@ export default class PageChooserResultSet extends React.Component {
                     isNavigable={true}
                     onChoose={onChoose}
                     onNavigate={onNavigate}
+                    pageTypes={this.props.pageTypes}
                 />
             );
         }
@@ -150,6 +155,7 @@ export default class PageChooserResultSet extends React.Component {
                     isNavigable={false}
                     onChoose={onChoose}
                     onNavigate={onNavigate}
+                    pageTypes={this.props.pageTypes}
                 />
             );
 
