@@ -1,10 +1,32 @@
-function oldcreatePageChooser(id, pageTypes, openAtParentId, canChooseRoot, userPerms) {
+import React from 'react';
+import ReactDOM from 'react-dom';
+
+import PageChooser from 'components/choosers/page/PageChooser';
+
+
+export function createPageChooser(id, modelNames, parent, canChooseRoot) {
+    let modalPlacement = document.getElementById('react-modal');
+
+    let chooserElement = document.getElementById(`${id}-chooser`);
+    let pageTitleElement = chooserElement.querySelector('.title');
+    let editLinkElement = chooserElement.querySelector('.edit-link');
+    let inputElement = document.getElementById(id);
+    let chooseButton = chooserElement.querySelector('.action-choose');
+    let clearButton = chooserElement.querySelector('.action-clear');
+
+    // TODO: Change this to chooseButton
+    chooserElement.addEventListener('click', function() {
+        ReactDOM.render(<PageChooser />, modalPlacement);
+    });
+
+
+/*
     var chooserElement = $('#' + id + '-chooser');
     var pageTitle = chooserElement.find('.title');
-    var input = $('#' + id);getSelection
+    var input = $('#' + id);
     var editLink = chooserElement.find('.edit-link');
 
-    $('.action-choose', chooserElement).on('click', function() {
+    $('.action-choose', chooserElement).click(function() {
         var initialUrl = window.chooserUrls.pageChooser;
         if (openAtParentId) {
             initialUrl += openAtParentId + '/';
@@ -14,14 +36,10 @@ function oldcreatePageChooser(id, pageTypes, openAtParentId, canChooseRoot, user
         if (canChooseRoot) {
             urlParams.can_choose_root = 'true';
         }
-        if (userPerms) {
-            urlParams.user_perms = userPerms;
-        }
 
         ModalWorkflow({
             url: initialUrl,
             urlParams: urlParams,
-            onload: PAGE_CHOOSER_MODAL_ONLOAD_HANDLERS,
             responses: {
                 pageChosen: function(pageData) {
                     input.val(pageData.id);
@@ -34,9 +52,10 @@ function oldcreatePageChooser(id, pageTypes, openAtParentId, canChooseRoot, user
         });
     });
 
-    $('.action-clear', chooserElement).on('click', function() {
+    $('.action-clear', chooserElement).click(function() {
         input.val('');
         openAtParentId = null;
         chooserElement.addClass('blank');
     });
+*/
 }
