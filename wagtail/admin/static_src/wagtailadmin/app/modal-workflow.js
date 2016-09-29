@@ -35,8 +35,13 @@ export function createPageChooser(id, modelNames, parent, canChooseRoot) {
             ReactDOM.render(<div />, modalPlacement);
         };
 
+        let onPageChosen = (page) => {
+            console.log(page);
+            onModalClose();
+        };
+
         ReactDOM.render(<Provider store={store}>
-            <PageChooser onModalClose={onModalClose} />
+            <PageChooser onModalClose={onModalClose} onPageChosen={onPageChosen} />
         </Provider>, modalPlacement);
     });
 

@@ -15,10 +15,14 @@ import PageChooserExplorerView from './views/PageChooserExplorerView';
 
 class PageChooser extends BaseChooser {
     renderModalContents() {
+        let onNavigate = (page) => {
+            this.props.browse(page.id, 1);
+        };
+
         return (
             <div>
                 <PageChooserHeader />
-                <PageChooserExplorerView items={this.props.items} />
+                <PageChooserExplorerView items={this.props.items} onPageChosen={this.props.onPageChosen} onNavigate={onNavigate} />
             </div>
         );
     }
