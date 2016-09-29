@@ -5,7 +5,7 @@ import { BaseChooser } from '../BaseChooser';
 
 import * as actions from './actions';
 import PageChooserHeader from './PageChooserHeader';
-import PageChooserExplorerView from './views/PageChooserExplorerView';
+import PageChooserBrowseView from './views/PageChooserBrowseView';
 
 
 // TODO PageChooserSearchView
@@ -22,7 +22,7 @@ class PageChooser extends BaseChooser {
         return (
             <div>
                 <PageChooserHeader />
-                <PageChooserExplorerView items={this.props.items} onPageChosen={this.props.onPageChosen} onNavigate={onNavigate} />
+                <PageChooserBrowseView items={this.props.items} onPageChosen={this.props.onPageChosen} onNavigate={onNavigate} />
             </div>
         );
     }
