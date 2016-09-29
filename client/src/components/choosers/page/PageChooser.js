@@ -15,13 +15,17 @@ import PageChooserBrowseView from './views/PageChooserBrowseView';
 
 class PageChooser extends BaseChooser {
     renderModalContents() {
+        let onSearch = (queryString) => {
+            this.props.search(queryString, 1);
+        }
+
         let onNavigate = (page) => {
             this.props.browse(page.id, 1);
         };
 
         return (
             <div>
-                <PageChooserHeader />
+                <PageChooserHeader onSearch={onSearch} />
                 <PageChooserBrowseView items={this.props.items} onPageChosen={this.props.onPageChosen} onNavigate={onNavigate} />
             </div>
         );
@@ -41,6 +45,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     browse: (parentPageID, pageNumber) => dispatch(actions.browse(parentPageID, pageNumber)),
+    search: (queryString, pageNumber) => dispatch(actions.search(queryString, pageNumber)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(PageChooser);

@@ -38,3 +38,18 @@ export function browse(parentPageID, pageNumber) {
 
     dispatch
 }
+
+
+export function search(queryString, pageNumber) {
+    return (dispatch, getState) => {
+        dispatch(setView('search', { queryString, pageNumber }));
+        dispatch(fetchPagesStart());
+
+        let url = `${API_PAGES}?fields=parent&search=${queryString}`;
+
+        return get(url)
+          .then(json => dispatch(fetchPagesSuccess(json)));
+    };
+
+    dispatch
+}
