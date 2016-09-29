@@ -12,7 +12,7 @@ export class ModalWindow extends React.Component {
                 <div className="modal fade in" tabIndex="-1" role="dialog" aria-hidden="true" style={{display: "block"}}>
                     <div className="modal-dialog">
                         <div className="modal-content">
-                            <button type="button" className="button close icon text-replace icon-cross" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <button onClick={this.props.onModalClose} type="button" className="button close icon text-replace icon-cross" data-dismiss="modal" aria-hidden="true">&times;</button>
                             <div className="modal-body">{this.renderModalContents()}</div>
                         </div>
                     </div>

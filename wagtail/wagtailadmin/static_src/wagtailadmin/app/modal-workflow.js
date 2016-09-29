@@ -16,7 +16,11 @@ export function createPageChooser(id, modelNames, parent, canChooseRoot) {
 
     // TODO: Change this to chooseButton
     chooserElement.addEventListener('click', function() {
-        ReactDOM.render(<PageChooser />, modalPlacement);
+        let onModalClose = () => {
+            ReactDOM.render(<div />, modalPlacement);
+        };
+
+        ReactDOM.render(<PageChooser onModalClose={onModalClose} />, modalPlacement);
     });
 
 
