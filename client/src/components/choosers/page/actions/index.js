@@ -30,7 +30,9 @@ export function browse(parentPageID, pageNumber) {
         dispatch(setView('browse', { parentPageID, pageNumber }));
         dispatch(fetchPagesStart());
 
-        let url = `${API_PAGES}?child_of=${parentPageID}&fields=parent`;
+        let limit = 20;
+        let offset = (pageNumber - 1) * limit;
+        let url = `${API_PAGES}?child_of=${parentPageID}&fields=parent&limit=${limit}&offset=${offset}`;
 
         return get(url)
           .then(json => dispatch(fetchPagesSuccess(json)));
@@ -45,7 +47,9 @@ export function search(queryString, pageNumber) {
         dispatch(setView('search', { queryString, pageNumber }));
         dispatch(fetchPagesStart());
 
-        let url = `${API_PAGES}?fields=parent&search=${queryString}`;
+        let limit = 20;
+        let offset = (pageNumber - 1) * limit;
+        let url = `${API_PAGES}?fields=parent&search=${queryString}&limit=${limit}&offset=${offset}`;
 
         return get(url)
           .then(json => dispatch(fetchPagesSuccess(json)));
