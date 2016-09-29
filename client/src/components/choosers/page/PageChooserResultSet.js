@@ -1,4 +1,5 @@
 import React from 'react';
+import moment from 'moment';
 
 import PageChooserPagination from './PageChooserPagination';
 
@@ -31,12 +32,17 @@ export class PageChooserResult extends React.Component {
     }
 
     renderUpdatedAt() {
-        // TODO: Unhardcode this
-        return <td className="updated" valign="top">
-            <div className="human-readable-date" title="21 Sep 2016 10:46">
-                1&nbsp;week, 1&nbsp;day ago
-            </div>
-        </td>;
+        if (this.props.page.meta.latest_revision_created_at) {
+            let updatedAt = moment(this.props.page.meta.latest_revision_created_at);
+
+            return <td className="updated" valign="top">
+                <div className="human-readable-date" title={updatedAt.format("D MMM YYYY h:mm a")}>
+                    {updatedAt.fromNow()}
+                </div>
+            </td>;
+        } else {
+            return <td className="updated" valign="top"></td>;
+        }
     }
 
     renderType() {
