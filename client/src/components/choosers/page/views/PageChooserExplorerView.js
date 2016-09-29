@@ -3,25 +3,91 @@ import React from 'react';
 import PageChooserPagination from '../PageChooserPagination';
 
 
-
 class PageChooserResult extends React.Component {
-    render() {
-        return <tr className=" ">
-            <td className="title" data-listing-page-title="" valign="top">
+    renderTitle() {
+        if (this.props.isChoosable) {
+            return <td className="title" data-listing-page-title="" valign="top">
                 <h2>
-                    <a className="choose-page" href="#2" data-id="2" data-title="Homepage" data-url="http://verdant-rca-staging.torchboxapps.com/" data-parent-id="1" data-edit-url="/admin/pages/2/edit/">Homepage</a>
+                    <a
+                        className="choose-page"
+                        href="#2"
+                        data-id={this.props.page.id}
+                        data-title={this.props.page.title}
+                        data-url={this.props.page.meta.html_url}
+                        data-parent-id={this.props.page.meta.parent.id}
+                        data-edit-url="/admin/pages/{this.props.page.id}/edit/">
+
+                        {this.props.page.title}
+                    </a>
                 </h2>
-            </td>
-            <td className="updated" valign="top">
-                <div className="human-readable-date" title="21 Sep 2016 10:46">1&nbsp;week, 1&nbsp;day ago</div>
-            </td>
-            <td className="type" valign="top">Home Page</td>
-            <td className="status" valign="top">
-                <a href="http://verdant-rca-staging.torchboxapps.com/" target="_blank" className="status-tag primary">live</a>
-            </td>
-            <td className="children">
-                <a href="/admin/choose-page/2/?allow_external_link=true&amp;allow_email_link=true" className="icon text-replace icon-arrow-right navigate-pages" title="Explore subpages of 'Homepage'">Explore</a>
-            </td>
+            </td>;
+        } else {
+            return <td className="title" data-listing-page-title="" valign="top">
+                <h2>
+                    {this.props.page.title}
+                </h2>
+            </td>;
+        }
+    }
+
+    renderUpdatedAt() {
+        // TODO: Unhardcode this
+        return <td className="updated" valign="top">
+            <div className="human-readable-date" title="21 Sep 2016 10:46">
+                1&nbsp;week, 1&nbsp;day ago
+            </div>
+        </td>;
+    }
+
+    renderType() {
+        // TODO: Human-readable type
+        return <td className="type" valign="top">{this.props.page.meta.type}</td>;
+    }
+
+    renderStatus() {
+        return <td className="status" valign="top">
+            <a
+                href={this.props.page.meta.html_url}
+                arget="_blank"
+                className="status-tag primary">
+
+                {this.props.page.meta.status.status}
+            </a>
+        </td>;
+    }
+
+    renderChildren() {
+        if (this.props.hasChoosableChildren) {
+            return <td className="children">
+                <a
+                    className="icon text-replace icon-arrow-right navigate-pages"
+                    title={`Explore subpages of '${this.props.page.title}'`}>
+
+                    Explore
+                </a>
+            </td>;
+        } else {
+            return <td></td>;
+        }
+    }
+
+    render() {
+        let classNames = [];
+
+        if (!this.props.page.meta.status.live) {
+            classNames.push('unpublished');
+        }
+
+        if (!this.props.isChoosable) {
+            classNames.push('disabled');
+        }
+
+        return <tr className={classNames}>
+            {this.renderTitle()}
+            {this.renderUpdatedAt()}
+            {this.renderType()}
+            {this.renderStatus()}
+            {this.renderChildren()}
         </tr>;
     }
 }
@@ -63,7 +129,26 @@ class PageChooserResultSet extends React.Component {
                     </tr>
                 </thead>
                 <tbody>
-                    <PageChooserResult />
+                    <PageChooserResult
+                        page={{
+                            id: 2,
+                            meta: {
+                                type: "rca.HomePage",
+                                html_url: "http://verdant-rca-staging.torchboxapps.com/",
+                                status: {
+                                    status: "live",
+                                    live: false,
+                                    has_unpublished_changes: false
+                                },
+                                parent: {
+                                    id: 1
+                                }
+                            },
+                            title: "Homepage"
+                        }}
+                        isChoosable={true}
+                        hasChoosableChildren={true}
+                    />
                 </tbody>
             </table>
 
