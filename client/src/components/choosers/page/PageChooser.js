@@ -16,7 +16,12 @@ import PageChooserBrowseView from './views/PageChooserBrowseView';
 class PageChooser extends BaseChooser {
     renderModalContents() {
         let onSearch = (queryString) => {
-            this.props.search(queryString, 1);
+            if (queryString) {
+                this.props.search(queryString, 1);
+            } else {
+                // Search box is empty, browse instead
+                this.props.browse('root', 1);
+            }
         }
 
         let onNavigate = (page) => {
