@@ -6,15 +6,16 @@ import { BaseChooser } from '../BaseChooser';
 import * as actions from './actions';
 import PageChooserHeader from './PageChooserHeader';
 import PageChooserBrowseView from './views/PageChooserBrowseView';
+import PageChooserSearchView from './views/PageChooserSearchView';
 
 
-// TODO PageChooserSearchView
 // TODO PageChooserExternalLinkView
 // TODO PageChooserEmailView
 
 
 class PageChooser extends BaseChooser {
     renderModalContents() {
+        // Event handlers
         let onSearch = (queryString) => {
             if (queryString) {
                 this.props.search(queryString, 1);
@@ -28,10 +29,21 @@ class PageChooser extends BaseChooser {
             this.props.browse(page.id, 1);
         };
 
+        // Views
+        let view = null;
+        switch (this.props.viewName) {
+            case 'search':
+                view = <PageChooserSearchView items={this.props.items} onPageChosen={this.props.onPageChosen} onNavigate={onNavigate} />;
+                break;
+            case 'browse':
+            default:
+                view = <PageChooserBrowseView items={this.props.items} onPageChosen={this.props.onPageChosen} onNavigate={onNavigate} />;
+        }
+
         return (
             <div>
                 <PageChooserHeader onSearch={onSearch} />
-                <PageChooserBrowseView items={this.props.items} onPageChosen={this.props.onPageChosen} onNavigate={onNavigate} />
+                {view}
             </div>
         );
     }
@@ -43,7 +55,8 @@ class PageChooser extends BaseChooser {
 
 
 const mapStateToProps = (state) => ({
-    state: state,
+    viewName: state.viewName,
+    viewOptions: state.viewOptions,
     items: state.pages,
     pageTypes: state.pageTypes,
 });

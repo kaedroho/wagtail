@@ -5,7 +5,7 @@ const defaultState = {
     isFetching: false,
     pages: [],
     pageTypes: {},
-    view: null,
+    viewName: null,
     viewOptions: {}
 };
 
@@ -15,8 +15,8 @@ export default function pageChooser(state = defaultState, action) {
         case 'SET_VIEW':
             return _.assign({}, state, {
                 pages: [],
-                view: action.name,
-                viewOptions: action.options,
+                viewName: action.payload.viewName,
+                viewOptions: action.payload.viewOptions,
             });
 
         case 'FETCH_PAGES_START':
