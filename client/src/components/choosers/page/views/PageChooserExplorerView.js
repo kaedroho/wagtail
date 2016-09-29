@@ -95,9 +95,21 @@ class PageChooserResult extends React.Component {
 
 class PageChooserResultSet extends React.Component {
     render() {
+        let resultsRendered = [];
+
+        for (let i in this.props.items) {
+            // TODO: set isChoosable and hasChoosableChildren
+            resultsRendered.push(
+                <PageChooserResult
+                    key={i}
+                    page={this.props.items[i]}
+                    isChoosable={true}
+                    hasChoosableChildren={true}
+                />
+            );
+        }
+
         return <div className="page-results">
-            <h2>Explorer</h2>
-            <ul className="breadcrumb"></ul>
             <table className="listing  chooser">
                 <colgroup>
                     <col />
@@ -129,30 +141,11 @@ class PageChooserResultSet extends React.Component {
                     </tr>
                 </thead>
                 <tbody>
-                    <PageChooserResult
-                        page={{
-                            id: 2,
-                            meta: {
-                                type: "rca.HomePage",
-                                html_url: "http://verdant-rca-staging.torchboxapps.com/",
-                                status: {
-                                    status: "live",
-                                    live: false,
-                                    has_unpublished_changes: false
-                                },
-                                parent: {
-                                    id: 1
-                                }
-                            },
-                            title: "Homepage"
-                        }}
-                        isChoosable={true}
-                        hasChoosableChildren={true}
-                    />
+                    {resultsRendered}
                 </tbody>
             </table>
 
-            <PageChooserPagination />
+            <PageChooserPagination pageNumber={1} totalPages={1} />
         </div>;
     }
 }
@@ -164,7 +157,26 @@ export default class PageChooserExplorerView extends React.Component {
             <p className="link-types">
                 <b>Internal link</b> | <a href="/admin/choose-external-link/?parent_page_id=1&amp;allow_external_link=true&amp;allow_email_link=true">External link</a> | <a href="/admin/choose-email-link/?parent_page_id=1&amp;allow_external_link=true&amp;allow_email_link=true">Email link</a>
             </p>
-            <PageChooserResultSet />
+            <h2>Explorer</h2>
+            <ul className="breadcrumb"></ul>
+            <PageChooserResultSet pageNumber={1} totalPages={1} items={[
+                {
+                    id: 2,
+                    meta: {
+                        type: "rca.HomePage",
+                        html_url: "http://verdant-rca-staging.torchboxapps.com/",
+                        status: {
+                            status: "live",
+                            live: false,
+                            has_unpublished_changes: false
+                        },
+                        parent: {
+                            id: 1
+                        }
+                    },
+                    title: "Homepage"
+                }
+            ]} />
         </div>;
     }
 }
