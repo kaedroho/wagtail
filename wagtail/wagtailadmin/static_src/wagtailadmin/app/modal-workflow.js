@@ -1,7 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { Provider } from 'react-redux';
+import { createStore, applyMiddleware, compose } from 'redux';
+import thunkMiddleware from 'redux-thunk';
 
 import PageChooser from 'components/choosers/page/PageChooser';
+import pageChooser from 'components/choosers/page/reducers';
+
 
 
 export function createPageChooser(id, modelNames, parent, canChooseRoot) {
@@ -16,11 +21,23 @@ export function createPageChooser(id, modelNames, parent, canChooseRoot) {
 
     // TODO: Change this to chooseButton
     chooserElement.addEventListener('click', function() {
+        const middleware = [
+            thunkMiddleware,
+        ];
+
+        const store = createStore(pageChooser, {}, compose(
+            applyMiddleware(...middleware),
+            // Expose store to Redux DevTools extension.
+            window.devToolsExtension ? window.devToolsExtension() : f => f
+        ));
+
         let onModalClose = () => {
             ReactDOM.render(<div />, modalPlacement);
         };
 
-        ReactDOM.render(<PageChooser onModalClose={onModalClose} />, modalPlacement);
+        ReactDOM.render(<Provider store={store}>
+            <PageChooser onModalClose={onModalClose} />
+        </Provider>, modalPlacement);
     });
 
 
