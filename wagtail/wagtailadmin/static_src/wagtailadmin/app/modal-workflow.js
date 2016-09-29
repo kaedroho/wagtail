@@ -1,4 +1,26 @@
-function oldcreatePageChooser(id, pageTypes, openAtParentId, canChooseRoot) {
+import React from 'react';
+import ReactDOM from 'react-dom';
+
+import PageChooser from 'components/choosers/page/PageChooser';
+
+
+export function createPageChooser(id, modelNames, parent, canChooseRoot) {
+    let modalPlacement = document.getElementById('react-modal');
+
+    let chooserElement = document.getElementById(`${id}-chooser`);
+    let pageTitleElement = chooserElement.querySelector('.title');
+    let editLinkElement = chooserElement.querySelector('.edit-link');
+    let inputElement = document.getElementById(id);
+    let chooseButton = chooserElement.querySelector('.action-choose');
+    let clearButton = chooserElement.querySelector('.action-clear');
+
+    // TODO: Change this to chooseButton
+    chooserElement.addEventListener('click', function() {
+        ReactDOM.render(<PageChooser />, modalPlacement);
+    });
+
+
+/*
     var chooserElement = $('#' + id + '-chooser');
     var pageTitle = chooserElement.find('.title');
     var input = $('#' + id);
@@ -35,4 +57,5 @@ function oldcreatePageChooser(id, pageTypes, openAtParentId, canChooseRoot) {
         openAtParentId = null;
         chooserElement.addClass('blank');
     });
+*/
 }

@@ -10,6 +10,9 @@ import Explorer from 'components/explorer/Explorer';
 import ExplorerToggle from 'components/explorer/ExplorerToggle';
 import rootReducer from 'components/explorer/reducers';
 
+import {createPageChooser} from './modal-workflow';
+
+
 const initExplorer = () => {
   const explorerNode = document.querySelector('#explorer');
   const toggleNode = document.querySelector('[data-explorer-menu-url]');
@@ -48,3 +51,6 @@ const initExplorer = () => {
 document.addEventListener('DOMContentLoaded', () => {
   initExplorer();
 });
+
+
+window.createPageChooser = createPageChooser;

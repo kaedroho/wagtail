@@ -5,8 +5,11 @@
 
 import Explorer from './components/explorer/Explorer';
 import LoadingIndicator from './components/loading-indicator/LoadingIndicator';
+import PageChooser from './components/choosers/PageChooser';
+
 
 export {
   Explorer,
   LoadingIndicator,
+  PageChooser,
 };
