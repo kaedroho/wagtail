@@ -48,10 +48,10 @@ class PageChooser extends BaseChooser {
         let view = null;
         switch (this.props.viewName) {
             case 'browse':
-                view = <PageChooserBrowseView parentPage={this.props.parent} items={this.props.items} pageNumber={this.props.viewOptions.pageNumber} totalPages={getTotalPages(this.props.totalItems, 20)} onPageChosen={this.props.onPageChosen} onNavigate={onNavigate} onChangePage={onChangePage} />;
+                view = <PageChooserBrowseView parentPage={this.props.parent} items={this.props.items} pageTypes={this.props.pageTypes} pageNumber={this.props.viewOptions.pageNumber} totalPages={getTotalPages(this.props.totalItems, 20)} onPageChosen={this.props.onPageChosen} onNavigate={onNavigate} onChangePage={onChangePage} />;
                 break;
             case 'search':
-                view = <PageChooserSearchView items={this.props.items} pageNumber={this.props.viewOptions.pageNumber} totalPages={getTotalPages(this.props.totalItems, 20)} onPageChosen={this.props.onPageChosen} onNavigate={onNavigate} onChangePage={onChangePage} />;
+                view = <PageChooserSearchView items={this.props.items} pageTypes={this.props.pageTypes} pageNumber={this.props.viewOptions.pageNumber} totalPages={getTotalPages(this.props.totalItems, 20)} onPageChosen={this.props.onPageChosen} onNavigate={onNavigate} onChangePage={onChangePage} />;
                 break;
         }
 
