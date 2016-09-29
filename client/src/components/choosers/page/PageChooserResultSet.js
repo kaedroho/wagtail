@@ -75,6 +75,10 @@ export class PageChooserResult extends React.Component {
     render() {
         let classNames = [];
 
+        if (this.props.isParent) {
+            classNames.push('index');
+        }
+
         if (!this.props.page.meta.status.live) {
             classNames.push('unpublished');
         }
@@ -96,8 +100,8 @@ export class PageChooserResult extends React.Component {
 
 export default class PageChooserResultSet extends React.Component {
     render() {
+        // Results
         let resultsRendered = [];
-
         for (let i in this.props.items) {
             let page = this.props.items[i];
 
@@ -124,6 +128,33 @@ export default class PageChooserResultSet extends React.Component {
             );
         }
 
+        // Parent page
+        let parent = null;
+        if (this.props.parentPage) {
+            let onChoose = (e) => {
+                this.props.onPageChosen(this.props.parentPage);
+                e.preventDefault();
+            };
+
+            let onNavigate = (e) => {
+                this.props.onNavigate(this.props.parentPage);
+                e.preventDefault();
+            };
+
+            // TODO: set isChoosable
+            parent = (
+                <PageChooserResult
+                    page={this.props.parentPage}
+                    isParent={true}
+                    isChoosable={true}
+                    isNavigable={false}
+                    onChoose={onChoose}
+                    onNavigate={onNavigate}
+                />
+            );
+
+        }
+
         return <div className="page-results">
             <table className="listing  chooser">
                 <colgroup>
@@ -141,19 +172,7 @@ export default class PageChooserResultSet extends React.Component {
                         <th className="status">Status</th>
                         <th></th>
                     </tr>
-                    <tr className="index  disabled">
-                        <td className="title">
-                            <h2>
-                                Root
-                            </h2>
-                        </td>
-                        <td className="updated" valign="bottom"></td>
-                        <td className="type" valign="bottom">
-                        </td>
-                        <td className="status" valign="bottom">
-                        </td>
-                        <td></td>
-                    </tr>
+                    {parent}
                 </thead>
                 <tbody>
                     {resultsRendered}

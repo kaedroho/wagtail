@@ -22,7 +22,7 @@ function get(url) {
 export const setView = createAction('SET_VIEW', (viewName, viewOptions) => ({ viewName, viewOptions }));
 
 export const fetchPagesStart = createAction('FETCH_START');
-export const fetchPagesSuccess = createAction('FETCH_SUCCESS', (json) => ({ json }));
+export const fetchPagesSuccess = createAction('FETCH_SUCCESS', (itemsJson, parentJson) => ({ itemsJson, parentJson }));
 
 
 export function browse(parentPageID, pageNumber) {
@@ -32,10 +32,17 @@ export function browse(parentPageID, pageNumber) {
 
         let limit = 20;
         let offset = (pageNumber - 1) * limit;
-        let url = `${API_PAGES}?child_of=${parentPageID}&fields=parent&limit=${limit}&offset=${offset}`;
+        let itemsUrl = `${API_PAGES}?child_of=${parentPageID}&fields=parent&limit=${limit}&offset=${offset}`;
+        let parentUrl = `${API_PAGES}${parentPageID}/`;
 
-        return get(url)
-          .then(json => dispatch(fetchPagesSuccess(json)));
+        // HACK: The admin API currently doesn't serve the root page
+        if (parentPageID == 'root') {
+             return get(itemsUrl)
+               .then(itemsJson => dispatch(fetchPagesSuccess(itemsJson, null)));
+        }
+
+        return Promise.all([get(itemsUrl), get(parentUrl)])
+          .then(([itemsJson, parentJson]) => dispatch(fetchPagesSuccess(itemsJson, parentJson)));
     };
 
     dispatch
@@ -52,7 +59,7 @@ export function search(queryString, pageNumber) {
         let url = `${API_PAGES}?fields=parent&search=${queryString}&limit=${limit}&offset=${offset}`;
 
         return get(url)
-          .then(json => dispatch(fetchPagesSuccess(json)));
+          .then(json => dispatch(fetchPagesSuccess(json, null)));
     };
 
     dispatch
