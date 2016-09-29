@@ -14,7 +14,6 @@ class PageChooserResult extends React.Component {
                         data-id={this.props.page.id}
                         data-title={this.props.page.title}
                         data-url={this.props.page.meta.html_url}
-                        data-parent-id={this.props.page.meta.parent.id}
                         data-edit-url="/admin/pages/{this.props.page.id}/edit/">
 
                         {this.props.page.title}
@@ -159,24 +158,7 @@ export default class PageChooserExplorerView extends React.Component {
             </p>
             <h2>Explorer</h2>
             <ul className="breadcrumb"></ul>
-            <PageChooserResultSet pageNumber={1} totalPages={1} items={[
-                {
-                    id: 2,
-                    meta: {
-                        type: "rca.HomePage",
-                        html_url: "http://verdant-rca-staging.torchboxapps.com/",
-                        status: {
-                            status: "live",
-                            live: false,
-                            has_unpublished_changes: false
-                        },
-                        parent: {
-                            id: 1
-                        }
-                    },
-                    title: "Homepage"
-                }
-            ]} />
+            <PageChooserResultSet pageNumber={1} totalPages={1} items={this.props.items} />
         </div>;
     }
 }
