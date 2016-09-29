@@ -9,14 +9,14 @@ export default class PageChooserHeader extends React.Component {
                     <div className="col">
                         <h1 className="icon icon-doc-empty-inverse">Choose a page <span>Page</span></h1>
                     </div>
-                    <form className="col search-form" action="/admin/choose-page/search/?page_type=wagtailcore.page" method="get" novalidate="">
+                    <form className="col search-form" noValidate="">
                         <ul className="fields">
                             <li className="required">
                                 <div className="field char_field text_input field-small iconfield">
-                                    <label for="id_q">Search term:</label>
+                                    <label htmlFor="id_q">Search term:</label>
                                     <div className="field-content">
                                         <div className="input icon-search ">
-                                            <input id="id_q" name="q" placeholder="Search" type="text" />
+                                            <input onChange={e => this.props.onSearch(e.target.value)} placeholder="Search" type="text" />
                                             <span></span>
                                         </div>
                                     </div>
