@@ -70,6 +70,7 @@ export class PageChooserResult extends React.Component {
         if (this.props.isNavigable) {
             return <td className="children">
                 <a
+                    href="#"
                     onClick={this.props.onNavigate}
                     className="icon text-replace icon-arrow-right navigate-pages"
                     title={`Explore subpages of '${this.props.page.title}'`}>
