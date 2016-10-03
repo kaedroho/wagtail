@@ -7,7 +7,7 @@ export default class PageChooserHeader extends React.Component {
             <div className="row">
                 <div className="left">
                     <div className="col">
-                        <h1 className="icon icon-doc-empty-inverse">Choose a page <span>Page</span></h1>
+                        <h1 className="icon icon-doc-empty-inverse">Choose a page</h1>
                     </div>
                     <form className="col search-form" noValidate="">
                         <ul className="fields">
