@@ -36,7 +36,11 @@ export function createPageChooser(id, modelNames, parent, canChooseRoot) {
         };
 
         let onPageChosen = (page) => {
-            console.log(page);
+            inputElement.value = page.id;
+            pageTitleElement.innerHTML = page.title;  // FIXME
+            chooserElement.classList.remove('blank');
+            editLinkElement.href = `/admin/pages/${page.id}/edit/`;  // FIXME
+
             onModalClose();
         };
 
