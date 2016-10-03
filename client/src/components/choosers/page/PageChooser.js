@@ -51,7 +51,7 @@ class PageChooser extends BaseChooser {
                 view = <PageChooserBrowseView parentPage={this.props.parent} items={this.props.items} pageTypes={this.props.pageTypes} restrictPageTypes={this.props.restrictPageTypes} pageNumber={this.props.viewOptions.pageNumber} totalPages={getTotalPages(this.props.totalItems, 20)} onPageChosen={this.props.onPageChosen} onNavigate={onNavigate} onChangePage={onChangePage} />;
                 break;
             case 'search':
-                view = <PageChooserSearchView items={this.props.items} pageTypes={this.props.pageTypes} restrictPageTypes={this.props.restrictPageTypes} pageNumber={this.props.viewOptions.pageNumber} totalPages={getTotalPages(this.props.totalItems, 20)} onPageChosen={this.props.onPageChosen} onNavigate={onNavigate} onChangePage={onChangePage} />;
+                view = <PageChooserSearchView items={this.props.items} totalItems={this.props.totalItems} pageTypes={this.props.pageTypes} restrictPageTypes={this.props.restrictPageTypes} pageNumber={this.props.viewOptions.pageNumber} totalPages={getTotalPages(this.props.totalItems, 20)} onPageChosen={this.props.onPageChosen} onNavigate={onNavigate} onChangePage={onChangePage} />;
                 break;
         }
 
