@@ -32,7 +32,7 @@ export function browse(parentPageID, pageNumber) {
 
         let limit = 20;
         let offset = (pageNumber - 1) * limit;
-        let itemsUrl = `${API_PAGES}?child_of=${parentPageID}&fields=parent&limit=${limit}&offset=${offset}`;
+        let itemsUrl = `${API_PAGES}?child_of=${parentPageID}&fields=parent,children&limit=${limit}&offset=${offset}`;
         let parentUrl = `${API_PAGES}${parentPageID}/`;
 
         // HACK: The admin API currently doesn't serve the root page

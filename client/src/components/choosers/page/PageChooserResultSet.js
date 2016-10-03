@@ -110,6 +110,15 @@ export class PageChooserResult extends React.Component {
 
 
 export default class PageChooserResultSet extends React.Component {
+    pageIsNavigable(page) {
+        return page.meta.children.count > 0;
+    }
+
+    pageIsChoosable(page) {
+        // TODO
+        return true;
+    }
+
     render() {
         // Results
         let resultsRendered = [];
@@ -126,13 +135,12 @@ export default class PageChooserResultSet extends React.Component {
                 e.preventDefault();
             };
 
-            // TODO: set isChoosable and isNavigable
             resultsRendered.push(
                 <PageChooserResult
                     key={i}
-                    page={this.props.items[i]}
-                    isChoosable={true}
-                    isNavigable={true}
+                    page={page}
+                    isChoosable={this.pageIsChoosable(page)}
+                    isNavigable={this.pageIsNavigable(page)}
                     onChoose={onChoose}
                     onNavigate={onNavigate}
                     pageTypes={this.props.pageTypes}
@@ -153,12 +161,11 @@ export default class PageChooserResultSet extends React.Component {
                 e.preventDefault();
             };
 
-            // TODO: set isChoosable
             parent = (
                 <PageChooserResult
                     page={this.props.parentPage}
                     isParent={true}
-                    isChoosable={true}
+                    isChoosable={this.pageIsChoosable(this.props.parentPage)}
                     isNavigable={false}
                     onChoose={onChoose}
                     onNavigate={onNavigate}
