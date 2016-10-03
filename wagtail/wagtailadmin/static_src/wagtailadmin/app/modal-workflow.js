@@ -9,8 +9,6 @@ import pageChooser from 'components/choosers/page/reducers';
 
 
 export function createPageChooser(id, modelNames, initialParentPageId, canChooseRoot) {
-    let modalPlacement = document.getElementById('react-modal');
-
     let chooserElement = document.getElementById(`${id}-chooser`);
     let pageTitleElement = chooserElement.querySelector('.title');
     let editLinkElement = chooserElement.querySelector('.edit-link');
@@ -20,6 +18,10 @@ export function createPageChooser(id, modelNames, initialParentPageId, canChoose
 
     for (let chooseButton of chooseButtons) {
         chooseButton.addEventListener('click', function() {
+            // Modal element might not exist when createPageChooser is called,
+            // so we look it up in the event handler instead
+            let modalPlacement = document.getElementById('react-modal');
+
             const middleware = [
                 thunkMiddleware,
             ];
