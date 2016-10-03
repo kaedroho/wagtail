@@ -16,39 +16,39 @@ export function createPageChooser(id, modelNames, parent, canChooseRoot) {
     let pageTitleElement = chooserElement.querySelector('.title');
     let editLinkElement = chooserElement.querySelector('.edit-link');
     let inputElement = document.getElementById(id);
-    let chooseButton = chooserElement.querySelector('.action-choose');
+    let chooseButtons = chooserElement.querySelectorAll('.action-choose');
     let clearButton = chooserElement.querySelector('.action-clear');
 
-    // TODO: Change this to chooseButton
-    chooserElement.addEventListener('click', function() {
-        const middleware = [
-            thunkMiddleware,
-        ];
+    for (let chooseButton of chooseButtons) {
+        chooseButton.addEventListener('click', function() {
+            const middleware = [
+                thunkMiddleware,
+            ];
 
-        const store = createStore(pageChooser, {}, compose(
-            applyMiddleware(...middleware),
-            // Expose store to Redux DevTools extension.
-            window.devToolsExtension ? window.devToolsExtension() : f => f
-        ));
+            const store = createStore(pageChooser, {}, compose(
+                applyMiddleware(...middleware),
+                // Expose store to Redux DevTools extension.
+                window.devToolsExtension ? window.devToolsExtension() : f => f
+            ));
 
-        let onModalClose = () => {
-            ReactDOM.render(<div />, modalPlacement);
-        };
+            let onModalClose = () => {
+                ReactDOM.render(<div />, modalPlacement);
+            };
 
-        let onPageChosen = (page) => {
-            inputElement.value = page.id;
-            pageTitleElement.innerHTML = page.title;  // FIXME
-            chooserElement.classList.remove('blank');
-            editLinkElement.href = `/admin/pages/${page.id}/edit/`;  // FIXME
+            let onPageChosen = (page) => {
+                inputElement.value = page.id;
+                pageTitleElement.innerHTML = page.title;  // FIXME
+                chooserElement.classList.remove('blank');
+                editLinkElement.href = `/admin/pages/${page.id}/edit/`;  // FIXME
 
-            onModalClose();
-        };
+                onModalClose();
+            };
 
-        ReactDOM.render(<Provider store={store}>
-            <PageChooser onModalClose={onModalClose} onPageChosen={onPageChosen} />
-        </Provider>, modalPlacement);
-    });
-
+            ReactDOM.render(<Provider store={store}>
+                <PageChooser onModalClose={onModalClose} onPageChosen={onPageChosen} />
+            </Provider>, modalPlacement);
+        });
+    }
 
 /*
     var chooserElement = $('#' + id + '-chooser');
