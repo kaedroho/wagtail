@@ -37,14 +37,18 @@ export default class PageChooserPagination extends React.Component {
     }
 
     render() {
-        return <div className="pagination">
-            <p>
-                {`Page ${this.props.pageNumber} of ${this.props.totalPages}.`}
-            </p>
-            <ul>
-                {this.renderPrev()}
-                {this.renderNext()}
-            </ul>
-        </div>;
+        if (this.props.totalPages > 1) {
+            return <div className="pagination">
+                <p>
+                    {`Page ${this.props.pageNumber} of ${this.props.totalPages}.`}
+                </p>
+                <ul>
+                    {this.renderPrev()}
+                    {this.renderNext()}
+                </ul>
+            </div>;
+        } else {
+            return <div className="pagination"></div>;
+        }
     }
 }
