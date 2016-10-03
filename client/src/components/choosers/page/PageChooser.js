@@ -64,7 +64,7 @@ class PageChooser extends BaseChooser {
     }
 
     componentDidMount() {
-        this.props.browse('root', 1);
+        this.props.browse(this.props.initialParentPageId || 'root', 1);
     }
 }
 
