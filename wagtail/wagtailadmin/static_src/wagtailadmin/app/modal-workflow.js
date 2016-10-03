@@ -8,8 +8,7 @@ import PageChooser from 'components/choosers/page/PageChooser';
 import pageChooser from 'components/choosers/page/reducers';
 
 
-
-export function createPageChooser(id, modelNames, parent, canChooseRoot) {
+export function createPageChooser(id, modelNames, initialParentPageId, canChooseRoot) {
     let modalPlacement = document.getElementById('react-modal');
 
     let chooserElement = document.getElementById(`${id}-chooser`);
@@ -41,11 +40,19 @@ export function createPageChooser(id, modelNames, parent, canChooseRoot) {
                 chooserElement.classList.remove('blank');
                 editLinkElement.href = `/admin/pages/${page.id}/edit/`;  // FIXME
 
+                // Set initialParentPageId so if the chooser is open again,
+                // it opens in the correct position
+                if (page.meta.parent) {
+                    initialParentPageId = page.meta.parent.id;
+                } else {
+                    initialParentPageId = null;
+                }
+
                 onModalClose();
             };
 
             ReactDOM.render(<Provider store={store}>
-                <PageChooser onModalClose={onModalClose} onPageChosen={onPageChosen} />
+                <PageChooser onModalClose={onModalClose} onPageChosen={onPageChosen} initialParentPageId={initialParentPageId} />
             </Provider>, modalPlacement);
         });
     }
@@ -53,5 +60,6 @@ export function createPageChooser(id, modelNames, parent, canChooseRoot) {
     clearButton.addEventListener('click', function() {
         inputElement.value = '';
         chooserElement.classList.add('blank');
+        initialParentPageId = null
     });
 }
