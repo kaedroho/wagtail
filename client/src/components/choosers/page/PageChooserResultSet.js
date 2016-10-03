@@ -115,7 +115,10 @@ export default class PageChooserResultSet extends React.Component {
     }
 
     pageIsChoosable(page) {
-        // TODO
+        if (this.props.restrictPageTypes != null && this.props.restrictPageTypes.indexOf(page.meta.type.toLowerCase()) == -1) {
+            return false;
+        }
+
         return true;
     }
 

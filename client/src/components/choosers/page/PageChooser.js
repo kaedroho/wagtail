@@ -22,7 +22,7 @@ class PageChooser extends BaseChooser {
         // Event handlers
         let onSearch = (queryString) => {
             if (queryString) {
-                this.props.search(queryString, 1);
+                this.props.search(queryString, this.props.restrictPageTypes, 1);
             } else {
                 // Search box is empty, browse instead
                 this.props.browse('root', 1);
@@ -39,7 +39,7 @@ class PageChooser extends BaseChooser {
                     this.props.browse(this.props.viewOptions.parentPageID, newPageNumber);
                     break;
                 case 'search':
-                    this.props.search(this.props.viewOptions.queryString, newPageNumber);
+                    this.props.search(this.props.viewOptions.queryString, this.props.restrictPageTypes, newPageNumber);
                     break;
             }
         };
@@ -48,10 +48,10 @@ class PageChooser extends BaseChooser {
         let view = null;
         switch (this.props.viewName) {
             case 'browse':
-                view = <PageChooserBrowseView parentPage={this.props.parent} items={this.props.items} pageTypes={this.props.pageTypes} pageNumber={this.props.viewOptions.pageNumber} totalPages={getTotalPages(this.props.totalItems, 20)} onPageChosen={this.props.onPageChosen} onNavigate={onNavigate} onChangePage={onChangePage} />;
+                view = <PageChooserBrowseView parentPage={this.props.parent} items={this.props.items} pageTypes={this.props.pageTypes} restrictPageTypes={this.props.restrictPageTypes} pageNumber={this.props.viewOptions.pageNumber} totalPages={getTotalPages(this.props.totalItems, 20)} onPageChosen={this.props.onPageChosen} onNavigate={onNavigate} onChangePage={onChangePage} />;
                 break;
             case 'search':
-                view = <PageChooserSearchView items={this.props.items} pageTypes={this.props.pageTypes} pageNumber={this.props.viewOptions.pageNumber} totalPages={getTotalPages(this.props.totalItems, 20)} onPageChosen={this.props.onPageChosen} onNavigate={onNavigate} onChangePage={onChangePage} />;
+                view = <PageChooserSearchView items={this.props.items} pageTypes={this.props.pageTypes} restrictPageTypes={this.props.restrictPageTypes} pageNumber={this.props.viewOptions.pageNumber} totalPages={getTotalPages(this.props.totalItems, 20)} onPageChosen={this.props.onPageChosen} onNavigate={onNavigate} onChangePage={onChangePage} />;
                 break;
         }
 
@@ -80,7 +80,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     browse: (parentPageID, pageNumber) => dispatch(actions.browse(parentPageID, pageNumber)),
-    search: (queryString, pageNumber) => dispatch(actions.search(queryString, pageNumber)),
+    search: (queryString, restrictPageTypes, pageNumber) => dispatch(actions.search(queryString, restrictPageTypes, pageNumber)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(PageChooser);

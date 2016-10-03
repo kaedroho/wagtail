@@ -49,7 +49,7 @@ export function browse(parentPageID, pageNumber) {
 }
 
 
-export function search(queryString, pageNumber) {
+export function search(queryString, restrictPageTypes, pageNumber) {
     return (dispatch, getState) => {
         dispatch(setView('search', { queryString, pageNumber }));
         dispatch(fetchPagesStart());
@@ -57,6 +57,12 @@ export function search(queryString, pageNumber) {
         let limit = 20;
         let offset = (pageNumber - 1) * limit;
         let url = `${API_PAGES}?fields=parent&search=${queryString}&limit=${limit}&offset=${offset}`;
+
+        console.log(restrictPageTypes)
+
+        if (restrictPageTypes != null) {
+            url += '&type=' + restrictPageTypes.join(',');
+        }
 
         return get(url)
           .then(json => dispatch(fetchPagesSuccess(json, null)));
