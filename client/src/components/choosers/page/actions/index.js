@@ -26,6 +26,9 @@ export const fetchPagesSuccess = createAction('FETCH_SUCCESS', (itemsJson, paren
 
 
 export function browse(parentPageID, pageNumber) {
+    // HACK: Assuming page 1 is the root page
+    if (parentPageID == 1) { parentPageID = 'root'; }
+
     return (dispatch, getState) => {
         dispatch(setView('browse', { parentPageID, pageNumber }));
         dispatch(fetchPagesStart());
@@ -33,7 +36,7 @@ export function browse(parentPageID, pageNumber) {
         let limit = 20;
         let offset = (pageNumber - 1) * limit;
         let itemsUrl = `${API_PAGES}?child_of=${parentPageID}&fields=parent,children&limit=${limit}&offset=${offset}`;
-        let parentUrl = `${API_PAGES}${parentPageID}/`;
+        let parentUrl = `${API_PAGES}${parentPageID}/?fields=ancestors`;
 
         // HACK: The admin API currently doesn't serve the root page
         if (parentPageID == 'root') {

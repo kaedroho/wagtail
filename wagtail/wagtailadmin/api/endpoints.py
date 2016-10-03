@@ -32,6 +32,7 @@ class PagesAdminAPIEndpoint(PagesAPIEndpoint):
         'children',
         'descendants',
         'parent',
+        'ancestors',
     ]
 
     listing_default_fields = PagesAPIEndpoint.listing_default_fields + [

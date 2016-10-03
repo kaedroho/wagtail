@@ -4,7 +4,7 @@ from collections import OrderedDict
 
 from rest_framework.fields import Field
 
-from wagtail.api.v2.serializers import PageSerializer
+from wagtail.api.v2.serializers import PageSerializer, get_serializer_class
 from wagtail.api.v2.utils import get_full_url
 from wagtail.wagtailcore.models import Page
 
@@ -78,7 +78,47 @@ class PageDescendantsField(Field):
         ])
 
 
+class PageAncestorsField(Field):
+    """
+    Serializes the "ancestry" field.
+
+    Example:
+    "ancestry": [
+        {
+            "id": 1,
+            "meta": {
+                "type": "wagtailcore.Page",
+                "detail_url": "/api/v1/pages/1/"
+            },
+            "title": "Root"
+        },
+        {
+            "id": 2,
+            "meta": {
+                "type": "home.HomePage",
+                "detail_url": "/api/v1/pages/2/"
+            },
+            "title": "Home"
+        }
+    ]
+    """
+    def get_attribute(self, instance):
+        return instance
+
+    def serialize_page(self, page):
+        serializer_class = get_serializer_class(page.__class__, ['id', 'type', 'detail_url', 'html_url', 'title'], meta_fields=['type', 'detail_url', 'html_url'], base=PageSerializer)
+        serializer = serializer_class(context=self.context)
+        return serializer.to_representation(page)
+
+    def to_representation(self, page):
+        return [
+            self.serialize_page(ancestor)
+            for ancestor in page.get_ancestors()
+        ]
+
+
 class AdminPageSerializer(PageSerializer):
     status = PageStatusField(read_only=True)
     children = PageChildrenField(read_only=True)
     descendants = PageDescendantsField(read_only=True)
+    ancestors = PageAncestorsField(read_only=True)
