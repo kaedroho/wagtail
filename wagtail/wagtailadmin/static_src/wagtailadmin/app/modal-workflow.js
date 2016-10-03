@@ -8,13 +8,18 @@ import PageChooser from 'components/choosers/page/PageChooser';
 import pageChooser from 'components/choosers/page/reducers';
 
 
-export function createPageChooser(id, modelNames, initialParentPageId, canChooseRoot) {
+export function createPageChooser(id, restrictPageTypes, initialParentPageId, canChooseRoot) {
     let chooserElement = document.getElementById(`${id}-chooser`);
     let pageTitleElement = chooserElement.querySelector('.title');
     let editLinkElement = chooserElement.querySelector('.edit-link');
     let inputElement = document.getElementById(id);
     let chooseButtons = chooserElement.querySelectorAll('.action-choose');
     let clearButton = chooserElement.querySelector('.action-clear');
+
+    // A few hacks to get restrictPageTypes into the correct format
+    restrictPageTypes = restrictPageTypes.map((pageType) => pageType.toLowerCase());
+    restrictPageTypes = restrictPageTypes.filter((pageType) => pageType != 'wagtailcore.page');
+    if (restrictPageTypes.length == 0) { restrictPageTypes = null; }
 
     for (let chooseButton of chooseButtons) {
         chooseButton.addEventListener('click', function() {
@@ -54,7 +59,7 @@ export function createPageChooser(id, modelNames, initialParentPageId, canChoose
             };
 
             ReactDOM.render(<Provider store={store}>
-                <PageChooser onModalClose={onModalClose} onPageChosen={onPageChosen} initialParentPageId={initialParentPageId} />
+                <PageChooser onModalClose={onModalClose} onPageChosen={onPageChosen} initialParentPageId={initialParentPageId} restrictPageTypes={restrictPageTypes || null} />
             </Provider>, modalPlacement);
         });
     }
