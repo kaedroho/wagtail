@@ -52,8 +52,6 @@ export function browse(parentPageID, pageNumber) {
         dispatch(fetchPagesSuccess(itemsJson, parentJson));
       });
   };
-
-  dispatch
 }
 
 
@@ -75,6 +73,4 @@ export function search(queryString, restrictPageTypes, pageNumber) {
         dispatch(fetchPagesSuccess(json, null));
       });
   };
-
-  dispatch
 }
