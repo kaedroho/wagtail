@@ -64,9 +64,11 @@ export function createPageChooser(id, restrictPageTypes, initialParentPageId, ca
         });
     }
 
-    clearButton.addEventListener('click', function() {
-        inputElement.value = '';
-        chooserElement.classList.add('blank');
-        initialParentPageId = null
-    });
+    if (clearButton) {
+        clearButton.addEventListener('click', function() {
+            inputElement.value = '';
+            chooserElement.classList.add('blank');
+            initialParentPageId = null
+        });
+    }
 }
