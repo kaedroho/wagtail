@@ -17,6 +17,26 @@ function getTotalPages(totalItems, itemsPerPage) {
   return Math.ceil(totalItems / itemsPerPage);
 }
 
+
+class PageChooserSpinner extends React.Component {
+  render() {
+    if (this.props.isActive) {
+      return (
+        <div className="loading-mask loading">
+          {this.props.children}
+        </div>
+      );
+    } else {
+      return (
+        <div className="loading-mask">
+          {this.props.children}
+        </div>
+      );
+    }
+  }
+}
+
+
 class PageChooser extends BaseChooser {
   renderModalContents() {
     // Event handlers
@@ -58,7 +78,9 @@ class PageChooser extends BaseChooser {
     return (
       <div>
         <PageChooserHeader onSearch={onSearch} />
-        {view}
+        <PageChooserSpinner isActive={this.props.isFetching}>
+          {view}
+        </PageChooserSpinner>
       </div>
     );
   }
@@ -76,6 +98,7 @@ const mapStateToProps = (state) => ({
   items: state.items,
   totalItems: state.totalItems,
   pageTypes: state.pageTypes,
+  isFetching: state.isFetching,
 });
 
 const mapDispatchToProps = (dispatch) => ({
