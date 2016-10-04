@@ -61,8 +61,6 @@ export function search(queryString, restrictPageTypes, pageNumber) {
     let offset = (pageNumber - 1) * limit;
     let url = `${API_PAGES}?fields=parent&search=${queryString}&limit=${limit}&offset=${offset}`;
 
-    console.log(restrictPageTypes)
-
     if (restrictPageTypes != null) {
       url += '&type=' + restrictPageTypes.join(',');
     }
