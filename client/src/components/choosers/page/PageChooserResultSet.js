@@ -111,7 +111,7 @@ export class PageChooserResult extends React.Component {
 
 export default class PageChooserResultSet extends React.Component {
   pageIsNavigable(page) {
-    return page.meta.children.count > 0;
+    return this.props.displayChildNavigation && page.meta.children.count > 0;
   }
 
   pageIsChoosable(page) {
