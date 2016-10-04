@@ -30,7 +30,7 @@ export default class PageChooserBrowseView extends React.Component {
     return <div className="nice-padding">
       <h2>Explorer</h2>
       {this.renderBreadcrumb()}
-      <PageChooserResultSet pageNumber={this.props.pageNumber} totalPages={this.props.totalPages} parentPage={this.props.parentPage} items={this.props.items} pageTypes={this.props.pageTypes} restrictPageTypes={this.props.restrictPageTypes} onPageChosen={this.props.onPageChosen} onNavigate={this.props.onNavigate} onChangePage={this.props.onChangePage} />
+      <PageChooserResultSet pageNumber={this.props.pageNumber} totalPages={this.props.totalPages} parentPage={this.props.parentPage} items={this.props.items} pageTypes={this.props.pageTypes} restrictPageTypes={this.props.restrictPageTypes} displayChildNavigation={true} onPageChosen={this.props.onPageChosen} onNavigate={this.props.onNavigate} onChangePage={this.props.onChangePage} />
     </div>;
   }
 }
