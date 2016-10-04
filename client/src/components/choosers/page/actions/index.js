@@ -30,7 +30,6 @@ export function browse(parentPageID, pageNumber) {
   if (parentPageID == 1) { parentPageID = 'root'; }
 
   return (dispatch, getState) => {
-    dispatch(setView('browse', { parentPageID, pageNumber }));
     dispatch(fetchPagesStart());
 
     let limit = 20;
@@ -41,11 +40,17 @@ export function browse(parentPageID, pageNumber) {
     // HACK: The admin API currently doesn't serve the root page
     if (parentPageID == 'root') {
        return get(itemsUrl)
-         .then(itemsJson => dispatch(fetchPagesSuccess(itemsJson, null)));
+         .then(itemsJson => {
+           dispatch(setView('browse', { parentPageID, pageNumber }));
+           dispatch(fetchPagesSuccess(itemsJson, null));
+         });
     }
 
     return Promise.all([get(itemsUrl), get(parentUrl)])
-      .then(([itemsJson, parentJson]) => dispatch(fetchPagesSuccess(itemsJson, parentJson)));
+      .then(([itemsJson, parentJson]) => {
+        dispatch(setView('browse', { parentPageID, pageNumber }));
+        dispatch(fetchPagesSuccess(itemsJson, parentJson));
+      });
   };
 
   dispatch
@@ -54,7 +59,6 @@ export function browse(parentPageID, pageNumber) {
 
 export function search(queryString, restrictPageTypes, pageNumber) {
   return (dispatch, getState) => {
-    dispatch(setView('search', { queryString, pageNumber }));
     dispatch(fetchPagesStart());
 
     let limit = 20;
@@ -66,7 +70,10 @@ export function search(queryString, restrictPageTypes, pageNumber) {
     }
 
     return get(url)
-      .then(json => dispatch(fetchPagesSuccess(json, null)));
+      .then(json => {
+        dispatch(setView('search', { queryString, pageNumber }));
+        dispatch(fetchPagesSuccess(json, null));
+      });
   };
 
   dispatch
