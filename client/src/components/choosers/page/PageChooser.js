@@ -37,6 +37,19 @@ class PageChooserSpinner extends React.Component {
 }
 
 
+class PageChooserErrorView extends React.Component {
+  render() {
+    return (
+      <div className="nice-padding">
+        <div className="help-block help-critical">
+          {this.props.errorMessage}
+        </div>
+      </div>
+    );
+  }
+}
+
+
 class PageChooser extends BaseChooser {
   renderModalContents() {
     // Event handlers
@@ -75,9 +88,14 @@ class PageChooser extends BaseChooser {
         break;
     }
 
+    // Check for error
+    if (this.props.error) {
+      view = <PageChooserErrorView errorMessage={this.props.error} />;
+    }
+
     return (
       <div>
-        <PageChooserHeader onSearch={onSearch} />
+        <PageChooserHeader onSearch={onSearch} searchEnabled={!this.props.error} />
         <PageChooserSpinner isActive={this.props.isFetching}>
           {view}
         </PageChooserSpinner>
@@ -99,6 +117,7 @@ const mapStateToProps = (state) => ({
   totalItems: state.totalItems,
   pageTypes: state.pageTypes,
   isFetching: state.isFetching,
+  error: state.error,
 });
 
 const mapDispatchToProps = (dispatch) => ({

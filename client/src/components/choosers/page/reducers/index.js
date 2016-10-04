@@ -3,6 +3,7 @@ import _ from 'lodash';
 
 const defaultState = {
   isFetching: false,
+  error: null,
   parent: null,
   items: [],
   totalItems: 0,
@@ -26,6 +27,7 @@ export default function pageChooser(state = defaultState, action) {
     case 'FETCH_START':
       return _.assign({}, state, {
         isFetching: true,
+        error: null,
       });
 
     case 'FETCH_SUCCESS':
@@ -35,6 +37,14 @@ export default function pageChooser(state = defaultState, action) {
         items: action.payload.itemsJson.items,
         totalItems: action.payload.itemsJson.meta.total_count,
         pageTypes: _.assign({}, state.pageTypes, action.payload.itemsJson.__types),
+      });
+
+    case 'FETCH_FAILURE':
+      return _.assign({}, state, {
+        isFetching: false,
+        error: action.payload.message,
+        items: [],
+        totalItems: 0,
       });
 
     default:
