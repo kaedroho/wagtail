@@ -98,7 +98,7 @@ export class PageChooserResult extends React.Component {
       classNames.push('disabled');
     }
 
-    return <tr className={classNames}>
+    return <tr className={classNames.join(' ')}>
       {this.renderTitle()}
       {this.renderUpdatedAt()}
       {this.renderType()}
