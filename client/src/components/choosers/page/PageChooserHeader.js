@@ -16,7 +16,7 @@ export default class PageChooserHeader extends React.Component {
                   <label htmlFor="id_q">Search term:</label>
                   <div className="field-content">
                     <div className="input icon-search ">
-                      <input onChange={e => this.props.onSearch(e.target.value)} placeholder="Search" type="text" />
+                      <input onChange={e => this.props.onSearch(e.target.value)} placeholder="Search" type="text" disabled={!this.props.searchEnabled} />
                       <span></span>
                     </div>
                   </div>

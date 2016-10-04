@@ -7,6 +7,10 @@ function getHeaders() {
   const headers = new Headers();
   headers.append('Content-Type', 'application/json');
 
+  // Need this header in order for Wagtail to recognise the request as AJAX.
+  // This causes it to return 403 responses for authentication errors (rather than redirecting)
+  headers.append('X-Requested-With', 'XMLHttpRequest');
+
   return {
     credentials: 'same-origin',
     headers: headers,
@@ -15,7 +19,22 @@ function getHeaders() {
 }
 
 function get(url) {
-  return fetch(url, getHeaders()).then(response => response.json());
+  return fetch(url, getHeaders()).then(response => {
+    switch (response.status) {
+      case 200:  // OK
+        return response.json();
+      case 400:  // Bad request
+        return response.json().then(json => {
+          return Promise.reject("API Error: " + json.message);
+        });
+      case 403:  // Forbidden
+        return Promise.reject("You haven't got permission to view this. Please log in again.");
+      case 500:  // Internal server error
+        return Promise.reject("Internal server error");
+      default:   // Unrecognised status
+        return Promise.reject(`Unrecognised status code: ${response.statusText} (${response.status})`);
+    }
+  });
 }
 
 
@@ -23,6 +42,7 @@ export const setView = createAction('SET_VIEW', (viewName, viewOptions) => ({ vi
 
 export const fetchPagesStart = createAction('FETCH_START');
 export const fetchPagesSuccess = createAction('FETCH_SUCCESS', (itemsJson, parentJson) => ({ itemsJson, parentJson }));
+export const fetchPagesFailure = createAction('FETCH_FAILURE', (message) => ({ message }));
 
 
 export function browse(parentPageID, pageNumber) {
@@ -39,17 +59,23 @@ export function browse(parentPageID, pageNumber) {
 
     // HACK: The admin API currently doesn't serve the root page
     if (parentPageID == 'root') {
-       return get(itemsUrl)
-         .then(itemsJson => {
-           dispatch(setView('browse', { parentPageID, pageNumber }));
-           dispatch(fetchPagesSuccess(itemsJson, null));
-         });
+      return get(itemsUrl)
+        .then(itemsJson => {
+          dispatch(setView('browse', { parentPageID, pageNumber }));
+          dispatch(fetchPagesSuccess(itemsJson, null));
+        }).catch((error) => {
+          console.error(error);
+          dispatch(fetchPagesFailure(error));
+        });
     }
 
     return Promise.all([get(itemsUrl), get(parentUrl)])
       .then(([itemsJson, parentJson]) => {
         dispatch(setView('browse', { parentPageID, pageNumber }));
         dispatch(fetchPagesSuccess(itemsJson, parentJson));
+      }).catch((error) => {
+        console.error(error);
+        dispatch(fetchPagesFailure(error));
       });
   };
 }
@@ -71,6 +97,9 @@ export function search(queryString, restrictPageTypes, pageNumber) {
       .then(json => {
         dispatch(setView('search', { queryString, pageNumber }));
         dispatch(fetchPagesSuccess(json, null));
+      }).catch((error) => {
+        console.error(error);
+        dispatch(fetchPagesFailure(error));
       });
   };
 }
