@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 
-import { BaseChooser } from '../BaseChooser';
+import { ModalWindow } from '../../modal/ModalWindow';
 
 import * as actions from './actions';
 import PageChooserHeader from './PageChooserHeader';
@@ -50,7 +50,7 @@ class PageChooserErrorView extends React.Component {
 }
 
 
-class PageChooser extends BaseChooser {
+class PageChooser extends ModalWindow {
   renderModalContents() {
     // Event handlers
     let onSearch = (queryString) => {
