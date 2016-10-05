@@ -7,7 +7,7 @@ import PageChooserPagination from './PageChooserPagination';
 export class PageChooserResult extends React.Component {
   renderTitle() {
     if (this.props.isChoosable) {
-      return <td className="title" data-listing-page-title="" valign="top">
+      return <td className="title" style={{ verticalAlign: 'top' }}>
         <h2>
           <a
             onClick={this.props.onChoose}
@@ -23,7 +23,7 @@ export class PageChooserResult extends React.Component {
         </h2>
       </td>;
     } else {
-      return <td className="title" data-listing-page-title="" valign="top">
+      return <td className="title" style={{ verticalAlign: 'top' }}>
         <h2>
           {this.props.page.title}
         </h2>
@@ -35,13 +35,13 @@ export class PageChooserResult extends React.Component {
     if (this.props.page.meta.latest_revision_created_at) {
       let updatedAt = moment(this.props.page.meta.latest_revision_created_at);
 
-      return <td className="updated" valign="top">
+      return <td className="updated" style={{ verticalAlign: 'top' }}>
         <div className="human-readable-date" title={updatedAt.format("D MMM YYYY h:mm a")}>
           {updatedAt.fromNow()}
         </div>
       </td>;
     } else {
-      return <td className="updated" valign="top"></td>;
+      return <td className="updated" style={{ verticalAlign: 'top' }}></td>;
     }
   }
 
@@ -51,11 +51,11 @@ export class PageChooserResult extends React.Component {
       pageType = this.props.pageTypes[pageType].verbose_name;
     }
 
-    return <td className="type" valign="top">{pageType}</td>;
+    return <td className="type" style={{ verticalAlign: 'top' }}>{pageType}</td>;
   }
 
   renderStatus() {
-    return <td className="status" valign="top">
+    return <td className="status" style={{ verticalAlign: 'top' }}>
       <a
         href={this.props.page.meta.html_url}
         arget="_blank"
