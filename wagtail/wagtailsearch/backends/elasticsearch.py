@@ -19,25 +19,25 @@ class ElasticsearchMapping(object):
         'AutoField': 'integer',
         'BinaryField': 'binary',
         'BooleanField': 'boolean',
-        'CharField': 'string',
-        'CommaSeparatedIntegerField': 'string',
+        'CharField': 'text',
+        'CommaSeparatedIntegerField': 'text',
         'DateField': 'date',
         'DateTimeField': 'date',
         'DecimalField': 'double',
-        'FileField': 'string',
-        'FilePathField': 'string',
+        'FileField': 'text',
+        'FilePathField': 'text',
         'FloatField': 'double',
         'IntegerField': 'integer',
         'BigIntegerField': 'long',
-        'IPAddressField': 'string',
-        'GenericIPAddressField': 'string',
+        'IPAddressField': 'text',
+        'GenericIPAddressField': 'text',
         'NullBooleanField': 'boolean',
         'OneToOneField': 'integer',
         'PositiveIntegerField': 'integer',
         'PositiveSmallIntegerField': 'integer',
-        'SlugField': 'string',
+        'SlugField': 'text',
         'SmallIntegerField': 'integer',
-        'TextField': 'string',
+        'TextField': 'text',
         'TimeField': 'date',
     }
 
@@ -266,16 +266,31 @@ class ElasticsearchSearchQuery(BaseSearchQuery):
         if filters:
             if len(filters) == 1:
                 filter_out = filters[0]
-            else:
+            elif connector == 'AND':
                 filter_out = {
-                    connector.lower(): [
-                        fil for fil in filters if fil is not None
-                    ]
+                    'bool': {
+                        'must': [
+                            fil for fil in filters if fil is not None
+                        ]
+                    }
                 }
+            elif connector == 'OR':
+                filter_out = {
+                    'bool': {
+                        'should': [
+                            fil for fil in filters if fil is not None
+                        ]
+                    }
+                }
+            else:
+                # Should never get here
+                raise NotImplementedError
 
             if negated:
                 filter_out = {
-                    'not': filter_out
+                    'bool': {
+                        'mustNot': filter_out
+                    }
                 }
 
             return filter_out
@@ -343,15 +358,15 @@ class ElasticsearchSearchQuery(BaseSearchQuery):
 
         if len(filters) == 1:
             return {
-                'filtered': {
-                    'query': inner_query,
+                'bool': {
+                    'must': inner_query,
                     'filter': filters[0],
                 }
             }
         elif len(filters) > 1:
             return {
-                'filtered': {
-                    'query': inner_query,
+                'bool': {
+                    'must': inner_query,
                     'filter': {
                         'and': filters,
                     }
@@ -415,7 +430,7 @@ class ElasticsearchSearchResults(BaseSearchResults):
             index=self.backend.get_index_for_model(self.query.queryset.model).name,
             body=self._get_es_body(),
             _source=False,
-            fields='pk',
+            fielddata_fields='pk',
             from_=self.start,
         )
 
