@@ -1,0 +1,61 @@
+{% extends "wagtailadmin/base.html" %}
+{% load i18n %}
+
+{% block titletag %}{% blocktrans with title=page.get_admin_display_title %}Comparing {{ title }}{% endblocktrans %}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+
+    <style>
+        .comparison {
+            width: 100%;
+        }
+
+        .comparison .addition {
+            background-color: rgb(234, 255, 234);
+        }
+
+        .comparison .addition span {
+            background-color: rgb(166, 243, 166);
+        }
+
+        .comparison .deletion {
+            background-color: rgb(255, 236, 236);
+        }
+
+        .comparison .deletion span {
+            background-color: rgb(248, 203, 203);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    {% trans "Comparing" as comparing_str %}
+    {% include "wagtailadmin/shared/header.html" with title=comparing_str subtitle=page.get_admin_display_title icon="doc-empty-inverse" %}
+
+    <div class="nice-padding">
+        <p class="back"><a href="{% url 'wagtailadmin_pages:edit' page.id %}" class="icon icon-arrow-left">Back to edit</a></p>
+
+        <table class="comparison">
+            <thead>
+                <th style="width: 50%;">{{ revision_a }}</th>
+                <th style="width: 50%;">{{ revision_b }}</th>
+            </thead>
+            <tbody>
+                {% for comp in comparison %}
+                {% if comp.has_changed %}
+                <tr>
+                    <td colspan="2"><h3>{{ comp.field_label }}</h3></td>
+                </tr>
+                {% for line in comp.htmldiff %}
+                <tr style="height: 1em;">
+                    <td class="{{ line.0.0 }}">{{ line.0.1 }}</td>
+                    <td class="{{ line.1.0 }}">{{ line.1.1 }}</td>
+                </tr>
+                {% endfor %}
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

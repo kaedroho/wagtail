@@ -1,5 +1,8 @@
 from __future__ import absolute_import, unicode_literals
 
+from collections import OrderedDict
+import itertools
+
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
@@ -15,7 +18,7 @@ from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.vary import vary_on_headers
 
 from wagtail.utils.pagination import paginate
-from wagtail.wagtailadmin import messages, signals
+from wagtail.wagtailadmin import edit_handlers, messages, signals
 from wagtail.wagtailadmin.forms import CopyForm, SearchForm
 from wagtail.wagtailadmin.navigation import get_navigation_menu_items
 from wagtail.wagtailadmin.utils import send_notification
@@ -471,7 +474,15 @@ def edit(request, page_id):
 
     # Check for revisions still undergoing moderation and warn
     if latest_revision and latest_revision.submitted_for_moderation:
-        messages.warning(request, _("This page is currently awaiting moderation"))
+        buttons = []
+
+        if page.live:
+            buttons.append(messages.button(
+                reverse('wagtailadmin_pages:revisions_compare', args=(page.id, 'live', latest_revision.id)),
+                _('Compare with live version')
+            ))
+
+        messages.warning(request, _("This page is currently awaiting moderation"), buttons=buttons)
 
     return render(request, 'wagtailadmin/pages/edit.html', {
         'page': page,
@@ -1054,3 +1065,168 @@ def revisions_view(request, page_id, revision_id):
     revision_page = revision.as_page_object()
 
     return revision_page.serve_preview(page.dummy_request(request), page.default_preview_mode)
+
+
+def revisions_compare(request, page_id, revision_id_a, revision_id_b):
+    page = get_object_or_404(Page, id=page_id).specific
+
+    # Get revision to compare from
+    if revision_id_a == 'live':
+        if not page.live:
+            raise Http404
+
+        revision_a = page
+    elif revision_id_a == 'earliest':
+        revision_a = page.revisions.order_by('created_at', 'id').first()
+        if revision_a:
+            revision_a = revision_a.as_page_object()
+        else:
+            raise Http404
+    else:
+        revision_a = get_object_or_404(page.revisions, id=revision_id_a).as_page_object()
+
+    # Get revision to compare to
+    if revision_id_b == 'live':
+        if not page.live:
+            raise Http404
+
+        revision_b = page
+    elif revision_id_b == 'latest':
+        revision_b = page.revisions.order_by('created_at', 'id').last()
+        if revision_b:
+            revision_b = revision_b.as_page_object()
+        else:
+            raise Http404
+    else:
+        revision_b = get_object_or_404(page.revisions, id=revision_id_b).as_page_object()
+
+    class FieldComparator:
+        def __init__(self, model, field_name, obj_a, obj_b):
+            self.model = model
+            self.field_name = field_name
+            self.obj_a = obj_a
+            self.obj_b = obj_b
+
+        def field_label(self):
+            # TODO
+            return self.field_name
+
+        def value_a(self):
+            return getattr(self.obj_a, self.field_name)
+
+        def value_b(self):
+            return getattr(self.obj_b, self.field_name)
+
+        def htmldiff(self):
+            return (self.value_a, self.value_b)
+
+        def has_changed(self):
+            return self.value_a() != self.value_b()
+
+    class TextFieldComparator(FieldComparator):
+        def htmldiff(self):
+            import difflib
+
+            def highlight(src, highlight):
+                print(src)
+                print(highlight)
+                out = ""
+
+                is_highlighting = False
+                for c, h in itertools.zip_longest(src, highlight):
+                    do_highlight = h is not None and not h.isspace()
+
+                    if do_highlight and not is_highlighting:
+                        out += "<span>"
+                        is_highlighting = True
+
+                    if not do_highlight and is_highlighting:
+                        out += "</span>"
+                        is_highlighting = False
+
+                    if c:
+                        out += c
+
+                if is_highlighting:
+                    out += "</span>"
+
+                return out
+
+            a_lines = self.value_a().splitlines()
+            b_lines = self.value_b().splitlines()
+            diff = difflib.ndiff(a_lines, b_lines)
+
+            a_changes = []
+            b_changes = []
+
+            iter = diff.__iter__()
+            line = next(iter, None)
+            while line:
+                if line.startswith('- '):
+                    a_changes.append(("deletion", line[2:]))
+
+                    line = next(iter, None)
+                    if line and line.startswith('? '):
+                        a_changes[-1] = (a_changes[-1][0], highlight(a_changes[-1][1], line[2:]))
+                        line = next(iter, None)
+
+                elif line.startswith('+ '):
+                    b_changes.append(("addition", line[2:]))
+
+                    line = next(iter, None)
+                    if line and line.startswith('? '):
+                        b_changes[-1] = (b_changes[-1][0], highlight(b_changes[-1][1], line[2:]))
+                        line = next(iter, None)
+                else:
+                    a_changes.append(("", line))
+                    b_changes.append(("", line))
+                    line = next(iter, None)
+
+            return [
+                ((a[0], mark_safe(a[1])), (b[0], mark_safe(b[1])))
+                for a, b in itertools.zip_longest(a_changes, b_changes, fillvalue=('', ''))
+            ]
+
+
+    class RichTextFieldComparator(TextFieldComparator):
+        def value_a(self):
+            from bs4 import BeautifulSoup
+            return BeautifulSoup(super().value_a()).getText('<br/>')
+
+        def value_b(self):
+            from bs4 import BeautifulSoup
+            return BeautifulSoup(super().value_b()).getText('<br/>')
+
+
+    class StreamFieldComparator(FieldComparator):
+        pass
+
+    class InlineComparator:
+        def __init__(self, model, relation_name, obj_a, obj_b):
+            self.model = model
+            self.relation_name = relation_name
+            self.obj_a = obj_a
+            self.obj_b = obj_b
+
+        def has_changed(self):
+            return False
+
+    comparison = []
+    model = type(page)
+
+    for panel in page.content_panels:
+        bound_panel = panel.bind_to_model(model)
+
+        if isinstance(panel, edit_handlers.InlinePanel):
+            comparison.append(InlineComparator(model, panel.relation_name, revision_a, revision_b))
+        elif isinstance(panel, edit_handlers.StreamFieldPanel):
+            comparison.append(StreamFieldComparator(model, panel.field_name, revision_a, revision_b))
+        elif isinstance(panel, edit_handlers.FieldPanel):
+            comparison.append(RichTextFieldComparator(model, panel.field_name, revision_a, revision_b))
+
+    return render(request, 'wagtailadmin/pages/revisions/compare.html', {
+        'page': page,
+        'revision_a': revision_a,
+        'revision_b': revision_b,
+        'comparison': comparison,
+    })
