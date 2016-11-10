@@ -1168,6 +1168,9 @@ def revisions_compare(request, page_id, revision_id_a, revision_id_b):
                     if line and line.startswith('? '):
                         a_changes[-1] = (a_changes[-1][0], highlight(a_changes[-1][1], line[2:]))
                         line = next(iter, None)
+                    else:
+                        a_changes[-1] = (a_changes[-1][0], "<span>" + a_changes[-1][1] + "</span>")
+                        b_changes.append(("", ""))
 
                 elif line.startswith('+ '):
                     b_changes.append(("addition", line[2:]))
@@ -1176,6 +1179,10 @@ def revisions_compare(request, page_id, revision_id_a, revision_id_b):
                     if line and line.startswith('? '):
                         b_changes[-1] = (b_changes[-1][0], highlight(b_changes[-1][1], line[2:]))
                         line = next(iter, None)
+                    else:
+                        b_changes[-1] = (b_changes[-1][0], "<span>" + b_changes[-1][1] + "</span>")
+                        a_changes.append(("", ""))
+
                 else:
                     a_changes.append(("", line))
                     b_changes.append(("", line))
@@ -1191,7 +1198,7 @@ def revisions_compare(request, page_id, revision_id_a, revision_id_b):
         def values(self):
             from bs4 import BeautifulSoup
             values = super().values()
-            return BeautifulSoup(values[0]).getText('<br/>'), BeautifulSoup(values[1]).getText('<br/>')
+            return BeautifulSoup(values[0]).getText('\n'), BeautifulSoup(values[1]).getText('\n')
 
     class StreamFieldComparator(FieldComparator):
         pass
