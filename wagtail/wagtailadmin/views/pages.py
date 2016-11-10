@@ -1111,17 +1111,15 @@ def revisions_compare(request, page_id, revision_id_a, revision_id_b):
             # TODO
             return self.field_name
 
-        def value_a(self):
-            return getattr(self.obj_a, self.field_name)
-
-        def value_b(self):
-            return getattr(self.obj_b, self.field_name)
+        def values(self):
+            return getattr(self.obj_a, self.field_name), getattr(self.obj_b, self.field_name)
 
         def htmldiff(self):
-            return (self.value_a, self.value_b)
+            return self.values()
 
         def has_changed(self):
-            return self.value_a() != self.value_b()
+            values = self.values()
+            return values[0] != values[1]
 
     class TextFieldComparator(FieldComparator):
         def htmldiff(self):
@@ -1152,8 +1150,9 @@ def revisions_compare(request, page_id, revision_id_a, revision_id_b):
 
                 return out
 
-            a_lines = self.value_a().splitlines()
-            b_lines = self.value_b().splitlines()
+            values = self.values()
+            a_lines = values[0].splitlines()
+            b_lines = values[1].splitlines()
             diff = difflib.ndiff(a_lines, b_lines)
 
             a_changes = []
@@ -1189,14 +1188,10 @@ def revisions_compare(request, page_id, revision_id_a, revision_id_b):
 
 
     class RichTextFieldComparator(TextFieldComparator):
-        def value_a(self):
+        def values(self):
             from bs4 import BeautifulSoup
-            return BeautifulSoup(super().value_a()).getText('<br/>')
-
-        def value_b(self):
-            from bs4 import BeautifulSoup
-            return BeautifulSoup(super().value_b()).getText('<br/>')
-
+            values = super().values()
+            return BeautifulSoup(values[0]).getText('<br/>'), BeautifulSoup(values[1]).getText('<br/>')
 
     class StreamFieldComparator(FieldComparator):
         pass
