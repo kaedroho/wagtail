@@ -5,6 +5,7 @@ import re
 
 import django
 from django import forms
+from django.db.models.fields import FieldDoesNotExist
 from django.core.exceptions import ImproperlyConfigured
 from django.forms.models import fields_for_model
 from django.template.loader import render_to_string
@@ -13,7 +14,7 @@ from django.utils.six import text_type
 from django.utils.translation import ugettext_lazy
 
 from wagtail.utils.decorators import cached_classmethod
-from wagtail.wagtailadmin import widgets
+from wagtail.wagtailadmin import compare, widgets
 from wagtail.wagtailcore.models import Page
 from wagtail.wagtailcore.utils import camelcase_to_underscore, resolve_model_string
 
@@ -199,6 +200,10 @@ class EditHandler(object):
         """
         return mark_safe(self.render_as_object() + self.render_missing_fields())
 
+    @classmethod
+    def get_comparators(cls, obj_a, obj_b):
+        return []
+
 
 class BaseCompositeEditHandler(EditHandler):
     """
@@ -258,6 +263,15 @@ class BaseCompositeEditHandler(EditHandler):
         return mark_safe(render_to_string(self.template, {
             'self': self
         }))
+
+    @classmethod
+    def get_comparators(cls, obj_a, obj_b):
+        comparators = []
+
+        for child in cls.children:
+            comparators.extend(child.get_comparators(obj_a, obj_b))
+
+        return comparators
 
 
 class BaseFormEditHandler(BaseCompositeEditHandler):
@@ -445,6 +459,23 @@ class BaseFieldPanel(EditHandler):
     def required_fields(self):
         return [self.field_name]
 
+    @classmethod
+    def get_comparator_class(cls):
+        try:
+            field = cls.model._meta.get_field(cls.field_name)
+
+            if field.get_internal_type() in ['CharField', 'TextField']:
+                return compare.TextFieldComparator
+        except FieldDoesNotExist:
+            pass
+
+        return compare.FieldComparator
+
+    @classmethod
+    def get_comparators(cls, obj_a, obj_b):
+        comparator_class = cls.get_comparator_class()
+        return [comparator_class(cls.model, cls.field_name, obj_a, obj_b)]
+
 
 class FieldPanel(object):
     def __init__(self, field_name, classname="", widget=None):
@@ -466,7 +497,9 @@ class FieldPanel(object):
 
 
 class BaseRichTextFieldPanel(BaseFieldPanel):
-    pass
+    @classmethod
+    def get_comparator_class(cls):
+        return compare.RichTextFieldComparator
 
 
 class RichTextFieldPanel(object):
@@ -614,6 +647,10 @@ class BaseInlinePanel(EditHandler):
     @classmethod
     def html_declarations(cls):
         return cls.get_child_edit_handler_class().html_declarations()
+
+    @classmethod
+    def get_comparator_class(cls):
+        return compare.InlineComparator
 
     def __init__(self, instance=None, form=None):
         super(BaseInlinePanel, self).__init__(instance=instance, form=form)
@@ -770,6 +807,10 @@ class BaseStreamFieldPanel(BaseFieldPanel):
     @classmethod
     def html_declarations(cls):
         return cls.block_def.all_html_declarations()
+
+    @classmethod
+    def get_comparator_class(cls):
+        return compare.StreamFieldComparator
 
     def id_for_label(self):
         # a StreamField may consist of many input fields, so it's not meaningful to

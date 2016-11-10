@@ -1103,12 +1103,7 @@ def revisions_compare(request, page_id, revision_id_a, revision_id_b):
     for panel in page.content_panels:
         bound_panel = panel.bind_to_model(model)
 
-        if isinstance(panel, edit_handlers.InlinePanel):
-            comparison.append(compare.InlineComparator(model, panel.relation_name, revision_a, revision_b))
-        elif isinstance(panel, edit_handlers.StreamFieldPanel):
-            comparison.append(compare.StreamFieldComparator(model, panel.field_name, revision_a, revision_b))
-        elif isinstance(panel, edit_handlers.FieldPanel):
-            comparison.append(compare.RichTextFieldComparator(model, panel.field_name, revision_a, revision_b))
+        comparison.extend(bound_panel.get_comparators(revision_a, revision_b))
 
     return render(request, 'wagtailadmin/pages/revisions/compare.html', {
         'page': page,
