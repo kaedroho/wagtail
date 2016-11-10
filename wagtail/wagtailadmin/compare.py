@@ -5,7 +5,7 @@ import difflib
 from django.utils.safestring import mark_safe
 
 
-class FieldComparator:
+class FieldComparison:
     def __init__(self, model, field_name, obj_a, obj_b):
         self.model = model
         self.field_name = field_name
@@ -27,7 +27,7 @@ class FieldComparator:
         return values[0] != values[1]
 
 
-class TextFieldComparator(FieldComparator):
+class TextFieldComparison(FieldComparison):
     def htmldiff(self):
         def highlight(src, highlight):
             out = ""
@@ -96,17 +96,17 @@ class TextFieldComparator(FieldComparator):
         ]
 
 
-class RichTextFieldComparator(TextFieldComparator):
+class RichTextFieldComparison(TextFieldComparison):
     def values(self):
         values = super().values()
         return BeautifulSoup(values[0]).getText('\n'), BeautifulSoup(values[1]).getText('\n')
 
 
-class StreamFieldComparator(FieldComparator):
+class StreamFieldComparison(FieldComparison):
     pass
 
 
-class InlineComparator:
+class InlineComparison:
     def __init__(self, model, relation_name, obj_a, obj_b):
         self.model = model
         self.relation_name = relation_name

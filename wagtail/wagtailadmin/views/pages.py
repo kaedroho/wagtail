@@ -1098,12 +1098,10 @@ def revisions_compare(request, page_id, revision_id_a, revision_id_b):
         revision_b = get_object_or_404(page.revisions, id=revision_id_b).as_page_object()
 
     comparison = []
-    model = type(page)
 
     for panel in page.content_panels:
-        bound_panel = panel.bind_to_model(model)
-
-        comparison.extend(bound_panel.get_comparators(revision_a, revision_b))
+        bound_panel = panel.bind_to_model(type(page))
+        comparison.extend(bound_panel.get_comparison(revision_a, revision_b))
 
     return render(request, 'wagtailadmin/pages/revisions/compare.html', {
         'page': page,

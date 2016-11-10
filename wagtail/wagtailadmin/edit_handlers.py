@@ -201,7 +201,7 @@ class EditHandler(object):
         return mark_safe(self.render_as_object() + self.render_missing_fields())
 
     @classmethod
-    def get_comparators(cls, obj_a, obj_b):
+    def get_comparison(cls, obj_a, obj_b):
         return []
 
 
@@ -265,11 +265,11 @@ class BaseCompositeEditHandler(EditHandler):
         }))
 
     @classmethod
-    def get_comparators(cls, obj_a, obj_b):
+    def get_comparison(cls, obj_a, obj_b):
         comparators = []
 
         for child in cls.children:
-            comparators.extend(child.get_comparators(obj_a, obj_b))
+            comparators.extend(child.get_comparison(obj_a, obj_b))
 
         return comparators
 
@@ -460,20 +460,20 @@ class BaseFieldPanel(EditHandler):
         return [self.field_name]
 
     @classmethod
-    def get_comparator_class(cls):
+    def get_comparison_class(cls):
         try:
             field = cls.model._meta.get_field(cls.field_name)
 
             if field.get_internal_type() in ['CharField', 'TextField']:
-                return compare.TextFieldComparator
+                return compare.TextFieldComparison
         except FieldDoesNotExist:
             pass
 
-        return compare.FieldComparator
+        return compare.FieldComparison
 
     @classmethod
-    def get_comparators(cls, obj_a, obj_b):
-        comparator_class = cls.get_comparator_class()
+    def get_comparison(cls, obj_a, obj_b):
+        comparator_class = cls.get_comparison_class()
         return [comparator_class(cls.model, cls.field_name, obj_a, obj_b)]
 
 
@@ -498,8 +498,8 @@ class FieldPanel(object):
 
 class BaseRichTextFieldPanel(BaseFieldPanel):
     @classmethod
-    def get_comparator_class(cls):
-        return compare.RichTextFieldComparator
+    def get_comparison_class(cls):
+        return compare.RichTextFieldComparison
 
 
 class RichTextFieldPanel(object):
@@ -649,8 +649,8 @@ class BaseInlinePanel(EditHandler):
         return cls.get_child_edit_handler_class().html_declarations()
 
     @classmethod
-    def get_comparator_class(cls):
-        return compare.InlineComparator
+    def get_comparison_class(cls):
+        return compare.InlineComparison
 
     def __init__(self, instance=None, form=None):
         super(BaseInlinePanel, self).__init__(instance=instance, form=form)
@@ -809,8 +809,8 @@ class BaseStreamFieldPanel(BaseFieldPanel):
         return cls.block_def.all_html_declarations()
 
     @classmethod
-    def get_comparator_class(cls):
-        return compare.StreamFieldComparator
+    def get_comparison_class(cls):
+        return compare.StreamFieldComparison
 
     def id_for_label(self):
         # a StreamField may consist of many input fields, so it's not meaningful to
