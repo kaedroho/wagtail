@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import difflib
 
 from django.utils.safestring import mark_safe
+from django.utils.text import capfirst
 
 
 class FieldComparison:
@@ -184,7 +185,7 @@ class InlineComparison(FieldComparison):
                 if field.name in ['id', 'page', 'sort_order']:
                     continue
                 value = field.value_to_string(obj)
-                field_data.append((field.name, value))
+                field_data.append((capfirst(field.verbose_name), value))
 
             return '<br/>'.join([
                 "{}: {}".format(name, value)
@@ -201,7 +202,7 @@ class InlineComparison(FieldComparison):
                 if field.name in differences:
                     value = mark_safe("<span>%s</span>" % value)
 
-                field_data.append((field.name, value))
+                field_data.append((capfirst(field.verbose_name), value))
 
             return '<br/>'.join([
                 "{}: {}".format(name, value)
@@ -213,7 +214,7 @@ class InlineComparison(FieldComparison):
                 if field.name in ['id', 'page', 'sort_order']:
                     continue
                 value = field.value_to_string(obj)
-                field_data.append((field.name, value))
+                field_data.append((capfirst(field.verbose_name), value))
 
             return '<br/>'.join([
                 "{}: {}".format(name, value)
@@ -225,7 +226,7 @@ class InlineComparison(FieldComparison):
                 if field.name in ['id', 'page', 'sort_order']:
                     continue
                 value = field.value_to_string(obj)
-                field_data.append((field.name, value))
+                field_data.append((capfirst(field.verbose_name), value))
 
             return '<br/>'.join([
                 "{}: {}".format(name, value)
