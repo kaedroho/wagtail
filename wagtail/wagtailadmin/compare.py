@@ -79,7 +79,6 @@ class TextFieldComparison(FieldComparison):
                     line = next(iter, None)
                 else:
                     a_changes[-1] = (a_changes[-1][0], highlight(a_changes[-1][1], '^' * len(a_changes[-1][1])))
-                    b_changes.append(("", ""))
 
             elif line.startswith('+ '):
                 b_changes.append(("addition", line[2:]))
@@ -90,7 +89,6 @@ class TextFieldComparison(FieldComparison):
                     line = next(iter, None)
                 else:
                     b_changes[-1] = (b_changes[-1][0], highlight(b_changes[-1][1], '^' * len(b_changes[-1][1])))
-                    a_changes.append(("", ""))
 
             else:
                 a_changes.append(("", line))
