@@ -1109,6 +1109,10 @@ def revisions_compare(request, page_id, revision_id_a, revision_id_b):
         bound_panel = panel.bind_to_model(type(page))
         comparison.extend(bound_panel.get_comparison(revision_a, revision_b))
 
+        comparison = [
+            comp for comp in comparison if comp.has_changed()
+        ]
+
     return render(request, 'wagtailadmin/pages/revisions/compare.html', {
         'page': page,
         'revision_a_heading': revision_a_heading,

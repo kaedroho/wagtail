@@ -55,7 +55,6 @@
             </thead>
             <tbody>
                 {% for comp in comparison %}
-                {% if comp.has_changed %}
                 <tr>
                     <td colspan="2"><h3>{{ comp.field_label }}</h3></td>
                 </tr>
@@ -65,8 +64,14 @@
                     <td class="{{ line.1.0 }}">{{ line.1.1 }}</td>
                 </tr>
                 {% endfor %}
-                {% endif %}
                 {% endfor %}
+                {% if not comparison %}
+                    <tr>
+                        <td colspan="2">
+                            <h3>{% trans "These two revisions are the exact same" %}</h3>
+                        </td>
+                    </tr>
+                {% endif %}
             </tbody>
         </table>
     </div>
