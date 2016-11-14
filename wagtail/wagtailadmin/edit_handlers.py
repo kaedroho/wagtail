@@ -649,8 +649,8 @@ class BaseInlinePanel(EditHandler):
         return cls.get_child_edit_handler_class().html_declarations()
 
     @classmethod
-    def get_comparison_class(cls):
-        return compare.InlineComparison
+    def get_comparison(cls, obj_a, obj_b):
+        return [compare.InlineComparison(cls.model, cls.relation_name, obj_a, obj_b)]
 
     def __init__(self, instance=None, form=None):
         super(BaseInlinePanel, self).__init__(instance=instance, form=form)

@@ -1073,14 +1073,17 @@ def revisions_compare(request, page_id, revision_id_a, revision_id_b):
             raise Http404
 
         revision_a = page
+        revision_a_heading = _("Live")
     elif revision_id_a == 'earliest':
         revision_a = page.revisions.order_by('created_at', 'id').first()
         if revision_a:
             revision_a = revision_a.as_page_object()
+            revision_a_heading = _("Earliest")
         else:
             raise Http404
     else:
         revision_a = get_object_or_404(page.revisions, id=revision_id_a).as_page_object()
+        revision_a_heading = str(get_object_or_404(page.revisions, id=revision_id_a).created_at)
 
     # Get revision to compare to
     if revision_id_b == 'live':
@@ -1088,14 +1091,17 @@ def revisions_compare(request, page_id, revision_id_a, revision_id_b):
             raise Http404
 
         revision_b = page
+        revision_b_heading = _("Live")
     elif revision_id_b == 'latest':
         revision_b = page.revisions.order_by('created_at', 'id').last()
         if revision_b:
             revision_b = revision_b.as_page_object()
+            revision_b_heading = _("Latest")
         else:
             raise Http404
     else:
         revision_b = get_object_or_404(page.revisions, id=revision_id_b).as_page_object()
+        revision_b_heading = str(get_object_or_404(page.revisions, id=revision_id_b).created_at)
 
     comparison = []
 
@@ -1105,7 +1111,9 @@ def revisions_compare(request, page_id, revision_id_a, revision_id_b):
 
     return render(request, 'wagtailadmin/pages/revisions/compare.html', {
         'page': page,
+        'revision_a_heading': revision_a_heading,
         'revision_a': revision_a,
+        'revision_b_heading': revision_b_heading,
         'revision_b': revision_b,
         'comparison': comparison,
     })

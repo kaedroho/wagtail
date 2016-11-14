@@ -106,12 +106,177 @@ class StreamFieldComparison(FieldComparison):
     pass
 
 
-class InlineComparison:
-    def __init__(self, model, relation_name, obj_a, obj_b):
-        self.model = model
-        self.relation_name = relation_name
-        self.obj_a = obj_a
-        self.obj_b = obj_b
+class InlineComparison(FieldComparison):
+    def get_mapping(self, objs_a, objs_b):
+        map_forwards = {}
+        map_backwards = {}
+        new = []
+        deleted = []
+
+        # Match child objects on ID
+        for a_idx, a_child in enumerate(objs_a):
+            for b_idx, b_child in enumerate(objs_b):
+                if b_idx in map_backwards:
+                    continue
+
+                if a_child.id == b_child.id:
+                    map_forwards[a_idx] = b_idx
+                    map_backwards[b_idx] = a_idx
+
+        # TODO now try to match them by data
+
+        # Mark unmapped objects as new/deleted
+        for a_idx, a_child in enumerate(objs_a):
+            if a_idx not in map_forwards:
+                deleted.append(a_idx)
+
+        for b_idx, b_child in enumerate(objs_b):
+            if b_idx not in map_backwards:
+                new.append(b_idx)
+
+        return map_forwards, map_backwards, new, deleted
+
+    def htmldiff(self):
+        values = self.values()
+        objs_a = list(values[0].all())
+        objs_b = list(values[1].all())
+
+        map_forwards, map_backwards, new, deleted = self.get_mapping(objs_a, objs_b)
+        objs_a = dict(enumerate(objs_a))
+        objs_b = dict(enumerate(objs_b))
+
+        a_changes = []
+        b_changes = []
+
+        for a_idx, a_child in objs_a.items():
+            if a_idx in deleted:
+                a_changes.append(("deletion", self.display_inline_object(a_child, "deleted", {})))
+            else:
+                differences = compare_objects(a_child, objs_b[map_forwards[a_idx]], exclude_fields=['id', 'page', 'sort_order'])
+
+                if differences:
+                    a_changes.append(("change", self.display_inline_object(a_child, "changed", differences)))
+                else:
+                    a_changes.append(("", self.display_inline_object(a_child, "nochange", {})))
+
+        for b_idx, b_child in objs_b.items():
+            if b_idx in new:
+                b_changes.append(("addition", self.display_inline_object(b_child, "new", {})))
+            else:
+                differences = compare_objects(b_child, objs_a[map_backwards[b_idx]], exclude_fields=['id', 'page', 'sort_order'])
+
+                if differences:
+                    b_changes.append(("change", self.display_inline_object(b_child, "changed", differences)))
+                else:
+                    b_changes.append(("", self.display_inline_object(b_child, "nochange", {})))
+
+        return [
+            ((a[0], mark_safe(a[1])), (b[0], mark_safe(b[1])))
+            for a, b in itertools.zip_longest(a_changes, b_changes, fillvalue=('', ''))
+        ]
+
+    def display_inline_object(self, obj, mode, differences):
+        model = type(obj)
+
+        if mode == "nochange":
+            field_data = []
+            for field in model._meta.get_fields():
+                if field.name in ['id', 'page', 'sort_order']:
+                    continue
+                value = field.value_to_string(obj)
+                field_data.append((field.name, value))
+
+            return '<br/>'.join([
+                "{}: {}".format(name, value)
+                for name, value in field_data
+            ])
+        elif mode == "changed":
+            field_data = []
+            for field in model._meta.get_fields():
+                if field.name in ['id', 'page', 'sort_order']:
+                    continue
+
+                value = field.value_to_string(obj)
+
+                if field.name in differences:
+                    value = mark_safe("<span>%s</span>" % value)
+
+                field_data.append((field.name, value))
+
+            return '<br/>'.join([
+                "{}: {}".format(name, value)
+                for name, value in field_data
+            ])
+        elif mode == "deleted":
+            field_data = []
+            for field in model._meta.get_fields():
+                if field.name in ['id', 'page', 'sort_order']:
+                    continue
+                value = field.value_to_string(obj)
+                field_data.append((field.name, value))
+
+            return '<br/>'.join([
+                "{}: {}".format(name, value)
+                for name, value in field_data
+            ])
+        elif mode == "new":
+            field_data = []
+            for field in model._meta.get_fields():
+                if field.name in ['id', 'page', 'sort_order']:
+                    continue
+                value = field.value_to_string(obj)
+                field_data.append((field.name, value))
+
+            return '<br/>'.join([
+                "{}: {}".format(name, value)
+                for name, value in field_data
+            ])
+        else:
+            return "ERROR"
 
     def has_changed(self):
+        values = self.values()
+        objs_a = list(values[0].all())
+        objs_b = list(values[1].all())
+
+        map_forwards, map_backwards, new, deleted = self.get_mapping(objs_a, objs_b)
+
+        if new or deleted:
+            return True
+
+        for a_idx, b_idx in map_forwards.items():
+            if a_idx != b_idx:
+                # A child object was reordered
+                return True
+
+            if compare_objects(objs_a[a_idx], objs_b[b_idx], exclude_fields=['id', 'page', 'sort_order']):
+                return True
+
         return False
+
+
+def compare_objects(obj_a, obj_b, include_fields=None, exclude_fields=None):
+    assert(type(obj_a) is type(obj_b))
+    model = type(obj_a)
+
+    if include_fields:
+        fields = include_fields.copy()
+    else:
+        fields = [f.name for f in model._meta.get_fields()]
+
+    if exclude_fields is not None:
+        for excl in exclude_fields:
+            fields.remove(excl)
+
+    differences = {}
+
+    for field_name in fields:
+        field = model._meta.get_field(field_name)
+
+        val_a = field.value_to_string(obj_a)
+        val_b = field.value_to_string(obj_b)
+
+        if val_a != val_b:
+            differences[field_name] = (val_a, val_b)
+
+    return differences
