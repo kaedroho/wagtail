@@ -36,13 +36,11 @@ class FieldComparison:
 
 class TextFieldComparison(FieldComparison):
     def htmldiff(self):
-        def highlight(src, highlight):
+        def highlight(changes):
             out = ""
 
             is_highlighting = False
-            for c, h in itertools.zip_longest(src, highlight):
-                do_highlight = h is not None and not h.isspace()
-
+            for do_highlight, char in changes:
                 if do_highlight and not is_highlighting:
                     out += "<span>"
                     is_highlighting = True
@@ -51,8 +49,8 @@ class TextFieldComparison(FieldComparison):
                     out += "</span>"
                     is_highlighting = False
 
-                if c:
-                    out += c
+                if char:
+                    out += char
 
             if is_highlighting:
                 out += "</span>"
@@ -60,44 +58,29 @@ class TextFieldComparison(FieldComparison):
             return out
 
         values = self.values()
-        a_lines = values[0].splitlines()
-        b_lines = values[1].splitlines()
-        diff = difflib.ndiff(a_lines, b_lines)
+        a_chars = values[0]
+        b_chars = values[1]
+        diff = difflib.ndiff(a_chars, b_chars)
 
         a_changes = []
         b_changes = []
 
-        iter = diff.__iter__()
-        line = next(iter, None)
-        while line:
-            if line.startswith('- '):
-                a_changes.append(("deletion", line[2:]))
-
-                line = next(iter, None)
-                if line and line.startswith('? '):
-                    a_changes[-1] = (a_changes[-1][0], highlight(a_changes[-1][1], line[2:]))
-                    line = next(iter, None)
-                else:
-                    a_changes[-1] = (a_changes[-1][0], highlight(a_changes[-1][1], '^' * len(a_changes[-1][1])))
-
-            elif line.startswith('+ '):
-                b_changes.append(("addition", line[2:]))
-
-                line = next(iter, None)
-                if line and line.startswith('? '):
-                    b_changes[-1] = (b_changes[-1][0], highlight(b_changes[-1][1], line[2:]))
-                    line = next(iter, None)
-                else:
-                    b_changes[-1] = (b_changes[-1][0], highlight(b_changes[-1][1], '^' * len(b_changes[-1][1])))
-
+        for char in diff:
+            if char.startswith('- '):
+                a_changes.append((True, char[2:]))
+            elif char.startswith('+ '):
+                b_changes.append((True, char[2:]))
+            elif char.startswith('? '):
+                pass
             else:
-                a_changes.append(("", line))
-                b_changes.append(("", line))
-                line = next(iter, None)
+                a_changes.append((False, char[2:]))
+                b_changes.append((False, char[2:]))
+
+        a_changes = mark_safe(highlight(a_changes).replace("\n", "<br/>"))
+        b_changes = mark_safe(highlight(b_changes).replace("\n", "<br/>"))
 
         return [
-            ((a[0], mark_safe(a[1])), (b[0], mark_safe(b[1])))
-            for a, b in itertools.zip_longest(a_changes, b_changes, fillvalue=('', ''))
+            (("deletion", a_changes), ("addition", b_changes))
         ]
 
 
@@ -155,23 +138,23 @@ class InlineComparison(FieldComparison):
 
         for a_idx, a_child in objs_a.items():
             if a_idx in deleted:
-                a_changes.append(("deletion", self.display_inline_object(a_child, "deleted", {})))
+                a_changes.append(("", self.display_inline_object(a_child, "deleted", {}, classnames="deletion")))
             else:
                 differences = compare_objects(a_child, objs_b[map_forwards[a_idx]], exclude_fields=['id', 'page', 'sort_order'])
 
                 if differences:
-                    a_changes.append(("change", self.display_inline_object(a_child, "changed", differences)))
+                    a_changes.append(("", self.display_inline_object(a_child, "changed", differences, classnames="deletion")))
                 else:
                     a_changes.append(("", self.display_inline_object(a_child, "nochange", {})))
 
         for b_idx, b_child in objs_b.items():
             if b_idx in new:
-                b_changes.append(("addition", self.display_inline_object(b_child, "new", {})))
+                b_changes.append(("", self.display_inline_object(b_child, "new", {}, classnames="addition")))
             else:
                 differences = compare_objects(b_child, objs_a[map_backwards[b_idx]], exclude_fields=['id', 'page', 'sort_order'])
 
                 if differences:
-                    b_changes.append(("change", self.display_inline_object(b_child, "changed", differences)))
+                    b_changes.append(("", self.display_inline_object(b_child, "changed", differences, classnames="addition")))
                 else:
                     b_changes.append(("", self.display_inline_object(b_child, "nochange", {})))
 
@@ -180,64 +163,26 @@ class InlineComparison(FieldComparison):
             for a, b in itertools.zip_longest(a_changes, b_changes, fillvalue=('', ''))
         ]
 
-    def display_inline_object(self, obj, mode, differences):
-        model = type(obj)
+    def display_inline_object(self, obj, mode, differences, classnames=""):
+        field_data = []
 
-        if mode == "nochange":
-            field_data = []
-            for field in model._meta.get_fields():
-                if field.name in ['id', 'page', 'sort_order']:
-                    continue
-                value = field.value_to_string(obj)
-                field_data.append((capfirst(field.verbose_name), value))
+        for field in obj._meta.get_fields():
+            if field.name in ['id', 'page', 'sort_order']:
+                continue
 
-            return '<br/>'.join([
-                "{}: {}".format(name, value)
-                for name, value in field_data
-            ])
-        elif mode == "changed":
-            field_data = []
-            for field in model._meta.get_fields():
-                if field.name in ['id', 'page', 'sort_order']:
-                    continue
+            value = field.value_to_string(obj)
 
-                value = field.value_to_string(obj)
+            if mode == "changed" and field.name in differences:
+                value = mark_safe("<span>%s</span>" % value)
 
-                if field.name in differences:
-                    value = mark_safe("<span>%s</span>" % value)
+            field_data.append((capfirst(field.verbose_name), value))
 
-                field_data.append((capfirst(field.verbose_name), value))
+        inner_html = '<br/>'.join([
+            "<b>{}:</b> {}".format(name, value)
+            for name, value in field_data
+        ])
 
-            return '<br/>'.join([
-                "{}: {}".format(name, value)
-                for name, value in field_data
-            ])
-        elif mode == "deleted":
-            field_data = []
-            for field in model._meta.get_fields():
-                if field.name in ['id', 'page', 'sort_order']:
-                    continue
-                value = field.value_to_string(obj)
-                field_data.append((capfirst(field.verbose_name), value))
-
-            return '<br/>'.join([
-                "{}: {}".format(name, value)
-                for name, value in field_data
-            ])
-        elif mode == "new":
-            field_data = []
-            for field in model._meta.get_fields():
-                if field.name in ['id', 'page', 'sort_order']:
-                    continue
-                value = field.value_to_string(obj)
-                field_data.append((capfirst(field.verbose_name), value))
-
-            return '<br/>'.join([
-                "{}: {}".format(name, value)
-                for name, value in field_data
-            ])
-        else:
-            return "ERROR"
+        return '<div class="inline-object {}">{}</div>'.format(classnames, inner_html)
 
     def has_changed(self):
         values = self.values()

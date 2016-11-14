@@ -465,7 +465,7 @@ class BaseFieldPanel(EditHandler):
             field = cls.model._meta.get_field(cls.field_name)
 
             if field.get_internal_type() in ['CharField', 'TextField']:
-                return compare.TextFieldComparison
+                return compare.RichTextFieldComparison
         except FieldDoesNotExist:
             pass
 
