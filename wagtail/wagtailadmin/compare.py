@@ -14,8 +14,14 @@ class FieldComparison:
         self.obj_b = obj_b
 
     def field_label(self):
-        # TODO
-        return self.field_name
+        field = self.model._meta.get_field(self.field_name)
+        verbose_name = getattr(field, 'verbose_name', None)
+
+        if verbose_name is None:
+            # Relations don't have a verbose_name
+            verbose_name = field.name.replace('_', ' ')
+
+        return capfirst(verbose_name)
 
     def values(self):
         return getattr(self.obj_a, self.field_name), getattr(self.obj_b, self.field_name)
