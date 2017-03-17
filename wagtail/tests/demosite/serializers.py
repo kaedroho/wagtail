@@ -27,7 +27,7 @@ class AbstractRelatedLinkSerializer(AbstractLinkFieldsSerializer):
 
 
 class AbstractCarouselItemSerializer(AbstractLinkFieldsSerializer):
-    image = ImageSerializer()
+    #image = ImageSerializer()
     image_fullwidth_rendition = ImageRenditionField('width-1000', source='image')
 
     class Meta(AbstractLinkFieldsSerializer.Meta):
@@ -95,7 +95,7 @@ class StandardPageRelatedLinkSerializer(AbstractRelatedLinkSerializer):
 
 
 class StandardPageSerializer(PageSerializer):
-    feed_image = ImageSerializer()
+    #feed_image = ImageSerializer()
     feed_image_thumbnail_rendition = ImageRenditionField('fill-100x100', source='feed_image')
     carousel_items = StandardPageCarouselItemSerializer(many=True)
     related_links = StandardPageRelatedLinkSerializer(many=True)
@@ -119,7 +119,7 @@ class StandardIndexPageRelatedLinkSerializer(AbstractRelatedLinkSerializer):
 
 
 class StandardIndexPageSerializer(PageSerializer):
-    feed_image = ImageSerializer()
+    #feed_image = ImageSerializer()
     feed_image_thumbnail_rendition = ImageRenditionField('fill-100x100', source='feed_image')
     related_links = StandardIndexPageRelatedLinkSerializer(many=True)
 
@@ -149,7 +149,7 @@ class BlogEntryPageRelatedLinkSerializer(AbstractRelatedLinkSerializer):
 
 class BlogEntryPageSerializer(PageSerializer):
     # TODO: tags?
-    feed_image = ImageSerializer()
+    #feed_image = ImageSerializer()
     feed_image_thumbnail_rendition = ImageRenditionField('fill-100x100', source='feed_image')
     carousel_items = BlogEntryPageCarouselItemSerializer(many=True)
     related_links = BlogEntryPageRelatedLinkSerializer(many=True)
@@ -198,7 +198,7 @@ class EventPageRelatedLinkSerializer(AbstractRelatedLinkSerializer):
 
 
 class EventPageSpeakerSerializer(serializers.ModelSerializer):
-    image = ImageSerializer()
+    #image = ImageSerializer()
     image_thumbnail_rendition = ImageRenditionField('fill-100x100', source='image')
 
     class Meta:
@@ -214,7 +214,7 @@ class EventPageSpeakerSerializer(serializers.ModelSerializer):
 
 class EventPageSerializer(PageSerializer):
     # TODO: body (streamfield)?
-    feed_image = ImageSerializer()
+    #feed_image = ImageSerializer()
     feed_image_thumbnail_rendition = ImageRenditionField('fill-100x100', source='feed_image')
     carousel_items = EventPageCarouselItemSerializer(many=True)
     related_links = EventPageRelatedLinkSerializer(many=True)
@@ -266,9 +266,9 @@ class PersonPageRelatedLinkSerializer(AbstractRelatedLinkSerializer):
 
 
 class PersonPageSerializer(ContactFieldsSerializerMixin, PageSerializer):
-    image = ImageSerializer()
+    #image = ImageSerializer()
     image_thumbnail_rendition = ImageRenditionField('fill-100x100', source='image')
-    feed_image = ImageSerializer()
+    #feed_image = ImageSerializer()
     feed_image_thumbnail_rendition = ImageRenditionField('fill-100x100', source='feed_image')
     related_links = PersonPageRelatedLinkSerializer(many=True)
 
@@ -288,7 +288,7 @@ class PersonPageSerializer(ContactFieldsSerializerMixin, PageSerializer):
 # Contact page
 
 class ContactPageSerializer(ContactFieldsSerializerMixin, PageSerializer):
-    feed_image = ImageSerializer()
+    #feed_image = ImageSerializer()
     feed_image_thumbnail_rendition = ImageRenditionField('fill-100x100', source='feed_image')
 
     class Meta(PageSerializer.Meta):
