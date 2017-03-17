@@ -102,34 +102,15 @@ class BaseAPIEndpoint(GenericViewSet):
             raise BadRequestError("query parameter is not an operation or a recognised field: %s" % ', '.join(sorted(unknown_parameters)))
 
     @classmethod
-    def generate_base_serializer_class(cls, model, base_serializer_class):
-        """
-        Generates a DRF serializer for page types that still use the old api_fields
-        style config.
-        """
-        model_ = model
-        custom_fields = getattr(model, 'api_fields', [])
-
-        class Meta(base_serializer_class.Meta):
-            model = model_
-            fields = base_serializer_class.Meta.fields + list(custom_fields)
-
-        return type(str(model_.__name__ + 'Serializer'), (base_serializer_class, ), {
-            'Meta': Meta,
-        })
-
-    @classmethod
     def get_base_serializer_class(cls, model):
         """
         Gets the base serializer class for this model. A new serializer class will be
         derived from this at runtime to only include the fields that the user has specified.
         """
-        if cls.base_serializer_class is not None:
-            return cls.generate_base_serializer_class(model, cls.base_serializer_class)
-        elif hasattr(model, 'serializer_class'):
-            return model.serializer_class
-        else:
-            return cls.generate_base_serializer_class(model, cls.default_base_serializer_class)
+        if cls.base_serializer_class:
+            return cls.base_serializer_class
+
+        return cls.default_base_serializer_class
 
     @classmethod
     def get_available_fields(cls, model, db_fields_only=False):
@@ -321,6 +302,7 @@ class BaseAPIEndpoint(GenericViewSet):
 
 
 class PagesAPIEndpoint(BaseAPIEndpoint):
+    serializer_classes = {}
     default_base_serializer_class = PageSerializer
     filter_backends = [
         FieldsFilter,
@@ -336,6 +318,17 @@ class PagesAPIEndpoint(BaseAPIEndpoint):
     ])
     name = 'pages'
     model = Page
+
+    @classmethod
+    def get_base_serializer_class(cls, model):
+        """
+        Gets the base serializer class for this model. A new serializer class will be
+        derived from this at runtime to only include the fields that the user has specified.
+        """
+        if model in cls.serializer_classes:
+            return cls.serializer_classes[model]
+
+        return super().get_base_serializer_class(model)
 
     def get_queryset(self):
         request = self.request

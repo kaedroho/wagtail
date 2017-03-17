@@ -16,9 +16,24 @@ from wagtail.wagtailimages.api.v2.endpoints import ImagesAPIEndpoint
 from wagtail.wagtailimages.tests import urls as wagtailimages_test_urls
 from wagtail.wagtailsearch import urls as wagtailsearch_urls
 
+from wagtail.tests.demosite import models
+from wagtail.tests.demosite import serializers
+
+class MyPagesAPIEndpoint(PagesAPIEndpoint):
+    serializer_classes = {
+        models.HomePage: serializers.HomePageSerializer,
+        models.StandardPage: serializers.StandardPageSerializer,
+        models.StandardIndexPage: serializers.StandardIndexPageSerializer,
+        models.BlogEntryPage: serializers.BlogEntryPageSerializer,
+        models.EventPage: serializers.EventPageSerializer,
+        models.EventIndexPage: serializers.EventIndexPageSerializer,
+        models.PersonPage: serializers.PersonPageSerializer,
+        models.ContactPage: serializers.ContactPageSerializer,
+    }
+
 
 api_router = WagtailAPIRouter('wagtailapi_v2')
-api_router.register_endpoint('pages', PagesAPIEndpoint)
+api_router.register_endpoint('pages', MyPagesAPIEndpoint)
 api_router.register_endpoint('images', ImagesAPIEndpoint)
 api_router.register_endpoint('documents', DocumentsAPIEndpoint)
 
