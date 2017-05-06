@@ -2,7 +2,7 @@ import React from 'react';
 
 import CSSTransitionGroup from 'react-addons-css-transition-group';
 
-const TRANSITION_DURATION = 220;
+const TRANSITION_DURATION = 210;
 
 // The available transitions. Must match the class names in CSS.
 export const PUSH = 'push';

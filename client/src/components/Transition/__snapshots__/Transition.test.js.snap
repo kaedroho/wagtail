@@ -6,9 +6,9 @@ exports[`Transition basic 1`] = `
   component="div"
   transitionAppear={false}
   transitionEnter={true}
-  transitionEnterTimeout={220}
+  transitionEnterTimeout={210}
   transitionLeave={true}
-  transitionLeaveTimeout={220}
+  transitionLeaveTimeout={210}
   transitionName="c-transition-push"
 />
 `;

@@ -91,34 +91,38 @@ export default class ExplorerPanel extends React.Component {
 
     if (!page.isFetching && !page.children.items) {
       children = (
-        <div className="c-explorer__placeholder">
+        <div key="empty" className="c-explorer__placeholder">
           {STRINGS.NO_RESULTS}
         </div>
       );
     } else {
-      children = page.children.items.map((id) => (
-        <ExplorerItem
-          key={id}
-          item={nodes[id]}
-          onClick={this.onItemClick.bind(null, id)}
-        />
-      ));
+      children = (
+        <div key="children">
+          {page.children.items.map((id) => (
+            <ExplorerItem
+              key={id}
+              item={nodes[id]}
+              onClick={this.onItemClick.bind(null, id)}
+            />
+          ))}
+        </div>
+      );
     }
 
     return (
-      <Transition name={FADE} className="c-explorer__drawer">
+      <div className="c-explorer__drawer">
         {children}
         {page.isFetching ? (
-          <div className="c-explorer__placeholder">
+          <div key="fetching" className="c-explorer__placeholder">
             <LoadingSpinner />
           </div>
         ) : null}
         {page.isError ? (
-          <div className="c-explorer__placeholder">
+          <div key="error" className="c-explorer__placeholder">
             {STRINGS.SERVER_ERROR}
           </div>
         ) : null}
-      </Transition>
+      </div>
     );
   }
 

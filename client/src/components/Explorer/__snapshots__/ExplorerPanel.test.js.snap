@@ -27,7 +27,7 @@ exports[`ExplorerPanel #isError 1`] = `
   <Transition
     className="c-explorer"
     component="div"
-    duration={220}
+    duration={210}
     name="push"
   >
     <div
@@ -45,18 +45,16 @@ exports[`ExplorerPanel #isError 1`] = `
           }
         }
       />
-      <Transition
+      <div
         className="c-explorer__drawer"
-        component="div"
-        duration={220}
-        name="fade"
       >
+        <div />
         <div
           className="c-explorer__placeholder"
         >
           Server Error
         </div>
-      </Transition>
+      </div>
       <PageCount
         page={
           Object {
@@ -99,7 +97,7 @@ exports[`ExplorerPanel #isFetching 1`] = `
   <Transition
     className="c-explorer"
     component="div"
-    duration={220}
+    duration={210}
     name="push"
   >
     <div
@@ -117,18 +115,16 @@ exports[`ExplorerPanel #isFetching 1`] = `
           }
         }
       />
-      <Transition
+      <div
         className="c-explorer__drawer"
-        component="div"
-        duration={220}
-        name="fade"
       >
+        <div />
         <div
           className="c-explorer__placeholder"
         >
           <LoadingSpinner />
         </div>
-      </Transition>
+      </div>
     </div>
   </Transition>
 </Component>
@@ -161,7 +157,7 @@ exports[`ExplorerPanel #items 1`] = `
   <Transition
     className="c-explorer"
     component="div"
-    duration={220}
+    duration={210}
     name="push"
   >
     <div
@@ -181,39 +177,38 @@ exports[`ExplorerPanel #items 1`] = `
           }
         }
       />
-      <Transition
+      <div
         className="c-explorer__drawer"
-        component="div"
-        duration={220}
-        name="fade"
       >
-        <ExplorerItem
-          item={
-            Object {
-              "id": 1,
-              "meta": Object {
-                "status": Object {},
-                "type": "test",
-              },
-              "title": "Test",
+        <div>
+          <ExplorerItem
+            item={
+              Object {
+                "id": 1,
+                "meta": Object {
+                  "status": Object {},
+                  "type": "test",
+                },
+                "title": "Test",
+              }
             }
-          }
-          onClick={[Function]}
-        />
-        <ExplorerItem
-          item={
-            Object {
-              "id": 2,
-              "meta": Object {
-                "status": Object {},
-                "type": "foo",
-              },
-              "title": "Foo",
+            onClick={[Function]}
+          />
+          <ExplorerItem
+            item={
+              Object {
+                "id": 2,
+                "meta": Object {
+                  "status": Object {},
+                  "type": "foo",
+                },
+                "title": "Foo",
+              }
             }
-          }
-          onClick={[Function]}
-        />
-      </Transition>
+            onClick={[Function]}
+          />
+        </div>
+      </div>
     </div>
   </Transition>
 </Component>
@@ -246,7 +241,7 @@ exports[`ExplorerPanel no children 1`] = `
   <Transition
     className="c-explorer"
     component="div"
-    duration={220}
+    duration={210}
     name="push"
   >
     <div
@@ -261,18 +256,15 @@ exports[`ExplorerPanel no children 1`] = `
           }
         }
       />
-      <Transition
+      <div
         className="c-explorer__drawer"
-        component="div"
-        duration={220}
-        name="fade"
       >
         <div
           className="c-explorer__placeholder"
         >
           No results
         </div>
-      </Transition>
+      </div>
     </div>
   </Transition>
 </Component>
@@ -305,7 +297,7 @@ exports[`ExplorerPanel renders 1`] = `
   <Transition
     className="c-explorer"
     component="div"
-    duration={220}
+    duration={210}
     name="push"
   >
     <div
@@ -322,12 +314,11 @@ exports[`ExplorerPanel renders 1`] = `
           }
         }
       />
-      <Transition
+      <div
         className="c-explorer__drawer"
-        component="div"
-        duration={220}
-        name="fade"
-      />
+      >
+        <div />
+      </div>
     </div>
   </Transition>
 </Component>
