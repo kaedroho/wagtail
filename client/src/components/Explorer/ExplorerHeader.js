@@ -17,7 +17,7 @@ const ExplorerHeader = ({ page, depth, onClick }) => {
       className="c-explorer__header"
       onClick={onClick}
     >
-      <div className="c-explorer__header__inner u-capitalize">
+      <div className="c-explorer__header__inner">
         <Icon name={isRoot ? 'home' : 'arrow-left'} />
         <span>{page.title || STRINGS.PAGES}</span>
       </div>

@@ -12,7 +12,7 @@ exports[`ExplorerHeader #depth at root 1`] = `
   target={null}
 >
   <div
-    className="c-explorer__header__inner u-capitalize"
+    className="c-explorer__header__inner"
   >
     <Icon
       className=""
@@ -38,7 +38,7 @@ exports[`ExplorerHeader #page 1`] = `
   target={null}
 >
   <div
-    className="c-explorer__header__inner u-capitalize"
+    className="c-explorer__header__inner"
   >
     <Icon
       className=""
@@ -64,7 +64,7 @@ exports[`ExplorerHeader basic 1`] = `
   target={null}
 >
   <div
-    className="c-explorer__header__inner u-capitalize"
+    className="c-explorer__header__inner"
   >
     <Icon
       className=""
