@@ -32,8 +32,15 @@ $c-explorer-easing: cubic-bezier(0.075, 0.820, 0.165, 1.000);
     border-bottom: 1px solid rgba(200, 200, 200, 0.1);
     cursor: pointer;
 
-    &:hover {
+    &:focus {
+        background-color: $c-explorer-bg-active;
         color: $color-white;
+        outline: none;
+    }
+
+    // Overrides for default link hover.
+    &:hover {
+        color: $c-explorer-secondary;
     }
 
     @include small {
@@ -56,10 +63,19 @@ $c-explorer-easing: cubic-bezier(0.075, 0.820, 0.165, 1.000);
     border-bottom: 1px solid $c-explorer-bg-dark;
     color: $color-white;
 
-    &:hover, &:focus {
+    &:focus {
         background-color: $c-explorer-bg-active;
         color: $color-white;
         outline: none;
+    }
+
+    // Overrides for default link hover.
+    &:hover {
+        color: $color-white;
+    }
+
+    @include hover {
+        background-color: $c-explorer-bg-active;
     }
 }
 
@@ -88,9 +104,18 @@ $c-explorer-easing: cubic-bezier(0.075, 0.820, 0.165, 1.000);
     background: rgba(0,0,0,0.3);
     color: $color-white;
 
-    &:hover, &:focus {
+    &:focus {
         color: $c-explorer-secondary;
         background: $c-explorer-bg-active;
         outline: none;
+    }
+
+    // Overrides for default link hover.
+    &:hover {
+        color: $color-white;
+    }
+
+    @include hover {
+        background: $c-explorer-bg-active;
     }
 }

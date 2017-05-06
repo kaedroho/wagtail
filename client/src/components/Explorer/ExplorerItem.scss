@@ -11,10 +11,19 @@
     padding: 1.45em 1.75em;
     cursor: pointer;
 
-    &:hover, &:focus {
+    &:focus {
         background: $c-explorer-bg-active;
         color: $color-white;
         outline: none;
+    }
+
+    // Overrides for default link hover.
+    &:hover {
+        color: $color-white;
+    }
+
+    @include hover {
+        background: $c-explorer-bg-active;
     }
 }
 
@@ -44,10 +53,20 @@
     border: 0;
     border-left: solid 1px $c-explorer-bg-dark;
 
-    &:hover, &:focus {
+    &:focus {
         background: $c-explorer-bg-active;
         color: $color-white;
         outline: none;
+    }
+
+    // Overrides for default link hover.
+    &:hover {
+        color: $c-explorer-secondary;
+    }
+
+    @include hover {
+        background: $c-explorer-bg-active;
+        color: $color-white;
     }
 
     .icon:before {
