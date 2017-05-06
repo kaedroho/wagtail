@@ -16,7 +16,10 @@ $c-explorer-easing: cubic-bezier(0.075, 0.820, 0.165, 1.000);
     overflow: hidden;
     height: 100vh;
     background: $c-explorer-bg;
-    box-shadow: 2px 2px 5px $c-explorer-bg-active;
+
+    @include medium {
+        box-shadow: 2px 2px 5px $c-explorer-bg-active;
+    }
 }
 
 .c-explorer > .c-transition-group {
