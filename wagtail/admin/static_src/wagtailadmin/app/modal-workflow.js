@@ -8,6 +8,7 @@ import PageChooser from 'wagtail-client/src/components/choosers/page/PageChooser
 import pageChooser from 'wagtail-client/src/components/choosers/page/reducers';
 
 
+// TODO Implement missing `userPerms` param.
 export function createPageChooser(id, restrictPageTypes, initialParentPageId, canChooseRoot) {
   let chooserElement = document.getElementById(`${id}-chooser`);
   let pageTitleElement = chooserElement.querySelector('.title');
