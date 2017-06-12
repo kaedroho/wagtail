@@ -6,12 +6,12 @@ import PageChooserResultSet from '../PageChooserResultSet';
 export default class PageChooserBrowseView extends React.Component {
   renderTitle() {
     switch (this.props.totalItems) {
-      case 0:
-        return "There are no matches"
-      case 1:
-        return "There is 1 match"
-      default:
-        return `There are ${this.props.totalItems} matches`
+    case 0:
+      return 'There are no matches';
+    case 1:
+      return 'There is 1 match';
+    default:
+      return `There are ${this.props.totalItems} matches`;
     }
   }
 

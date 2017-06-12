@@ -58,9 +58,10 @@ export class PageChooserResult extends React.Component {
     return <td className="status" valign="top">
       <a
         href={this.props.page.meta.html_url}
-        arget="_blank"
-        className="status-tag primary">
-
+        target="_blank"
+        rel="noopener nofollower"
+        className="status-tag primary"
+      >
         {this.props.page.meta.status.status}
       </a>
     </td>;
