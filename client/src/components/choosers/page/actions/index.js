@@ -1,7 +1,6 @@
-import { createAction } from 'redux-actions';
+import { createAction } from '../../../../utils/actions';
 
-import { API_PAGES, PAGES_ROOT_ID } from '../../../../config';
-
+import { ADMIN_API } from '../../../../config/wagtailConfig';
 
 function getHeaders() {
   const headers = new Headers();
@@ -54,8 +53,8 @@ export function browse(parentPageID, pageNumber) {
 
     let limit = 20;
     let offset = (pageNumber - 1) * limit;
-    let itemsUrl = `${API_PAGES}?child_of=${parentPageID}&fields=parent,children&limit=${limit}&offset=${offset}`;
-    let parentUrl = `${API_PAGES}${parentPageID}/?fields=ancestors`;
+    let itemsUrl = `${ADMIN_API.PAGES}?child_of=${parentPageID}&fields=parent,children&limit=${limit}&offset=${offset}`;
+    let parentUrl = `${ADMIN_API.PAGES}${parentPageID}/?fields=ancestors`;
 
     // HACK: The admin API currently doesn't serve the root page
     if (parentPageID == 'root') {
@@ -87,7 +86,7 @@ export function search(queryString, restrictPageTypes, pageNumber) {
 
     let limit = 20;
     let offset = (pageNumber - 1) * limit;
-    let url = `${API_PAGES}?fields=parent&search=${queryString}&limit=${limit}&offset=${offset}`;
+    let url = `${ADMIN_API.PAGES}?fields=parent&search=${queryString}&limit=${limit}&offset=${offset}`;
 
     if (restrictPageTypes != null) {
       url += '&type=' + restrictPageTypes.join(',');

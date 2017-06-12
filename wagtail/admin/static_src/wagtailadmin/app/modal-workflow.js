@@ -4,8 +4,8 @@ import { Provider } from 'react-redux';
 import { createStore, applyMiddleware, compose } from 'redux';
 import thunkMiddleware from 'redux-thunk';
 
-import PageChooser from 'components/choosers/page/PageChooser';
-import pageChooser from 'components/choosers/page/reducers';
+import PageChooser from 'wagtail-client/src/components/choosers/page/PageChooser';
+import pageChooser from 'wagtail-client/src/components/choosers/page/reducers';
 
 
 export function createPageChooser(id, restrictPageTypes, initialParentPageId, canChooseRoot) {
