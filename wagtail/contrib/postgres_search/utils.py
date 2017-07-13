@@ -52,6 +52,23 @@ def keyword_split(keywords):
     return [match[0] or match[1] or match[2] for match in matches]
 
 
+def get_left_edge_ngrams(text, min_length=3, max_length=15):
+    """
+    Generates left edge ngrams for the provided text.
+
+    This is used by autocomplete.
+
+    >>> get_left_edge_ngrams('hello world')
+    [('hel', 0), ('hell', 0), ('hello', 0), ('wor', 1), ('worl', 1), ('world', 1)]
+    """
+    for i, term in enumerate(text.split()):
+        for length in range(min_length, max_length + 1):
+            if length > len(term):
+                break
+
+            yield term[:length], i
+
+
 def get_descendant_models(model):
     """
     Returns all descendants of a model, including the model itself.
