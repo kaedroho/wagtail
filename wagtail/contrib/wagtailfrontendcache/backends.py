@@ -1,5 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 
+from collections import defaultdict
 import logging
 import uuid
 
@@ -21,6 +22,9 @@ class PurgeRequest(Request):
 
 class BaseBackend(object):
     def purge(self, url):
+        raise NotImplementedError
+
+    def purge_batch(self, urls):
         raise NotImplementedError
 
 
@@ -60,6 +64,11 @@ class HTTPBackend(BaseBackend):
         except URLError as e:
             logger.error("Couldn't purge '%s' from HTTP cache. URLError: %s", url, e.reason)
 
+    def purge_batch(self, urls):
+        # HTTP backend doesn't support batch purging
+        for url in urls:
+            self.purge(url)
+
 
 class CloudflareBackend(BaseBackend):
     def __init__(self, params):
@@ -67,7 +76,7 @@ class CloudflareBackend(BaseBackend):
         self.cloudflare_token = params.pop('TOKEN')
         self.cloudflare_zoneid = params.pop('ZONEID')
 
-    def purge(self, url):
+    def purge_batch(self, urls):
         try:
             purge_url = 'https://api.cloudflare.com/client/v4/zones/{0}/purge_cache'.format(self.cloudflare_zoneid)
 
@@ -77,7 +86,7 @@ class CloudflareBackend(BaseBackend):
                 "Content-Type": "application/json",
             }
 
-            data = {"files": [url]}
+            data = {"files": urls}
 
             response = requests.delete(
                 purge_url,
@@ -91,19 +100,19 @@ class CloudflareBackend(BaseBackend):
                 if response.status_code != 200:
                     response.raise_for_status()
                 else:
-                    logger.error("Couldn't purge '%s' from Cloudflare. Unexpected JSON parse error.", url)
+                    logger.error("Couldn't purge from Cloudflare. Unexpected JSON parse error.")
 
         except requests.exceptions.HTTPError as e:
-            logger.error("Couldn't purge '%s' from Cloudflare. HTTPError: %d %s", url, e.response.status_code, e.message)
-            return
-        except requests.exceptions.InvalidURL as e:
-            logger.error("Couldn't purge '%s' from Cloudflare. URLError: %s", url, e.message)
+            logger.error("Couldn't purge from Cloudflare. HTTPError: %d %s", e.response.status_code, e.message)
             return
 
         if response_json['success'] is False:
             error_messages = ', '.join([str(err['message']) for err in response_json['errors']])
-            logger.error("Couldn't purge '%s' from Cloudflare. Cloudflare errors '%s'", url, error_messages)
+            logger.error("Couldn't purge from Cloudflare. Cloudflare errors '%s'", error_messages)
             return
+
+    def purge(self, url):
+        self.purge_batch([url])
 
 
 class CloudfrontBackend(BaseBackend):
@@ -118,26 +127,35 @@ class CloudfrontBackend(BaseBackend):
                 "The setting 'WAGTAILFRONTENDCACHE' requires the object 'DISTRIBUTION_ID'."
             )
 
-    def purge(self, url):
-        url_parsed = urlparse(url)
-        distribution_id = None
+    def purge_batch(self, urls):
+        paths_by_distribution_id = defaultdict(list)
 
-        if isinstance(self.cloudfront_distribution_id, dict):
-            host = url_parsed.hostname
-            if host in self.cloudfront_distribution_id:
-                distribution_id = self.cloudfront_distribution_id.get(host)
+        for url in urls
+            url_parsed = urlparse(url)
+            distribution_id = None
+
+            if isinstance(self.cloudfront_distribution_id, dict):
+                host = url_parsed.hostname
+                if host in self.cloudfront_distribution_id:
+                    distribution_id = self.cloudfront_distribution_id.get(host)
+                else:
+                    logger.info(
+                        "Couldn't purge '%s' from CloudFront. Hostname '%s' not found in the DISTRIBUTION_ID mapping",
+                        url, host)
             else:
-                logger.info(
-                    "Couldn't purge '%s' from CloudFront. Hostname '%s' not found in the DISTRIBUTION_ID mapping",
-                    url, host)
-        else:
-            distribution_id = self.cloudfront_distribution_id
+                distribution_id = self.cloudfront_distribution_id
 
-        if distribution_id:
-            path = url_parsed.path
-            self._create_invalidation(distribution_id, path)
+            if distribution_id:
+                path = url_parsed.path
+                paths_by_distribution_id[distribution_id].append(url_parsed.path)
 
-    def _create_invalidation(self, distribution_id, path):
+        for distribution_id, paths in paths_by_distribution_id.items():
+            self._create_invalidation(distribution_id, paths)
+
+    def purge(self, url):
+        self.purge_batch([url])
+
+    def _create_invalidation(self, distribution_id, paths):
         import botocore
 
         try:
@@ -145,10 +163,8 @@ class CloudfrontBackend(BaseBackend):
                 DistributionId=distribution_id,
                 InvalidationBatch={
                     'Paths': {
-                        'Quantity': 1,
-                        'Items': [
-                            path,
-                        ]
+                        'Quantity': len(paths),
+                        'Items': paths
                     },
                     'CallerReference': str(uuid.uuid4())
                 }
