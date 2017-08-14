@@ -17,7 +17,7 @@ from wagtail.wagtailsearch.index import RelatedFields, SearchField
 from .models import IndexEntry
 from .utils import (
     ADD, AND, OR, WEIGHTS_VALUES, get_content_types_pks, get_postgresql_connections, get_weight,
-    keyword_split, unidecode)
+    keyword_split, unidecode, get_left_edge_ngrams)
 
 
 # TODO: Add autocomplete.
@@ -82,10 +82,11 @@ class Index(object):
                              for item in value.values())
         return force_text(value)
 
-    def prepare_field(self, obj, field):
+    def prepare_field(self, obj, field, partial_match_only=False):
         if isinstance(field, SearchField):
-            yield (unidecode(self.prepare_value(field.get_value(obj))),
-                   get_weight(field.boost))
+            if not partial_match_only or field.partial_match:
+                yield (unidecode(self.prepare_value(field.get_value(obj))),
+                        get_weight(field.boost))
         elif isinstance(field, RelatedFields):
             sub_obj = field.get_value(obj)
             if sub_obj is None:
@@ -98,12 +99,16 @@ class Index(object):
                 sub_objs = [sub_obj]
             for sub_obj in sub_objs:
                 for sub_field in field.fields:
-                    for value in self.prepare_field(sub_obj, sub_field):
+                    for value in self.prepare_field(sub_obj, sub_field, partial_match_only=partial_match_only):
                         yield value
 
     def prepare_body(self, obj):
         return [(value, boost) for field in self.search_fields
                 for value, boost in self.prepare_field(obj, field)]
+
+    def prepare_partials(self, obj):
+        return [(list(get_left_edge_ngrams(value)), boost) for field in self.search_fields
+                for value, boost in self.prepare_field(obj, field, partial_match_only=True)]
 
     def add_item(self, obj):
         self.add_items(self.model, [obj])
@@ -114,20 +119,31 @@ class Index(object):
         sql_template = ('to_tsvector(%s)' if config is None
                         else "to_tsvector('%s', %%s)" % config)
         sql_template = 'setweight(%s, %%s)' % sql_template
+
         for obj in objs:
             data_params.extend((content_type_pk, obj._object_id))
             if obj._body_:
-                vectors_sql.append('||'.join(sql_template for _ in obj._body_))
+                body_vector = '||'.join(sql_template for _ in obj._body_)
                 data_params.extend([v for t in obj._body_ for v in t])
             else:
-                vectors_sql.append("''::tsvector")
-        data_sql = ', '.join(['(%%s, %%s, %s)' % s for s in vectors_sql])
+                body_vector = "''::tsvector"
+
+            if obj._partials_:
+                partials_vector = '||'.join(sql_template for _ in obj._partials_)
+                data_params.extend([v for t in obj._partials_ for v in t])
+            else:
+                partials_vector = "''::tsvector"
+
+            vectors_sql.append((body_vector, partials_vector))
+
+        data_sql = ', '.join(['(%%s, %%s, %s, %s)' % (s, p) for s, p in vectors_sql])
+
         with connection.cursor() as cursor:
             cursor.execute("""
-                INSERT INTO %s(content_type_id, object_id, body_search)
+                INSERT INTO %s(content_type_id, object_id, body_search, body_partials_search)
                 (VALUES %s)
                 ON CONFLICT (content_type_id, object_id)
-                DO UPDATE SET body_search = EXCLUDED.body_search
+                DO UPDATE SET body_search = EXCLUDED.body_search, body_partials_search = EXCLUDED.body_partials_search
                 """ % (IndexEntry._meta.db_table, data_sql), data_params)
 
     def add_items_update_then_create(self, content_type_pk, objs, config):
@@ -138,6 +154,11 @@ class Index(object):
                     SearchVector(Value(text), weight=weight, config=config)
                     for text, weight in obj._body_])
                 if obj._body_ else SearchVector(Value('')))
+            obj._partials_search_vector = (
+                ADD([
+                    SearchVector(Value(text), weight=weight, config=config)
+                    for text, weight in obj._partials_])
+                if obj._partials_ else SearchVector(Value('')))
             ids_and_objs[obj._object_id] = obj
         index_entries = IndexEntry._default_manager.using(self.db_alias)
         index_entries_for_ct = index_entries.filter(
@@ -148,7 +169,7 @@ class Index(object):
         for indexed_id in indexed_ids:
             obj = ids_and_objs[indexed_id]
             index_entries_for_ct.filter(object_id=obj._object_id) \
-                .update(body_search=obj._search_vector)
+                .update(body_search=obj._search_vector, body_partials_search=obj._partials_search_vector)
         to_be_created = []
         for object_id in ids_and_objs:
             if object_id not in indexed_ids:
@@ -156,6 +177,7 @@ class Index(object):
                     content_type_id=content_type_pk,
                     object_id=object_id,
                     body_search=ids_and_objs[object_id]._search_vector,
+                    body_partials_search=ids_and_objs[object_id]._partials_search_vector,
                 ))
         index_entries.bulk_create(to_be_created)
 
@@ -165,6 +187,7 @@ class Index(object):
         for obj in objs:
             obj._object_id = force_text(obj.pk)
             obj._body_ = self.prepare_body(obj)
+            obj._partials_ = self.prepare_partials(obj)
         connection = connections[self.db_alias]
         if connection.pg_version >= 90500:  # PostgreSQL >= 9.5
             self.add_items_upsert(connection, content_type_pk, objs, config)

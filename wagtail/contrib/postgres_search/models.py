@@ -57,6 +57,9 @@ class IndexEntry(Model):
     # TODO: Add per-object boosting.
     body_search = SearchVectorField()
 
+    # Stores left edge ngrams of fields that have partial_match enabled
+    body_partials_search = SearchVectorField()
+
     objects = IndexQuerySet.as_manager()
 
     class Meta:
