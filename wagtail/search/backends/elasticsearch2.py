@@ -374,39 +374,41 @@ class Elasticsearch2SearchQueryCompiler(BaseSearchQueryCompiler):
         if isinstance(self.query, MatchAll):
             return {'match_all': {}}
 
-        if not isinstance(self.query, PlainText):
+        elif isinstance(self.query, PlainText):
+            fields = self.fields or ['_all', '_partials']
+            operator = self.query.operator
+
+            if len(fields) == 1:
+                if operator == 'or':
+                    return {
+                        'match': {
+                            fields[0]: self.query.query_string,
+                        }
+                    }
+                return {
+                    'match': {
+                        fields[0]: {
+                            'query': self.query.query_string,
+                            'operator': operator,
+                        }
+                    }
+                }
+
+            query = {
+                'multi_match': {
+                    'query': self.query.query_string,
+                    'fields': fields,
+                }
+            }
+            if operator != 'or':
+                query['multi_match']['operator'] = operator
+
+            return query
+
+        else:
             raise NotImplementedError(
                 '`%s` is not supported by the Elasticsearch search backend.'
                 % self.query.__class__.__name__)
-
-        fields = self.fields or ['_all', '_partials']
-        operator = self.query.operator
-
-        if len(fields) == 1:
-            if operator == 'or':
-                return {
-                    'match': {
-                        fields[0]: self.query.query_string,
-                    }
-                }
-            return {
-                'match': {
-                    fields[0]: {
-                        'query': self.query.query_string,
-                        'operator': operator,
-                    }
-                }
-            }
-
-        query = {
-            'multi_match': {
-                'query': self.query.query_string,
-                'fields': fields,
-            }
-        }
-        if operator != 'or':
-            query['multi_match']['operator'] = operator
-        return query
 
     def get_content_type_filter(self):
         # Query content_type using a "match" query. See comment in
