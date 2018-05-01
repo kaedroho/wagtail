@@ -595,6 +595,37 @@ class Elasticsearch2SearchQueryCompiler(BaseSearchQueryCompiler):
 
 class Elasticsearch2SearchResults(BaseSearchResults):
     fields_param_name = 'fields'
+    supports_facet = True
+
+    def facet(self, field_name):
+        # Get field
+        field = self.query_compiler._get_filterable_field(field_name)
+        if field is None:
+            pass  # TODO: Error
+
+        # Build body
+        body = self._get_es_body()
+        column_name = self.query_compiler.mapping.get_field_column_name(field)
+
+        body['aggregations'] = {
+            field_name: {
+                'terms': {
+                    'field': column_name,
+                }
+            }
+        }
+
+        # Send to Elasticsearch
+        response = self.backend.es.search(
+            index=self.backend.get_index_for_model(self.query_compiler.queryset.model).name,
+            body=body,
+            size=0,
+        )
+
+        return {
+            bucket['key']: bucket['doc_count']
+            for bucket in response['aggregations'][field_name]['buckets']
+        }
 
     def _get_es_body(self, for_count=False):
         body = {
