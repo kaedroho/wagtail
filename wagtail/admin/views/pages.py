@@ -22,6 +22,7 @@ from wagtail.admin.navigation import get_explorable_root_page
 from wagtail.admin.utils import send_notification, user_has_any_page_permission, user_passes_test
 from wagtail.core import hooks
 from wagtail.core.models import Page, PageRevision, UserPagePermissionsProxy
+from wagtail.search.utils import separate_filters_from_query
 from wagtail.utils.pagination import paginate
 
 
@@ -909,8 +910,21 @@ def search(request):
             q = form.cleaned_data['q']
             pagination_query_params['q'] = q
 
-            all_pages = all_pages.search(q)
-            pages = pages.search(q)
+            filters, query = separate_filters_from_query(q)
+
+            if 'live' in filters:
+                live = filters['live'].lower()
+
+                if live in ['yes', 'true']:
+                    pages = pages.live()
+                    all_pages = all_pages.live()
+
+                elif live in ['no', 'false']:
+                    pages = pages.not_live()
+                    all_pages = all_pages.not_live()
+
+            all_pages = all_pages.search(query)
+            pages = pages.search(query)
 
             if pages.supports_facet:
                 content_types = [
