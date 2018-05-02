@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from warnings import warn
 
 from django.db import models
@@ -112,10 +113,10 @@ class DatabaseSearchResults(BaseSearchResults):
         query = self.get_queryset()
         results = query.values(field_name).annotate(count=Count('id')).order_by('-count')
 
-        return {
-            result[field_name]: result['count']
+        return OrderedDict([
+            (result[field_name], result['count'])
             for result in results
-        }
+        ])
 
 
 class DatabaseSearchBackend(BaseSearchBackend):

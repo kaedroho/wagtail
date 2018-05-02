@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from warnings import warn
 
 from django.contrib.postgres.search import SearchQuery as PostgresSearchQuery
@@ -285,10 +286,10 @@ class PostgresSearchResults(BaseSearchResults):
         query = self.query_compiler.search(self.backend.get_config(), None, None)
         results = query.values(field_name).annotate(count=Count('id')).order_by('-count')
 
-        return {
-            result[field_name]: result['count']
+        return OrderedDict([
+            (result[field_name], result['count'])
             for result in results
-        }
+        ])
 
 
 class PostgresSearchRebuilder:

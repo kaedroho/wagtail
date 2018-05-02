@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import copy
 import json
 import warnings
@@ -622,10 +623,10 @@ class Elasticsearch2SearchResults(BaseSearchResults):
             size=0,
         )
 
-        return {
-            bucket['key']: bucket['doc_count']
+        return OrderedDict([
+            (bucket['key'], bucket['doc_count'])
             for bucket in response['aggregations'][field_name]['buckets']
-        }
+        ])
 
     def _get_es_body(self, for_count=False):
         body = {
