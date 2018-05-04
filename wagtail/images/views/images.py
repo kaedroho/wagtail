@@ -1,3 +1,4 @@
+import hashlib
 import os
 
 from django.http import HttpResponse, JsonResponse
@@ -100,6 +101,10 @@ def edit(request, image_id):
             if 'file' in form.changed_data:
                 # Set new image file size
                 image.file_size = image.file.size
+
+                # Set new image file hash
+                image.file.seek(0)
+                image.file_hash = hashlib.sha1(image.file.read()).hexdigest()
 
             form.save()
 
@@ -247,6 +252,10 @@ def add(request):
         if form.is_valid():
             # Set image file size
             image.file_size = image.file.size
+
+            # Set image file hash
+            image.file.seek(0)
+            image.file_hash = hashlib.sha1(image.file.read()).hexdigest()
 
             form.save()
 

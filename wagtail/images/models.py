@@ -80,6 +80,8 @@ class AbstractImage(CollectionMember, index.Indexed, models.Model):
     focal_point_height = models.PositiveIntegerField(null=True, blank=True)
 
     file_size = models.PositiveIntegerField(null=True, editable=False)
+    # A SHA-1 hash of the file contents
+    file_hash = models.CharField(max_length=40, blank=True, editable=False)
 
     objects = ImageQuerySet.as_manager()
 

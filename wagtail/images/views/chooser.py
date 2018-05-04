@@ -1,3 +1,4 @@
+import hashlib
 import json
 
 from django.shortcuts import get_object_or_404, render
@@ -127,6 +128,13 @@ def chooser_upload(request):
         form = ImageForm(request.POST, request.FILES, instance=image, user=request.user)
 
         if form.is_valid():
+            # Set image file size
+            image.file_size = image.file.size
+
+            # Set image file hash
+            image.file.seek(0)
+            image.file_hash = hashlib.sha1(image.file.read()).hexdigest()
+
             form.save()
 
             # Reindex the image to make sure all tags are indexed
