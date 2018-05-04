@@ -148,7 +148,7 @@ class AbstractImage(CollectionMember, index.Indexed, models.Model):
         return self.title
 
     @contextmanager
-    def get_willow_image(self):
+    def open_file(self):
         # Open file if it is closed
         close_file = False
         try:
@@ -174,10 +174,15 @@ class AbstractImage(CollectionMember, index.Indexed, models.Model):
         image_file.seek(0)
 
         try:
-            yield WillowImage.open(image_file)
+            yield image_file
         finally:
             if close_file:
                 image_file.close()
+
+    @contextmanager
+    def get_willow_image(self):
+        with self.open_file() as image_file:
+            yield WillowImage.open(image_file)
 
     def get_rect(self):
         return Rect(0, 0, self.width, self.height)
