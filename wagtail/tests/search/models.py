@@ -11,6 +11,17 @@ class Author(index.Indexed, models.Model):
     search_fields = [
         index.SearchField('name'),
         index.FilterField('date_of_birth'),
+
+        index.RelatedFields('books', [
+            index.FilterField('title'),
+
+            # For novels, index character names
+            index.RelatedFields('novel', [
+                index.RelatedFields('characters', [
+                    index.SearchField('name', boost=0.25),
+                ]),
+            ]),
+        ]),
     ]
 
     def __str__(self):
@@ -27,7 +38,10 @@ class Book(index.Indexed, models.Model):
     search_fields = [
         index.SearchField('title', partial_match=True, boost=2.0),
         index.FilterField('title'),
-        index.RelatedFields('authors', Author.search_fields),
+        index.RelatedFields('authors', [
+            index.SearchField('name'),
+            index.FilterField('date_of_birth'),
+        ]),
         index.FilterField('publication_date'),
         index.FilterField('number_of_pages'),
         index.RelatedFields('tags', [

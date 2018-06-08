@@ -492,7 +492,7 @@ class TestElasticsearch2SearchResults(TestCase):
         self.assertEqual(results[2], models.Book.objects.get(id=1))
 
 
-class TestElasticsearch2Mapping(TestCase):
+class TestElasticsearch2MappingBook(TestCase):
     fixtures = ['search']
 
     def assertDictEqual(self, a, b):
@@ -572,6 +572,72 @@ class TestElasticsearch2Mapping(TestCase):
             'publication_date_filter': datetime.date(1954, 7, 29),
             'number_of_pages_filter': 423,
             'tags': []
+        }
+
+        self.assertDictEqual(document, expected_result)
+
+
+class TestElasticsearch2MappingAuthor(TestCase):
+    fixtures = ['search']
+
+    def assertDictEqual(self, a, b):
+        default = JSONSerializer().default
+        self.assertEqual(
+            json.dumps(a, sort_keys=True, default=default), json.dumps(b, sort_keys=True, default=default)
+        )
+
+    def setUp(self):
+        # Create ES mapping
+        self.es_mapping = Elasticsearch2SearchBackend.mapping_class(models.Author)
+
+        self.obj = models.Author.objects.get(id=1)
+
+    def test_get_document_type(self):
+        self.assertEqual(self.es_mapping.get_document_type(), 'searchtests_author')
+
+    def test_get_mapping(self):
+        # Build mapping
+        mapping = self.es_mapping.get_mapping()
+
+        print(mapping)
+
+        # Check
+        expected_result = {
+            'searchtests_author': {
+                'properties': {
+                    'pk': {'index': 'not_analyzed', 'type': 'string', 'store': True, 'include_in_all': False},
+                    'content_type': {'index': 'not_analyzed', 'type': 'string', 'include_in_all': False},
+                    '_partials': {'analyzer': 'edgengram_analyzer', 'search_analyzer': 'standard', 'include_in_all': False, 'type': 'string'},
+                    'name': {'type': 'string', 'include_in_all': True},
+                    'date_of_birth_filter': {'index': 'not_analyzed', 'type': 'date', 'include_in_all': False},
+                    'books': {
+                        'type': 'nested',
+                        'properties': {
+                            'name': {'type': 'string', 'boost': 0.5, 'include_in_all': True}
+                        }
+                    },
+                }
+            }
+        }
+
+        self.assertDictEqual(mapping, expected_result)
+
+    def test_get_document_id(self):
+        self.assertEqual(self.es_mapping.get_document_id(self.obj), 'searchtests_author:' + str(self.obj.pk))
+
+    def test_get_document(self):
+        # Get document
+        document = self.es_mapping.get_document(self.obj)
+
+        # Sort partials
+        if '_partials' in document:
+            document['_partials'].sort()
+
+        # Check
+        expected_result = {
+            'pk': '1',
+            'content_type': ["searchtests.Author"],
+            '_partials': [],
         }
 
         self.assertDictEqual(document, expected_result)
