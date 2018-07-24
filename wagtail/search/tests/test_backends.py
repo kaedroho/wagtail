@@ -643,6 +643,31 @@ class BackendTests(WagtailTestUtils):
                              'The Rust Programming Language',
                              'Two Scoops of Django 1.11'})
 
+    def test_very_long_query(self):
+        # A smoke test, this shouldn't crash
+        results = self.backend.search(
+            """
+            Foundation
+            The Hobbit
+            The Two Towers
+            The Fellowship of the Ring
+            The Return of the King
+            A Game of Thrones
+            A Clash of Kings
+            A Storm of Swords
+            Learning Python
+            JavaScript: The Definitive Guide
+            JavaScript: The Definitive Guide
+            Learning Python
+            The Rust Programming Language
+            Two Scoops of Django 1.11
+            """ * 10,
+            models.Book
+        )
+
+        list(results)
+
+
 
 @override_settings(
     WAGTAILSEARCH_BACKENDS={
