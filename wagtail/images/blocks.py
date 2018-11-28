@@ -1,6 +1,8 @@
+from django.template.loader import render_to_string
 from django.utils.functional import cached_property
 
 from wagtail.core.blocks import ChooserBlock
+from wagtail.admin.compare import BlockComparison
 
 from .shortcuts import get_rendition_or_not_found
 
@@ -22,5 +24,16 @@ class ImageChooserBlock(ChooserBlock):
         else:
             return ''
 
+    def get_comparison_class(self):
+        return ImageChooserBlockComparison
+
     class Meta:
         icon = "image"
+
+
+class ImageChooserBlockComparison(BlockComparison):
+    def htmldiff(self):
+        return render_to_string("wagtailimages/widgets/compare.html", {
+            'image_a': self.val_a,
+            'image_b': self.val_b,
+        })
