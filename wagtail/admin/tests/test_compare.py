@@ -790,3 +790,156 @@ class TestChildRelationComparisonUsingPK(TestCase):
         self.assertEqual(map_backwards, {})
         self.assertEqual(added, [0])  # Add new head count
         self.assertEqual(deleted, [0])  # Delete old head count
+
+
+class TestDiffSequence(TestCase):
+    def test_match_on_content(self):
+        diff = compare.diff_sequence([
+            compare.DiffableSequenceItem(
+                tag=1,
+                type='speaker',
+                id=None,
+                content={
+                    'first_name': "Father",
+                    'last_name': "Christmas"
+                }
+            ),
+            compare.DiffableSequenceItem(
+                tag=2,
+                type='speaker',
+                id=None,
+                content={
+                    'first_name': "Father",
+                    'last_name': "Ted"
+                }
+            ),
+            compare.DiffableSequenceItem(
+                tag=3,
+                type='speaker',
+                id=None,
+                content={
+                    'first_name': "Father",
+                    'last_name': "Jack"
+                }
+            ),
+        ], [
+            compare.DiffableSequenceItem(
+                tag=1,
+                type='speaker',
+                id=None,
+                content={
+                    'first_name': "Father",
+                    'last_name': "Ted"
+                }
+            ),
+            compare.DiffableSequenceItem(
+                tag=2,
+                type='speaker',
+                id=None,
+                content={
+                    'first_name': "Father",
+                    'last_name': "Christmas"
+                }
+            ),
+            compare.DiffableSequenceItem(
+                tag=3,
+                type='speaker',
+                id=None,
+                content={
+                    'first_name': "Mrs",
+                    'last_name': "Doyle"
+                }
+            ),
+        ])
+
+        self.assertEqual(
+            diff.items,
+            [
+                (1, None),  # Delete Father Christmas
+                (2, 1),  # Father Ted => Father Ted
+                (3, 2),  # Father Jack => Father Christmas
+                (None, 3),  # Add Mrs Doyle
+
+            ]
+        )
+
+    def test_prefer_match_on_id(self):
+        # Use ID matching to force Father Jack to be mapped to Mrs Doyle
+        diff = compare.diff_sequence([
+            compare.DiffableSequenceItem(
+                tag=1,
+                type='speaker',
+                id=None,
+                content={
+                    'first_name': "Father",
+                    'last_name': "Christmas"
+                }
+            ),
+            compare.DiffableSequenceItem(
+                tag=2,
+                type='speaker',
+                id=None,
+                content={
+                    'first_name': "Father",
+                    'last_name': "Ted"
+                }
+            ),
+            compare.DiffableSequenceItem(
+                tag=3,
+                type='speaker',
+                id=1,
+                content={
+                    'first_name': "Father",
+                    'last_name': "Jack"
+                }
+            ),
+        ], [
+            compare.DiffableSequenceItem(
+                tag=1,
+                type='speaker',
+                id=1,
+                content={
+                    'first_name': "Mrs",
+                    'last_name': "Doyle"
+                }
+            ),
+            compare.DiffableSequenceItem(
+                tag=2,
+                type='speaker',
+                id=None,
+                content={
+                    'first_name': "Father",
+                    'last_name': "Ted"
+                }
+            ),
+            compare.DiffableSequenceItem(
+                tag=3,
+                type='speaker',
+                id=None,
+                content={
+                    'first_name': "Father",
+                    'last_name': "Christmas"
+                }
+            ),
+            compare.DiffableSequenceItem(
+                tag=4,
+                type='speaker',
+                id=None,
+                content={
+                    'first_name': "Father",
+                    'last_name': "Jack"
+                }
+            ),
+        ])
+
+        self.assertEqual(
+            diff.items,
+            [
+                (3, 1),  # Father Jack => Mrs Doyle (because they have the same ID)
+                (None, 2),  # Insert Father Ted
+                (1, 3),  # Father Christmas => Father Jack
+                (2, 4), # Father Ted => Father Jack
+
+                # Note: the Father Ted was inserted as the algorithm preferred to keep the same ordering, might tweak that. Exact matches should probably be treated as the same object
+            ]
+        )

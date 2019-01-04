@@ -1,3 +1,4 @@
+from collections import defaultdict
 import difflib
 
 from bs4 import BeautifulSoup
@@ -115,6 +116,11 @@ class StructBlockComparison(BlockComparison):
             htmldiffs[name] = comparison_class(block, val_a, val_b).htmldiff()
 
         return self.block.render_basic(htmldiffs)
+
+
+class ListBlockComparison(BlockComparison):
+    def htmldiff(self):
+        pass
 
 
 class StreamBlockComparison(BlockComparison):
@@ -627,7 +633,7 @@ def diff_text(a, b):
             for token in a_tok[i1:i2]:
                 changes.append(('equal', token))
 
-    # Merge ajacent changes which have the same type. This just cleans up the HTML a bit
+    # Merge adjacent changes which have the same type. This just cleans up the HTML a bit
     merged_changes = []
     current_value = []
     current_change_type = None
@@ -645,3 +651,302 @@ def diff_text(a, b):
         merged_changes.append((current_change_type, ''.join(current_value)))
 
     return TextDiff(merged_changes)
+
+
+class DiffableSequenceItem:
+    """
+    A class that represents an item in a sequence to be diffed.
+
+    Contains the following attributes:
+     - tag - Used to uniquely identify the item in the sequence. Required and must be unique
+     - item_type - A name for the "type" of the item. Items will never map to items with a different type, even if the content is similar
+     - item_id - The known unique ID for the item, or None. If set, this will automatically map this item with its counterpart on the other side. Must be unique
+     - item_content - A dictionary of keys and values to use for comparison
+    """
+    def __init__(self, tag, type, id, content):
+        self.tag = tag
+        self.type = type
+        self.id = id
+        self.content = content
+
+
+class SequenceDiff:
+    def __init__(self, items):
+        self.items = items
+
+    def __iter__(self):
+        return iter(self.items)
+
+
+def get_object_similarity(a, b):
+    """
+    Works out similarity of dictionaries a and b. Both dictionaries must have the same fields.
+
+    Returns a value between 0 and 1.
+    """
+    same_fields = 0
+    for field_name, a_value in a.items():
+        if field_name not in b:
+            continue
+
+        if a_value == b[field_name]:
+            same_fields += 1
+
+    total_fields = len(a.keys() | b.keys())
+    return same_fields / total_fields
+
+
+import numpy as np
+
+ACTION_DELETE = 1
+ACTION_INSERT = 2
+ACTION_SUBSTITUTE = 3
+ACTION_NO_ENTRY = 4
+
+class CostActionMatrix:
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+
+        self._costs = np.array([[0] * (height + 1)] * (width + 1), np.float32)
+        self._actions = np.array([[0] * (height + 1)] * (width + 1), np.int8)
+
+    def set_cost(self, i, j, val):
+        self._costs[i + 1, j + 1] = val
+
+    def get_cost(self, i, j):
+        return self._costs[i + 1, j + 1]
+
+    def set_action(self, i, j, action):
+        self._actions[i + 1, j + 1] = action
+
+    def get_action(self, i, j):
+        return self._actions[i + 1, j + 1]
+
+    def add_action(self, i, j, action):
+        current_action = self.get_action(i, j)
+
+        if current_action and new_action != current_action:
+            # Two conflicting actions on the same cell makes it impossible to use that cell
+            new_action = ACTION_NO_ENTRY
+        else:
+            new_action = action
+
+        self.set_action(i, j, action)
+
+    def build_fence(self, i, j):
+        """
+        Pre-sets actions in the matrix to prevent an item from being substituted with anything else
+        other than is known counterpart.
+
+        This is called for every item where we know its counterpart (because they share the same ID).
+        """
+        for i2 in range(-1, self.width):
+            if i2 != i:
+                self.add_action(i2, j, ACTION_INSERT)
+
+        for j2 in range(-1, self.height):
+            if j2 != j:
+                self.add_action(i, j2, ACTION_DELETE)
+
+        self.add_action(i, j, ACTION_SUBSTITUTE)
+
+
+def diff_sequence(a, b, similarity_func=get_object_similarity):
+    forwards_mapping = {}  # a.tag => b.tag
+
+    # Map items that share a type/id
+    a_items_with_ids = { (item.type, item.id): item for item in a if item.id }
+    b_items_with_ids = { (item.type, item.id): item for item in b if item.id }
+
+    for key, item, in a_items_with_ids.items():
+        if key in b_items_with_ids:
+            forwards_mapping[item.tag] = b_items_with_ids[key].tag
+
+    # Work out similarity between all items in each type
+    a_items_by_type = defaultdict(list)
+    for item in a:
+        a_items_by_type[item.type].append(item)
+
+    b_items_by_type = defaultdict(list)
+    for item in b:
+        b_items_by_type[item.type].append(item)
+
+    similarities = {}
+
+    for item_type, a_items in a_items_by_type.items():
+        if item_type not in b_items_by_type:
+            continue
+
+        b_items = b_items_by_type[item_type]
+
+        for i, a_item in enumerate(a_items):
+            for j, b_item in enumerate(b_items):
+                similarity = get_object_similarity(a_item.content, b_item.content)
+
+                similarities[(i, j)] = similarity
+
+    # Use variant of Wagner–Fischer algorithm to find list of same, added, removed and substituted items
+
+    # Create a cost-action matrix
+    cam = CostActionMatrix(len(a), len(b))
+
+    # Add "fences" for blocks that we have an ID mapping for
+    # This will prevent these blocks from being substituted with anything other than their counterpart
+    for i, a_item in enumerate(a):
+        for j, b_item in enumerate(b):
+            if a_item.tag in forwards_mapping and forwards_mapping[a_item.tag] == b_item.tag:
+                cam.build_fence(i, j)
+
+    current_cost = 0
+    for i in range(0, cam.width):
+        # Don't increment cost if an action was placed here by build_fence
+        if cam.get_action(i, -1) != ACTION_DELETE:
+            current_cost += 1
+
+            # Can only delete when j == -1
+            cam.add_action(i, -1, ACTION_DELETE)
+
+        cam.set_cost(i, -1, current_cost)
+
+    current_cost = 0
+    for j in range(0, cam.height):
+        # Don't increment cost if an action was placed here by build_fence
+        if cam.get_action(-1, j) != ACTION_INSERT:
+            current_cost += 1
+
+            # Can only insert when i == -1
+            cam.add_action(-1, j, ACTION_INSERT)
+
+        cam.set_cost(-1, j, current_cost)
+
+    for i, a_item in enumerate(a):
+        for j, b_item in enumerate(b):
+            # First check if there is already an action at this position (created by build_fence)
+            action = cam.get_action(i, j)
+            if action == ACTION_INSERT:
+                cam.set_cost(i, j, cam.get_cost(i, j - 1))
+                continue
+            elif action == ACTION_DELETE:
+                cam.set_cost(i, j, cam.get_cost(i - 1, j))
+                continue
+            elif action == ACTION_SUBSTITUTE:
+                cam.set_cost(i, j, cam.get_cost(i - 1, j - 1))
+                continue
+
+            # Get similarity between the items.
+            # This is calculated above. It's a number between 0 and 1 with 1 being an exact match and 0 being no similarity at all.
+            # Note: The similarity will be None if the items differ by type, in this case we must not use the substitution action.
+            similarity = similarities.get((i, j), None)
+
+            can_insert = cam.get_action(i, j - 1) != ACTION_NO_ENTRY
+            can_delete = cam.get_action(i - 1, j) != ACTION_NO_ENTRY
+            can_substitute = similarity is not None and cam.get_action(i - 1, j - 1) != ACTION_NO_ENTRY
+
+            # Calculate costs for each action
+            costs = []
+
+            if can_insert:
+                costs.append((ACTION_INSERT, cam.get_cost(i, j - 1) + 1))
+
+            if can_delete:
+                costs.append((ACTION_DELETE, cam.get_cost(i - 1, j) + 1))
+
+            if can_substitute:
+                costs.append((ACTION_SUBSTITUTE, cam.get_cost(i - 1, j - 1) + 2 - similarity * 2))
+
+            if costs:
+                # Get lowest cost action
+                costs.sort(key=lambda c: c[1])
+                action, cost = costs[0]
+                cam.set_action(i, j, action)
+                cam.set_cost(i, j, cost)
+            else:
+                # Probably won't get here. But make sure the cell is marked as no entry just in case
+                # This will prevent ajacent cells from making actions that point to this cell, which is a dead-end
+                cam.set_action(i, j, ACTION_NO_ENTRY)
+
+    # Now backtrack through the matrix to find the actions to get from A to B
+    # Note that we exclude any actions that act on items that are linked together by ID as
+    # we know these are always subsitutions but the algorithm above may have decoded to delete/reinsert them
+    # if they've been moved significantly.
+    actions = []
+    ignore_a_tags = set()
+    ignore_b_tags = set()
+
+    for a_tag, b_tag in forwards_mapping.items():
+        actions.append((ACTION_SUBSTITUTE, (a_tag, b_tag)))
+
+        ignore_a_tags.add(a_tag)
+        ignore_b_tags.add(b_tag)
+
+    i = len(a) - 1
+    j = len(b) - 1
+
+    while i != -1 or j != -1:
+        action = cam.get_action(i, j)
+
+        if action == ACTION_INSERT:
+            tag = b[j].tag
+
+            if tag not in ignore_b_tags:
+                actions.append((ACTION_INSERT, tag))
+
+            j -= 1
+        elif action == ACTION_DELETE:
+            tag = a[i].tag
+
+            if tag not in ignore_a_tags:
+                actions.append((ACTION_DELETE, tag))
+
+            i -= 1
+        elif action == ACTION_SUBSTITUTE:
+            a_tag = a[i].tag
+
+            if a_tag not in ignore_a_tags:
+                b_tag = b[j].tag
+
+                actions.append((ACTION_SUBSTITUTE, (a_tag, b_tag)))
+
+            i -= 1
+            j -= 1
+
+    # Now build list of items in the same B-side ordering
+    reverse_mapping = {}
+    deletions = set()
+
+    for action, item in actions:
+        if action == ACTION_INSERT:
+            reverse_mapping[item] = None
+        elif action == ACTION_DELETE:
+            deletions.add(item)
+        elif action == ACTION_SUBSTITUTE:
+            reverse_mapping[item[1]] = item[0]
+
+    items = [(reverse_mapping[item.tag], item.tag) for item in b]
+
+    # Insert deleted items at the index where they used to be
+    deleted_item_indices = [(item.tag, i) for i, item in enumerate(a) if item.tag in deletions]
+
+    for deleted_item_tag, deleted_item_index in deleted_item_indices:
+        # Insert the item back in where it was before it was deleted.
+        # Note: we need to account for new items when finding the position.
+        index = 0
+        item_inserted = False
+        for i, item in enumerate(items):
+            if item[0] is None:
+                # Item is new
+                continue
+
+            if index == deleted_item_index:
+                items.insert(i, (deleted_item_tag, None))
+                item_inserted = True
+                break
+
+            index += 1
+
+        # Deleted block was from the end
+        if not item_inserted:
+            items.append((deleted_item_tag, None))
+
+    return SequenceDiff(items)
