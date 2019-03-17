@@ -9,7 +9,7 @@ from django.utils.translation import ugettext as _
 from wagtail.admin import messages
 from wagtail.admin.edit_handlers import (
     ObjectList, TabbedInterface, extract_panel_definitions_from_model_class)
-from wagtail.core.models import Site
+from wagtail.core.models import get_site_model
 
 from .forms import SiteSwitchForm
 from .permissions import user_can_edit_setting_type
@@ -40,7 +40,7 @@ def get_setting_edit_handler(model):
 def edit_current_site(request, app_name, model_name):
     # Redirect the user to the edit page for the current site
     # (or the current request does not correspond to a site, the first site in the list)
-    site = request.site or Site.objects.first()
+    site = request.site or get_site_model().objects.first()
     if not site:
         messages.error(request, _("This setting could not be opened because there is no site defined."))
         return redirect('wagtailadmin_home')
@@ -48,6 +48,7 @@ def edit_current_site(request, app_name, model_name):
 
 
 def edit(request, app_name, model_name, site_pk):
+    Site = get_site_model()
     model = get_model_from_url_params(app_name, model_name)
     if not user_can_edit_setting_type(request.user, model):
         raise PermissionDenied

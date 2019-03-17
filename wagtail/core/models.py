@@ -4,6 +4,7 @@ from collections import defaultdict
 from io import StringIO
 from urllib.parse import urlparse
 
+from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -159,6 +160,21 @@ class Site(models.Model):
             cache.set('wagtail_site_root_paths', result, 3600)
 
         return result
+
+
+def get_site_model():
+    if not hasattr(settings, 'WAGTAIL_SITE_MODEL'):
+        return Site
+
+    model_string = getattr(settings, 'WAGTAIL_SITE_MODEL')
+    try:
+        return apps.get_model(model_string)
+    except ValueError:
+        raise ImproperlyConfigured("WAGTAIL_SITE_MODEL must be of the form 'app_label.model_name'")
+    except LookupError:
+        raise ImproperlyConfigured(
+            "WAGTAIL_SITE_MODEL refers to model '%s' that has not been installed" % model_string
+        )
 
 
 PAGE_MODEL_CLASSES = []
@@ -467,6 +483,7 @@ class Page(AbstractPage, index.Indexed, ClusterableModel, metaclass=PageBase):
         if update_descendant_url_paths:
             self._update_descendant_url_paths(old_url_path, new_url_path)
 
+        # TODO: Call a method on site? Use a signal?
         # Check if this is a root page of any sites and clear the 'wagtail_site_root_paths' key if so
         if Site.objects.filter(root_page=self).exists():
             cache.delete('wagtail_site_root_paths')
@@ -731,7 +748,7 @@ class Page(AbstractPage, index.Indexed, ClusterableModel, metaclass=PageBase):
 
     def _get_site_root_paths(self, request=None):
         """
-        Return ``Site.get_site_root_paths()``, using the cached copy on the
+        Return ``get_site_model().get_site_root_paths()``, using the cached copy on the
         request object if available.
         """
         # if we have a request, use that to cache site_root_paths; otherwise, use self
@@ -739,7 +756,7 @@ class Page(AbstractPage, index.Indexed, ClusterableModel, metaclass=PageBase):
         try:
             return cache_object._wagtail_cached_site_root_paths
         except AttributeError:
-            cache_object._wagtail_cached_site_root_paths = Site.get_site_root_paths()
+            cache_object._wagtail_cached_site_root_paths = get_site_model().get_site_root_paths()
             return cache_object._wagtail_cached_site_root_paths
 
     def get_url_parts(self, request=None):
@@ -779,7 +796,7 @@ class Page(AbstractPage, index.Indexed, ClusterableModel, metaclass=PageBase):
                 site_id, root_path, root_url = possible_sites[0]
 
         page_path = reverse(
-            'wagtail_serve', args=(self.url_path[len(root_path):],))
+                'wagtail_serve', args=(self.url_path[len(root_path):],))
 
         # Remove the trailing slash from the URL reverse generates if
         # WAGTAIL_APPEND_SLASH is False and we're not trying to serve
@@ -863,7 +880,7 @@ class Page(AbstractPage, index.Indexed, ClusterableModel, metaclass=PageBase):
 
         site_id, root_url, page_path = url_parts
 
-        return Site.objects.get(id=site_id)
+        return get_site_model().objects.get(id=site_id)
 
     @classmethod
     def get_indexed_objects(cls):

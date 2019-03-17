@@ -1,7 +1,7 @@
 from django import forms
 from django.urls import reverse
 
-from wagtail.core.models import Site
+from wagtail.core.models import get_site_model
 
 
 class SiteSwitchForm(forms.Form):
@@ -16,7 +16,7 @@ class SiteSwitchForm(forms.Form):
         initial_data = {'site': self.get_change_url(current_site, model)}
         super().__init__(initial=initial_data, **kwargs)
         sites = [(self.get_change_url(site, model), site)
-                 for site in Site.objects.all()]
+                 for site in get_site_model().objects.all()]
         self.fields['site'].choices = sites
 
     @classmethod

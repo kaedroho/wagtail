@@ -17,10 +17,8 @@ class Sitemap(DjangoSitemap):
     def get_wagtail_site(self):
         site = getattr(self.request, 'site', None)
         if site is None:
-            from wagtail.core.models import Site
-            return Site.objects.select_related(
-                'root_page'
-            ).get(is_default_site=True)
+            from wagtail.core.models import get_site_model
+            return get_site_model().objects.get(is_default_site=True)
         return site
 
     def items(self):
