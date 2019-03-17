@@ -22,6 +22,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.text import capfirst, slugify
+from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 from modelcluster.models import (
     ClusterableModel, get_all_child_m2m_relations, get_all_child_relations)
@@ -153,7 +154,7 @@ class Site(models.Model):
 
         if result is None:
             result = [
-                (site.id, site.root_page.url_path, site.root_url)
+                (site.id, site.root_page.url_path, site.root_url, None)
                 for site in Site.objects.select_related('root_page').order_by(
                     '-root_page__url_path', '-is_default_site', 'hostname')
             ]
@@ -778,25 +779,31 @@ class Page(AbstractPage, index.Indexed, ClusterableModel, metaclass=PageBase):
         """
 
         possible_sites = [
-            (pk, path, url)
-            for pk, path, url in self._get_site_root_paths(request)
+            (pk, path, url, lang)
+            for pk, path, url, lang in self._get_site_root_paths(request)
             if self.url_path.startswith(path)
         ]
 
         if not possible_sites:
             return None
 
-        site_id, root_path, root_url = possible_sites[0]
+        site_id, root_path, root_url, language_code = possible_sites[0]
 
         if hasattr(request, 'site'):
-            for site_id, root_path, root_url in possible_sites:
+            for site_id, root_path, root_url, language_code in possible_sites:
                 if site_id == request.site.pk:
                     break
             else:
-                site_id, root_path, root_url = possible_sites[0]
+                site_id, root_path, root_url, language_code = possible_sites[0]
 
-        page_path = reverse(
-                'wagtail_serve', args=(self.url_path[len(root_path):],))
+        if language_code is not None:
+            with translation.override(language_code):
+                page_path = reverse(
+                    'wagtail_serve', args=(self.url_path[len(root_path):],))
+
+        else:
+            page_path = reverse(
+                    'wagtail_serve', args=(self.url_path[len(root_path):],))
 
         # Remove the trailing slash from the URL reverse generates if
         # WAGTAIL_APPEND_SLASH is False and we're not trying to serve
