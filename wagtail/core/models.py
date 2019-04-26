@@ -20,6 +20,7 @@ from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import cached_property
+from django.utils.module_loading import import_string
 from django.utils.text import capfirst, slugify
 from django.utils.translation import ugettext_lazy as _
 from modelcluster.models import (
@@ -36,6 +37,46 @@ from wagtail.search import index
 logger = logging.getLogger('wagtail.core')
 
 PAGE_TEMPLATE_VAR = 'page'
+
+PAGE_URL_BUILDER = None
+
+
+def get_site_root_paths(request=None):
+    try:
+        root_paths = request._wagtail_cached_site_root_paths
+    except AttributeError:
+        root_paths = Site.get_site_root_paths()
+
+        if request is not None:
+            request._wagtail_cached_site_root_paths = root_paths
+
+    return root_paths
+
+
+def default_page_url_builder(page, request=None, full_url=False):
+    url_parts = page.get_url_parts(request=request)
+    if url_parts is None:
+        # page is not routable
+        return
+
+    site_id, root_url, page_path = url_parts
+
+    relative_url = False
+    if not full_url:
+        # Generate a relative URL if the page is on the same site
+        if current_site is not None and site_id == current_site.id:
+            relative_url = True
+
+        # Generate a relative URL if there is only one site
+        # Note: This allows single-site installations to still
+        #       work even if they aren't configured correctly
+        elif len(get_site_root_paths(request)) == 1:
+            relative_url = True
+
+    if relative_url:
+        return page_path
+    else:
+        return root_url + page_path
 
 
 class SiteManager(models.Manager):
@@ -789,21 +830,26 @@ class Page(AbstractPage, index.Indexed, ClusterableModel, metaclass=PageBase):
 
         return (site_id, root_url, page_path)
 
+    def build_url(self, request=None, full_url=False):
+        global PAGE_URL_BUILDER
+
+        if PAGE_URL_BUILDER is None:
+            page_url_builder_path = getattr(settings, 'WAGTAIL_PAGE_URL_BUILDER', None)
+
+            if page_url_builder_path is not None:
+                PAGE_URL_BUILDER = import_string(page_url_builder_path)
+            else:
+                PAGE_URL_BUILDER = default_page_url_builder
+
+        return PAGE_URL_BUILDER(self, request=request, full_url=full_url)
+
     def get_full_url(self, request=None):
         """Return the full URL (including protocol / domain) to this page, or None if it is not routable"""
-        url_parts = self.get_url_parts(request=request)
-
-        if url_parts is None:
-            # page is not routable
-            return
-
-        site_id, root_url, page_path = url_parts
-
-        return root_url + page_path
+        return build_url(self, request=request, full_url=True)
 
     full_url = property(get_full_url)
 
-    def get_url(self, request=None, current_site=None):
+    def get_url(self, request=None):
         """
         Return the 'most appropriate' URL for referring to this page from the pages we serve,
         within the Wagtail backend and actual website templates;
@@ -817,24 +863,8 @@ class Page(AbstractPage, index.Indexed, ClusterableModel, metaclass=PageBase):
         lookups) and, via the ``request.site`` attribute, determine whether a relative or full URL
         is most appropriate.
         """
-        # ``current_site`` is purposefully undocumented, as one can simply pass the request and get
-        # a relative URL based on ``request.site``. Nonetheless, support it here to avoid
-        # copy/pasting the code to the ``relative_url`` method below.
-        if current_site is None and request is not None:
-            current_site = getattr(request, 'site', None)
-        url_parts = self.get_url_parts(request=request)
 
-        if url_parts is None:
-            # page is not routable
-            return
-
-        site_id, root_url, page_path = url_parts
-
-        if (current_site is not None and site_id == current_site.id) or len(self._get_site_root_paths(request)) == 1:
-            # the site matches OR we're only running a single site, so a local URL is sufficient
-            return page_path
-        else:
-            return root_url + page_path
+        return build_url(self, request=request)
 
     url = property(get_url)
 
@@ -848,7 +878,13 @@ class Page(AbstractPage, index.Indexed, ClusterableModel, metaclass=PageBase):
         be used to cache site-level URL information (thereby avoiding repeated database / cache
         lookups).
         """
-        return self.get_url(request=request, current_site=current_site)
+        if request is None:
+            request = self.dummy_request()
+            request.site = current_site
+
+        # TODO raise deprecation warning
+
+        return self.get_url(request=request)
 
     def get_site(self):
         """
