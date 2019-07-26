@@ -1050,7 +1050,7 @@ class Page(AbstractPage, index.Indexed, ClusterableModel, metaclass=PageBase):
         # Log
         logger.info("Page moved: \"%s\" id=%d path=%s", self.title, self.id, new_url_path)
 
-    def copy(self, recursive=False, to=None, update_attrs=None, copy_revisions=True, keep_live=True, user=None, process_child_object=None, exclude_fields=None):
+    def copy(self, recursive=False, to=None, update_attrs=None, copy_revisions=True, keep_live=True, user=None, process_child_object=None, after_copy_page=None, exclude_fields=None):
         # Fill dict with self.specific values
         specific_self = self.specific
         default_exclude_fields = ['id', 'path', 'depth', 'numchild', 'url_path', 'path', 'index_entries']
@@ -1190,6 +1190,10 @@ class Page(AbstractPage, index.Indexed, ClusterableModel, metaclass=PageBase):
             page_copy.first_published_at = latest_revision_as_page_revision.created_at
             page_copy.save()
 
+        # Run after_copy_page
+        if after_copy_page:
+            after_copy_page(page_copy, specific_self)
+
         # Log
         logger.info("Page copied: \"%s\" id=%d from=%d", page_copy.title, page_copy.id, self.id)
 
@@ -1201,7 +1205,8 @@ class Page(AbstractPage, index.Indexed, ClusterableModel, metaclass=PageBase):
                     to=page_copy,
                     copy_revisions=copy_revisions,
                     keep_live=keep_live,
-                    user=user
+                    user=user,
+                    after_copy_page=after_copy_page,
                 )
 
         return page_copy
