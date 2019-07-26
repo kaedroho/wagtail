@@ -1,3 +1,4 @@
+import json
 from time import time
 
 from django.contrib.contenttypes.models import ContentType
@@ -22,6 +23,7 @@ from wagtail.admin import messages, signals
 from wagtail.admin.action_menu import PageActionMenu
 from wagtail.admin.forms.pages import CopyForm
 from wagtail.admin.forms.search import SearchForm
+from wagtail.admin.models import PageActionLogEntry
 from wagtail.admin.navigation import get_explorable_root_page
 from wagtail.admin.utils import send_notification, user_has_any_page_permission, user_passes_test
 from wagtail.core import hooks
@@ -242,6 +244,19 @@ def create(request, content_type_app_name, content_type_model_name, parent_page_
             if is_publishing:
                 revision.publish()
 
+            # Action log
+            PageActionLogEntry.objects.create(
+                action_type='wagtail.create',
+                time=timezone.now(),
+                page_title=page.get_admin_display_title(),
+                page=page,
+                revision=revision,
+                user=request.user,
+                created=True,
+                published=is_publishing,
+                content_changed=True,
+            )
+
             # Notifications
             if is_publishing:
                 if page.go_live_at and page.go_live_at > timezone.now():
@@ -375,6 +390,18 @@ def edit(request, page_id):
                 # Need to reload the page because the URL may have changed, and we
                 # need the up-to-date URL for the "View Live" button.
                 page = page.specific_class.objects.get(pk=page.pk)
+
+            # Action log
+            PageActionLogEntry.objects.create(
+                action_type='wagtail.edit',
+                time=timezone.now(),
+                page_title=page.get_admin_display_title(),
+                page=page,
+                revision=revision,
+                user=request.user,
+                published=is_publishing,
+                content_changed=form.has_changed(),
+            )
 
             # Notifications
             if is_publishing:
@@ -563,6 +590,17 @@ def delete(request, page_id):
             parent_id = page.get_parent().id
             page.delete()
 
+            # Action log
+            PageActionLogEntry.objects.create(
+                action_type='wagtail.delete',
+                time=timezone.now(),
+                page_title=page.get_admin_display_title(),
+                page_id=page.id,
+                user=request.user,
+                deleted=True,
+                unpublished=page.live,
+            )
+
             messages.success(request, _("Page '{0}' deleted.").format(page.get_admin_display_title()))
 
             for fn in hooks.get_hooks('after_delete_page'):
@@ -699,6 +737,16 @@ def unpublish(request, page_id):
 
         page.unpublish()
 
+        # Action log
+        PageActionLogEntry.objects.create(
+            action_type='wagtail.unpublish',
+            time=timezone.now(),
+            page_title=page.get_admin_display_title(),
+            page=page,
+            user=request.user,
+            unpublished=True,
+        )
+
         if include_descendants:
             live_descendant_pages = page.get_descendants().live().specific()
             for live_descendant_page in live_descendant_pages:
@@ -778,7 +826,27 @@ def move_confirm(request, page_to_move_id, destination_id):
     if request.method == 'POST':
         # any invalid moves *should* be caught by the permission check above,
         # so don't bother to catch InvalidMoveToDescendant
+        source = page_to_move.get_parent()
         page_to_move.move(destination, pos='last-child')
+
+        # Action log
+        PageActionLogEntry.objects.create(
+            action_type='wagtail.move',
+            data_json=json.dumps({
+                'source': {
+                    'id': source.id,
+                    'title': source.get_admin_display_title(),
+                },
+                'destination': {
+                    'id': destination.id,
+                    'title': destination.get_admin_display_title(),
+                }
+            }),
+            time=timezone.now(),
+            page_title=page_to_move.get_admin_display_title(),
+            page=page_to_move,
+            user=request.user,
+        )
 
         messages.success(request, _("Page '{0}' moved.").format(page_to_move.get_admin_display_title()), buttons=[
             messages.button(reverse('wagtailadmin_pages:edit', args=(page_to_move.id,)), _('Edit'))
@@ -873,6 +941,25 @@ def copy(request, page_id):
 
             # Re-check if the user has permission to publish subpages on the new parent
             can_publish = parent_page.permissions_for_user(request.user).can_publish_subpage()
+            keep_live = can_publish and form.cleaned_data.get('publish_copies')
+
+            def log_copy(new, source):
+                PageActionLogEntry.objects.create(
+                    action_type='wagtail.copy',
+                    data_json=json.dumps({
+                        'source': {
+                            'id': source.id,
+                            'title': source.get_admin_display_title(),
+                        }
+                    }),
+                    time=timezone.now(),
+                    page_title=new.get_admin_display_title(),
+                    page=new,
+                    revision=new.get_latest_revision(),
+                    user=request.user,
+                    created=True,
+                    published=source.live and keep_live,
+                )
 
             # Copy the page
             new_page = page.specific.copy(
@@ -882,8 +969,9 @@ def copy(request, page_id):
                     'title': form.cleaned_data['new_title'],
                     'slug': form.cleaned_data['new_slug'],
                 },
-                keep_live=(can_publish and form.cleaned_data.get('publish_copies')),
+                keep_live=keep_live,
                 user=request.user,
+                after_copy_page=log_copy,
             )
 
             # Give a success message back to the user
@@ -1010,6 +1098,17 @@ def approve_moderation(request, revision_id):
     if request.method == 'POST':
         revision.approve_moderation()
 
+        # Action log
+        PageActionLogEntry.objects.create(
+            action_type='wagtail.approve-moderation',
+            time=timezone.now(),
+            page_title=revision.page.get_admin_display_title(),
+            page=revision.page,
+            revision=revision,
+            user=request.user,
+            published=True,
+        )
+
         message = _("Page '{0}' published.").format(revision.page.get_admin_display_title())
         buttons = []
         if revision.page.url is not None:
@@ -1034,6 +1133,17 @@ def reject_moderation(request, revision_id):
 
     if request.method == 'POST':
         revision.reject_moderation()
+
+        # Action log
+        PageActionLogEntry.objects.create(
+            action_type='wagtail.reject-moderation',
+            time=timezone.now(),
+            page_title=revision.page.get_admin_display_title(),
+            page=revision.page,
+            revision=revision,
+            user=request.user,
+        )
+
         messages.success(request, _("Page '{0}' rejected for publication.").format(revision.page.get_admin_display_title()), buttons=[
             messages.button(reverse('wagtailadmin_pages:edit', args=(revision.page.id,)), _('Edit'))
         ])
@@ -1076,6 +1186,15 @@ def lock(request, page_id):
         page.locked = True
         page.save()
 
+        # Action log
+        PageActionLogEntry.objects.create(
+            action_type='wagtail.lock',
+            time=timezone.now(),
+            page_title=page.get_admin_display_title(),
+            page=page,
+            user=request.user,
+        )
+
         messages.success(request, _("Page '{0}' is now locked.").format(page.get_admin_display_title()))
 
     # Redirect
@@ -1099,6 +1218,15 @@ def unlock(request, page_id):
     if page.locked:
         page.locked = False
         page.save()
+
+        # Action log
+        PageActionLogEntry.objects.create(
+            action_type='wagtail.unlock',
+            time=timezone.now(),
+            page_title=page.get_admin_display_title(),
+            page=page,
+            user=request.user,
+        )
 
         messages.success(request, _("Page '{0}' is now unlocked.").format(page.get_admin_display_title()))
 
