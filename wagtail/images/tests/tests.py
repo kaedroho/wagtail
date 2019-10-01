@@ -150,6 +150,15 @@ class TestImageTag(TestCase):
             context = template.Context({'image_obj': self.image})
             temp.render(context)
 
+
+class TestImageUrlTag(TestCase):
+    def setUp(self):
+        # Create an image for running tests on
+        self.image = Image.objects.create(
+            title="Test image",
+            file=get_test_image_file(),
+        )
+
     def render_image_url_tag(self, image, view_name):
         temp = template.Template(
             '{% load wagtailimages_tags %}{% image_url image_obj "width-400" "' + view_name + '" %}'
@@ -171,7 +180,6 @@ class TestImageTag(TestCase):
             result,
             '/testimages/custom_view/.*/width-400/{}'.format(self.image.file.name.split('/')[-1]),
         )
-
 
     def test_image_url_no_imageserve_view_added(self):
         # if image_url tag is used, but the image serve view was not defined.
