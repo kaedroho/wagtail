@@ -498,10 +498,10 @@ class AbstractRendition(models.Model):
             ('alt', self.alt),
         ])
 
-    def img_tag(self, extra_attributes={}):
+    def img_tag(self, extra_attributes={}, tag_name='img'):
         attrs = self.attrs_dict.copy()
         attrs.update(extra_attributes)
-        return mark_safe('<img{}>'.format(flatatt(attrs)))
+        return mark_safe('<{}{}>'.format(tag_name, flatatt(attrs)))
 
     def __html__(self):
         return self.img_tag()

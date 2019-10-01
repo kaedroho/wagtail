@@ -15,7 +15,34 @@ allowed_filter_pattern = re.compile(r"^[A-Za-z0-9_\-\.]+$")
 
 
 @register.tag(name="image")
-def image(parser, token):
+def image_tag(parser, token):
+    try:
+        return image('img', parser, token)
+    except ImageTagFormatError as e:
+        raise template.TemplateSyntaxError(
+            str(e) +
+            " 'image' tag should be of the form {% image self.photo max-320x200 [ custom-attr=\"value\" ... ] %} "
+            "or {% image self.photo max-320x200 as img %}"
+        )
+
+
+@register.tag(name="amp_image")
+def amp_image_tag(parser, token):
+    try:
+        return image('amp-img', parser, token)
+    except ImageTagFormatError as e:
+        raise template.TemplateSyntaxError(
+            str(e) +
+            " 'amp_image' tag should be of the form {% amp_image self.photo max-320x200 [ custom-attr=\"value\" ... ] %} "
+            "or {% amp_image self.photo max-320x200 as img %}"
+        )
+
+
+class ImageTagFormatError(Exception):
+    pass
+
+
+def image(tag_name, parser, token):
     bits = token.split_contents()[1:]
     image_expr = parser.compile_filter(bits[0])
     bits = bits[1:]
@@ -64,23 +91,17 @@ def image(parser, token):
 
     if len(bits) == 0:
         # no resize rule provided eg. {% image page.image %}
-        raise template.TemplateSyntaxError(
-            "no resize rule provided. "
-            "'image' tag should be of the form {% image self.photo max-320x200 [ custom-attr=\"value\" ... ] %} "
-            "or {% image self.photo max-320x200 as img %}"
-        )
+        raise ImageTagFormatError("no resize rule provided.")
 
     if is_valid:
-        return ImageNode(image_expr, '|'.join(filter_specs), attrs=attrs, output_var_name=output_var_name)
+        return ImageNode(tag_name, image_expr, '|'.join(filter_specs), attrs=attrs, output_var_name=output_var_name)
     else:
-        raise template.TemplateSyntaxError(
-            "'image' tag should be of the form {% image self.photo max-320x200 [ custom-attr=\"value\" ... ] %} "
-            "or {% image self.photo max-320x200 as img %}"
-        )
+        raise ImageTagFormatError()
 
 
 class ImageNode(template.Node):
-    def __init__(self, image_expr, filter_spec, output_var_name=None, attrs={}):
+    def __init__(self, tag_name, image_expr, filter_spec, output_var_name=None, attrs={}):
+        self.tag_name = tag_name
         self.image_expr = image_expr
         self.output_var_name = output_var_name
         self.attrs = attrs
@@ -113,7 +134,7 @@ class ImageNode(template.Node):
             resolved_attrs = {}
             for key in self.attrs:
                 resolved_attrs[key] = self.attrs[key].resolve(context)
-            return rendition.img_tag(resolved_attrs)
+            return rendition.img_tag(resolved_attrs, tag_name=self.tag_name)
 
 
 @register.simple_tag()
