@@ -43,10 +43,14 @@ class TestImageTag(TestCase):
     def test_image_tag(self):
         result = self.render_image_tag(self.image, 'width-400')
 
-        # Check that all the required HTML attributes are set
-        self.assertTrue('width="400"' in result)
-        self.assertTrue('height="300"' in result)
-        self.assertTrue('alt="Test image"' in result)
+        self.assertHTMLEqual(result, '<img alt="Test image" height="300" src="{}" width="400">'.format(self.image.get_rendition('width-400').url))
+
+    def test_amp_image_tag(self):
+        temp = template.Template('{% load wagtailimages_tags %}{% amp_image image_obj width-400 %}')
+        context = template.Context({'image_obj': self.image})
+        result = temp.render(context)
+
+        self.assertHTMLEqual(result, '<amp-img alt="Test image" height="300" src="{}" width="400">'.format(self.image.get_rendition('width-400').url))
 
     def test_image_tag_none(self):
         result = self.render_image_tag(None, "width-500")
