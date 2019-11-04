@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import gettext from 'gettext';
 
 const propTypes = {
   onSearch: PropTypes.func.isRequired,
@@ -12,7 +13,7 @@ const PageChooserHeader = ({ onSearch, searchEnabled }) => (
       <div className="left">
         <div className="col">
           <h1 className="icon icon-doc-empty-inverse">
-            Choose a page
+            {gettext('Choose a page')}
           </h1>
         </div>
         <form className="col search-form" noValidate={true}>
@@ -20,7 +21,7 @@ const PageChooserHeader = ({ onSearch, searchEnabled }) => (
             <li className="required">
               <div className="field char_field text_input field-small iconfield">
                 <label htmlFor="id_q">
-                  Search term:
+                  {gettext('Search term:')}
                 </label>
                 <div className="field-content">
                   <div className="input icon-search ">

@@ -5,6 +5,7 @@ from django.views.decorators.cache import never_cache
 from django.views.generic import TemplateView
 from django.http import Http404
 from django.views.defaults import page_not_found
+from django.views.i18n import JavaScriptCatalog
 
 from wagtail.admin.auth import require_admin_access
 from wagtail.admin.urls import pages as wagtailadmin_pages_urls
@@ -65,6 +66,8 @@ urlpatterns = [
         name='wagtailadmin_account_current_time_zone'
     ),
     url(r'^logout/$', account.LogoutView.as_view(), name='wagtailadmin_logout'),
+
+    url(r'^jsi18n/$', JavaScriptCatalog.as_view(packages=['wagtail.admin']), name='wagtailadmin_jsi18n'),
 ]
 
 

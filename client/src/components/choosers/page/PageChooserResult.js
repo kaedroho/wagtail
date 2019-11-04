@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
+import gettext from 'gettext';
 
 const propTypes = {
   isChoosable: PropTypes.bool.isRequired,
@@ -121,7 +122,7 @@ class PageChooserResult extends React.Component {
             className="icon text-replace icon-arrow-right navigate-pages"
             title={`Explore subpages of '${page.title}'`}
           >
-            Explore
+            {gettext('Explore')}
           </a>
         </td>
       );

@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import gettext from 'gettext';
 
 import PageChooserPagination from './PageChooserPagination';
 import PageChooserResult from './PageChooserResult';
@@ -111,10 +112,10 @@ class PageChooserResultSet extends React.Component {
           </colgroup>
           <thead>
             <tr className="table-headers">
-              <th className="title">Title</th>
-              <th className="updated">Updated</th>
-              <th className="type">Type</th>
-              <th className="status">Status</th>
+              <th className="title">{gettext('Title')}</th>
+              <th className="updated">{gettext('Updated')}</th>
+              <th className="type">{gettext('Type')}</th>
+              <th className="status">{gettext('Status')}</th>
               <th />
             </tr>
             {parent}
