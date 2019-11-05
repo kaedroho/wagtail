@@ -326,6 +326,7 @@ class Page(AbstractPage, index.Indexed, ClusterableModel, metaclass=PageBase):
         'Workflow',
         related_name='pages',
         verbose_name=_('workflow'),
+        on_delete=models.SET_NULL,
         null=True
     )
 
@@ -2287,6 +2288,8 @@ class Workflow(models.Model):
         return self.name
 
     class Meta:
-        unique_together = [('name', 'tasks')]
         verbose_name = _('workflow')
         verbose_name_plural = _('workflows')
+
+class GroupApprovalTask(Task):
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, verbose_name=_('group'))
