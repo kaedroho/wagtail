@@ -41,7 +41,7 @@ With this strategy, you could use Django or Python utilities to render your mode
 
 .. _overriding_route_method:
 
-Adding Endpoints with Custom :meth:`~wagtail.core.models.Page.route` Methods
+Adding ImagesAPIViewSets with Custom :meth:`~wagtail.core.models.Page.route` Methods
 -----------------------------------------------------------------------------------
 
 .. note::
