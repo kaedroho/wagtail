@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import gettext from 'gettext';
 
 import PageChooserResultSet from '../PageChooserResultSet';
 
@@ -21,11 +20,11 @@ const propTypes = {
 const renderTitle = (totalItems) => {
   switch (totalItems) {
   case 0:
-    return gettext('There are no matches');
+    return 'There are no matches';
   case 1:
-    return getttext('There is 1 match');
+    return 'There is 1 match';
   default:
-    return gettext(`There are ${totalItems} matches`);
+    return `There are ${totalItems} matches`;
   }
 };
 

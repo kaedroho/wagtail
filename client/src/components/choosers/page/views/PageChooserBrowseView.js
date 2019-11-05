@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import gettext from 'gettext';
 
 import PageChooserResultSet from '../PageChooserResultSet';
 
@@ -44,7 +43,7 @@ class PageChooserBrowseView extends React.Component {
                 className="navigate-pages icon icon-home text-replace"
                 onClick={onClickNavigate}
               >
-                {gettext('Home')}
+                Home
               </a>
             </li>
           );

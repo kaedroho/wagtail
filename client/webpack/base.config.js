@@ -92,9 +92,5 @@ module.exports = function exports() {
       net: 'empty',
       tls: 'empty',
     },
-
-    externals: {
-      gettext: 'gettext',
-    }
   };
 };

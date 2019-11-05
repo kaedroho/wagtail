@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import gettext from 'gettext';
 
 const propTypes = {
   totalPages: PropTypes.number.isRequired,
@@ -30,7 +29,7 @@ class PageChooserPagination extends React.Component {
             href="#"
             className="icon icon-arrow-left navigate-pages"
           >
-            {gettext('Previous')}
+            Previous
           </a>
         </li>
       );
@@ -58,7 +57,7 @@ class PageChooserPagination extends React.Component {
             href="#"
             className="icon icon-arrow-right-after navigate-pages"
           >
-            {gettext('Next')}
+            Next
           </a>
         </li>
       );
