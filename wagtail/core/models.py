@@ -23,6 +23,7 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.text import capfirst, slugify
 from django.utils.translation import ugettext_lazy as _
+from modelcluster.fields import ParentalKey
 from modelcluster.models import (
     ClusterableModel, get_all_child_m2m_relations, get_all_child_relations)
 from treebeard.mp_tree import MP_Node
@@ -316,7 +317,7 @@ class Page(AbstractPage, index.Indexed, ClusterableModel, metaclass=PageBase):
     live_revision = models.ForeignKey(
         'PageRevision',
         related_name='+',
-        verbose_name='live revision',
+        verbose_name=_('live revision'),
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -1517,6 +1518,16 @@ class Page(AbstractPage, index.Indexed, ClusterableModel, metaclass=PageBase):
 
         return obj
 
+    def get_workflow(self):
+        if hasattr(self, 'workflowpage'):
+            return self.workflowpage.workflow
+        else:
+            try:
+                workflow = self.get_ancestors().filter(workflowpage__isnull=False).order_by('-depth').first().workflowpage.workflow
+            except AttributeError:
+                workflow = None
+            return workflow
+
     class Meta:
         verbose_name = _('page')
         verbose_name_plural = _('pages')
@@ -2211,3 +2222,111 @@ class GroupCollectionPermission(models.Model):
         unique_together = ('group', 'collection', 'permission')
         verbose_name = _('group collection permission')
         verbose_name_plural = _('group collection permissions')
+
+
+class WorkflowPage(models.Model):
+    page = models.OneToOneField(
+        'Page',
+        verbose_name=_('page'),
+        on_delete=models.CASCADE,
+        primary_key=True,
+        unique=True
+    )
+    workflow = models.ForeignKey(
+        'Workflow',
+        related_name='workflow_pages',
+        verbose_name=_('workflow'),
+        on_delete=models.CASCADE,
+    )
+
+    class Meta:
+        verbose_name = _('workflow page')
+        verbose_name_plural = _('workflow pages')
+
+
+class WorkflowTask(Orderable):
+    workflow = ParentalKey('Workflow', on_delete=models.CASCADE, verbose_name=_('workflow_tasks'), related_name='workflow_tasks')
+    task = models.ForeignKey('Task', on_delete=models.CASCADE, verbose_name=_('task'), related_name='workflow_tasks', limit_choices_to={'active': True})
+
+    class Meta:
+        unique_together = [('workflow', 'sort_order'), ('workflow', 'task')]
+        verbose_name = _('workflow task order')
+        verbose_name_plural = _('workflow task orders')
+
+
+class TaskManager(models.Manager):
+    def active(self):
+        return self.filter(active=True)
+
+
+class Task(models.Model):
+    name = models.CharField(max_length=255, verbose_name=_('name'))
+    content_type = models.ForeignKey(
+        ContentType,
+        verbose_name=_('content type'),
+        related_name='wagtail_tasks',
+        on_delete=models.CASCADE
+    )
+    active = models.BooleanField(verbose_name=_('active'), default=True)
+    objects = TaskManager()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.id:
+            # this model is being newly created
+            # rather than retrieved from the db;
+            if not self.content_type_id:
+                # set content type to correctly represent the model class
+                # that this was created as
+                self.content_type = ContentType.objects.get_for_model(self)
+
+    def __str__(self):
+        return self.name
+
+    @cached_property
+    def specific(self):
+        """
+        Return this Task in its most specific subclassed form.
+        """
+        # the ContentType.objects manager keeps a cache, so this should potentially
+        # avoid a database lookup over doing self.content_type. I think.
+        content_type = ContentType.objects.get_for_id(self.content_type_id)
+        model_class = content_type.model_class()
+        if model_class is None:
+            # Cannot locate a model class for this content type. This might happen
+            # if the codebase and database are out of sync (e.g. the model exists
+            # on a different git branch and we haven't rolled back migrations before
+            # switching branches); if so, the best we can do is return the page
+            # unchanged.
+            return self
+        elif isinstance(self, model_class):
+            # self is already the an instance of the most specific class
+            return self
+        else:
+            return content_type.get_object_for_this_type(id=self.id)
+
+    class Meta:
+        verbose_name = _('task')
+        verbose_name_plural = _('tasks')
+
+
+class WorkflowManager(models.Manager):
+    def active(self):
+        return self.filter(active=True)
+
+
+class Workflow(ClusterableModel):
+    name = models.CharField(max_length=255, verbose_name=_('name'))
+    active = models.BooleanField(verbose_name=_('active'), default=True)
+    objects = WorkflowManager()
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('workflow')
+        verbose_name_plural = _('workflows')
+
+
+class GroupApprovalTask(Task):
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, verbose_name=_('group'))
