@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 
-from wagtail.core.models import Task, Workflow, WorkflowTask
+from wagtail.core.models import Page, Task, Workflow, WorkflowPage, WorkflowTask
 from wagtail.tests.testapp.models import SimpleTask
 from wagtail.tests.utils import WagtailTestUtils
 
@@ -94,8 +94,11 @@ class TestWorkflowsEditView(TestCase, WagtailTestUtils):
         self.workflow = Workflow.objects.create(name="workflow_to_edit")
         self.task_1 = SimpleTask.objects.create(name="first_task")
         self.task_2 = SimpleTask.objects.create(name="second_task")
-        self.inactive_task = SimpleTask.objects.create(name="inactive_task")
-        WorkflowTask.objects.create(workflow=self.workflow, task=self.task_1.task_ptr, sort_order=0)
+        self.inactive_task = SimpleTask.objects.create(name="inactive_task", active=False)
+        self.workflow_task = WorkflowTask.objects.create(workflow=self.workflow, task=self.task_1.task_ptr, sort_order=0)
+        self.page = Page.objects.first()
+        WorkflowPage.objects.create(workflow=self.workflow, page=self.page)
+
 
     def get(self, params={}):
         return self.client.get(reverse('wagtailadmin_workflows:edit', args=[self.workflow.id]), params)
@@ -107,17 +110,31 @@ class TestWorkflowsEditView(TestCase, WagtailTestUtils):
         response = self.get()
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'wagtailadmin/workflows/edit.html')
+
+        # Test that the form contains options for the active tasks, but not the inactive task
         self.assertContains(response, "first_task")
         self.assertContains(response, "second_task")
-        self.assertContains(response, "inactive_task")
+        self.assertNotContains(response, "inactive_task")
+
+        # Check that the list of pages has the page to which this workflow is assigned
+        self.assertContains(response, self.page.title)
 
     def test_post(self):
         response = self.post({
-            'name': ['test_workflow'], 'active': ['on'], 'workflow_tasks-TOTAL_FORMS': ['2'],
-            'workflow_tasks-INITIAL_FORMS': ['0'], 'workflow_tasks-MIN_NUM_FORMS': ['0'],
-            'workflow_tasks-MAX_NUM_FORMS': ['1000'], 'workflow_tasks-0-task': [str(self.task_1.id)], 'workflow_tasks-0-id': [''],
-            'workflow_tasks-0-ORDER': ['1'], 'workflow_tasks-0-DELETE': [''], 'workflow_tasks-1-task': [str(self.task_2.id)],
-            'workflow_tasks-1-id': [''], 'workflow_tasks-1-ORDER': ['2'], 'workflow_tasks-1-DELETE': ['']})
+            'name': [str(self.workflow.name)],
+            'active': ['on'],
+            'workflow_tasks-TOTAL_FORMS': ['2'],
+            'workflow_tasks-INITIAL_FORMS': ['1'],
+            'workflow_tasks-MIN_NUM_FORMS': ['0'],
+            'workflow_tasks-MAX_NUM_FORMS': ['1000'],
+            'workflow_tasks-0-task': [str(self.task_1.id)],
+            'workflow_tasks-0-id': [str(self.workflow_task.id)],
+            'workflow_tasks-0-ORDER': ['1'],
+            'workflow_tasks-0-DELETE': [''],
+            'workflow_tasks-1-task': [str(self.task_2.id)],
+            'workflow_tasks-1-id': [''],
+            'workflow_tasks-1-ORDER': ['2'],
+            'workflow_tasks-1-DELETE': ['']})
 
 
         # Should redirect back to index
@@ -135,4 +152,41 @@ class TestWorkflowsEditView(TestCase, WagtailTestUtils):
         # Check that the tasks have sort_order set on WorkflowTask correctly
         self.assertEqual(WorkflowTask.objects.get(workflow=workflow, task=self.task_1.task_ptr).sort_order, 0)
         self.assertEqual(WorkflowTask.objects.get(workflow=workflow, task=self.task_2.task_ptr).sort_order, 1)
+
+
+class TestAddWorkflowToPage(TestCase, WagtailTestUtils):
+    fixtures = ['test.json']
+
+    def setUp(self):
+        self.login()
+        self.workflow = Workflow.objects.create(name="workflow")
+        self.page = Page.objects.first()
+        self.other_workflow = Workflow.objects.create(name="other_workflow")
+        self.other_page = Page.objects.last()
+        WorkflowPage.objects.create(workflow=self.other_workflow, page=self.other_page)
+
+    def get(self, params={}):
+        return self.client.get(reverse('wagtailadmin_workflows:add_to_page', args=[self.workflow.id]), params)
+
+    def post(self, post_data={}):
+        return self.client.post(reverse('wagtailadmin_workflows:add_to_page', args=[self.workflow.id]), post_data)
+
+    def test_get(self):
+        response = self.get()
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'wagtailadmin/workflows/add_to_page.html')
+
+    def test_post(self):
+        # Check that a WorkflowPage instance is created correctly when a page with no existing workflow is created
+        response = self.post({'page': str(self.page.id), 'workflow': str(self.workflow.id)})
+        self.assertEqual(WorkflowPage.objects.filter(workflow=self.workflow, page=self.page).count(), 1)
+
+        # Check that trying to add a WorkflowPage for a page with an existing workflow does not create
+        response = self.post({'page': str(self.other_page.id), 'workflow': str(self.workflow.id)})
+        self.assertEqual(WorkflowPage.objects.filter(workflow=self.workflow, page=self.other_page).count(), 0)
+
+        # Check that this can be overridden by setting overwrite_existing to true
+        response = self.post({'page': str(self.other_page.id), 'overwrite_existing': 'True', 'workflow': str(self.workflow.id)})
+        self.assertEqual(WorkflowPage.objects.filter(workflow=self.workflow, page=self.other_page).count(), 1)
+
 
