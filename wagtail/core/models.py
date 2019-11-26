@@ -21,6 +21,7 @@ from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import cached_property
+from django.utils.module_loading import import_string
 from django.utils.text import capfirst, slugify
 from django.utils.translation import ugettext_lazy as _
 from modelcluster.fields import ParentalKey
@@ -2292,7 +2293,6 @@ class Task(models.Model):
         # except this doesn't convert any characters to lowercase
         return capfirst(cls._meta.verbose_name)
 
-
     @cached_property
     def specific(self):
         """
@@ -2314,6 +2314,23 @@ class Task(models.Model):
             return self
         else:
             return content_type.get_object_for_this_type(id=self.id)
+
+    def start(self, workflow_state):
+        task_state = TaskState(workflow_state=workflow_state)
+        task_state.status = 'in_progress'
+        task_state.page_revision = workflow_state.page.get_latest_revision()
+        task_state.task = self
+        task_state.save()
+        return task_state
+
+    @transaction.atomic
+    def on_action(self, workflow_state, task_state, action_name):
+        if action_name == 'approve':
+            task_state.approve()
+            workflow_state.update()
+        elif action_name == 'reject':
+            task_state.reject()
+            workflow_state.update()
 
     class Meta:
         verbose_name = _('task')
@@ -2337,6 +2354,13 @@ class Workflow(ClusterableModel):
     def tasks(self):
         return Task.objects.filter(workflow_tasks__workflow=self)
 
+    def start(self, page, user):
+        # initiates a workflow by creating an instance of WorkflowState
+        state = WorkflowState(page=page, workflow=self, status='in_progress', requested_by=user)
+        state.save()
+        state.update()
+        return state
+
     class Meta:
         verbose_name = _('workflow')
         verbose_name_plural = _('workflows')
@@ -2350,3 +2374,150 @@ class GroupApprovalTask(Task):
         verbose_name_plural = _('Group approval tasks')
 
 
+class WorkflowState(models.Model):
+    """Tracks the status of a started Workflow on a Page."""
+    WORKFLOW_STATUS_CHOICES = (
+        ('in_progress', _("In progress")),
+        ('approved', _("Approved")),
+        ('rejected', _("Rejected")),
+        ('cancelled', _("Cancelled")),
+    )
+
+    page = models.ForeignKey('Page', on_delete=models.CASCADE, verbose_name=_("page"), related_name='workflow_states')
+    workflow = models.ForeignKey('Workflow', on_delete=models.CASCADE, verbose_name=_('workflow'), related_name='workflow_states')
+    status = models.fields.CharField(choices=WORKFLOW_STATUS_CHOICES, blank=False, null=False, verbose_name=_("status"), max_length=50, default='in_progress')
+    created_at = models.DateTimeField(auto_now=True, verbose_name=_("created at"))
+    requested_by = models.ForeignKey(settings.AUTH_USER_MODEL,
+                                     verbose_name=_('requested by'),
+                                     null=True,
+                                     blank=True,
+                                     editable=True,
+                                     on_delete=models.SET_NULL,
+                                     related_name='requested_workflows')
+    current_task_state = models.OneToOneField('TaskState', on_delete=models.SET_NULL, null=True, blank=False,
+                                              verbose_name=_("current task state"))
+
+    # allows a custom function to be called on finishing the Workflow successfully.
+    on_finish = import_string(getattr(settings, 'WAGTAIL_FINISH_WORKFLOW_ACTION', 'wagtail.core.workflows.publish_workflow_state'))
+
+    def __str__(self):
+        return _("Workflow '{0}' on Page '{1}': {2}").format(self.workflow, self.page, self.status)
+
+    def update(self):
+        # checks the status of the current task, and progresses (or ends) the workflow if appropriate
+        try:
+            current_status = self.current_task_state.status
+        except AttributeError:
+            current_status = None
+        if current_status == 'rejected':
+            self.status = current_status
+            self.save()
+        else:
+            next_task = self.get_next_task()
+            if next_task:
+                if not self.current_task_state or next_task != self.current_task_state.task:
+                    # if not on a task, or the next task to move to is not the current task (ie current task's status is
+                    # not 'in_progress'), move to the next task
+                    self.current_task_state = next_task.start(self)
+                    self.save()
+                # otherwise, continue on the current task
+            else:
+                # if there is no uncompleted task, finish the workflow.
+                self.finish()
+
+    def get_next_task(self):
+        # finds the next task associated with the latest page revision, which has not been either approved or skipped
+        return Task.objects.filter(workflow_tasks__workflow=self.workflow).exclude(Q(task_states__page_revision=self.page.get_latest_revision()), Q(task_states__status='approved') | Q(task_states__status='skipped')).order_by('workflow_tasks__sort_order').first()
+
+    def cancel(self):
+        self.status = 'cancelled'
+        self.save()
+
+    @transaction.atomic
+    def finish(self):
+        self.status = 'approved'
+        self.save()
+        self.on_finish()
+
+    class Meta:
+        verbose_name = _('Workflow state')
+        verbose_name_plural = _('Workflow states')
+        # prevent multiple 'in_progress' workflows for the same page
+        constraints = [
+            models.UniqueConstraint(fields=['page'], condition=Q(status='in_progress'), name='unique_in_progress_workflow')
+        ]
+
+
+class TaskState(models.Model):
+    """Tracks the status of a given Task for a particular page revision."""
+    TASK_STATUS_CHOICES = (
+        ('in_progress', _("In progress")),
+        ('approved', _("Approved")),
+        ('rejected', _("Rejected")),
+        ('skipped', _("Skipped")),
+        ('cancelled', _("Cancelled")),
+    )
+
+    workflow_state = models.ForeignKey('WorkflowState', on_delete=models.CASCADE, verbose_name=_('workflow state'), related_name='task_states')
+    page_revision = models.ForeignKey('PageRevision', on_delete=models.CASCADE, verbose_name=_('page revision'), related_name='task_states')
+    task = models.ForeignKey('Task', on_delete=models.CASCADE, verbose_name=_('task'), related_name='task_states')
+    status = models.fields.CharField(choices=TASK_STATUS_CHOICES, blank=False, null=False, verbose_name=_("status"), max_length=50, default='in_progress')
+    started_at = models.DateTimeField(verbose_name=_('started at'), auto_now=True)
+    finished_at = models.DateTimeField(verbose_name=_('finished at'), blank=True, null=True)
+    content_type = models.ForeignKey(
+        ContentType,
+        verbose_name=_('content type'),
+        related_name='wagtail_task_states',
+        on_delete=models.CASCADE
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.id:
+            # this model is being newly created
+            # rather than retrieved from the db;
+            if not self.content_type_id:
+                # set content type to correctly represent the model class
+                # that this was created as
+                self.content_type = ContentType.objects.get_for_model(self)
+
+    def __str__(self):
+        return _("Task '{0}' on Page Revision '{1}': {2}").format(self.task, self.page_revision, self.status)
+
+    @cached_property
+    def specific(self):
+        """
+        Return this TaskState in its most specific subclassed form.
+        """
+        # the ContentType.objects manager keeps a cache, so this should potentially
+        # avoid a database lookup over doing self.content_type. I think.
+        content_type = ContentType.objects.get_for_id(self.content_type_id)
+        model_class = content_type.model_class()
+        if model_class is None:
+            # Cannot locate a model class for this content type. This might happen
+            # if the codebase and database are out of sync (e.g. the model exists
+            # on a different git branch and we haven't rolled back migrations before
+            # switching branches); if so, the best we can do is return the page
+            # unchanged.
+            return self
+        elif isinstance(self, model_class):
+            # self is already the an instance of the most specific class
+            return self
+        else:
+            return content_type.get_object_for_this_type(id=self.id)
+
+    def approve(self):
+        self.status = 'approved'
+        self.finished_at = timezone.now()
+        self.save()
+        return self
+
+    def reject(self):
+        self.status = 'rejected'
+        self.finished_at = timezone.now()
+        self.save()
+        return self
+
+    class Meta:
+        verbose_name = _('Task state')
+        verbose_name_plural = _('Task states')
