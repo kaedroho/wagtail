@@ -31,7 +31,7 @@ from wagtail.contrib.sitemaps import Sitemap
 from wagtail.contrib.table_block.blocks import TableBlock
 from wagtail.core.blocks import CharBlock, RichTextBlock, StructBlock
 from wagtail.core.fields import RichTextField, StreamField
-from wagtail.core.models import Orderable, Page, PageManager, PageQuerySet
+from wagtail.core.models import Orderable, Page, PageManager, PageQuerySet, Task
 from wagtail.documents.edit_handlers import DocumentChooserPanel
 from wagtail.documents.models import AbstractDocument, Document
 from wagtail.images.blocks import ImageChooserBlock
@@ -1343,3 +1343,6 @@ class SimpleChildPage(Page):
     parent_page_types = ['tests.SimpleParentPage', Page]
 
     max_count_per_parent = 1
+
+class SimpleTask(Task):
+    pass
