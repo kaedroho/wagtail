@@ -9,6 +9,7 @@ from django.views.defaults import page_not_found
 from wagtail.admin.auth import require_admin_access
 from wagtail.admin.urls import pages as wagtailadmin_pages_urls
 from wagtail.admin.urls import collections as wagtailadmin_collections_urls
+from wagtail.admin.urls import reports as wagtailadmin_reports_urls
 from wagtail.admin.urls import password_reset as wagtailadmin_password_reset_urls
 from wagtail.admin.urls import workflows as wagtailadmin_workflows_urls
 from wagtail.admin.views import account, chooser, home, pages, tags, userbar
@@ -45,6 +46,8 @@ urlpatterns = [
 
     url(r'^collections/', include(wagtailadmin_collections_urls, namespace='wagtailadmin_collections')),
     url(r'^workflows/', include(wagtailadmin_workflows_urls, namespace='wagtailadmin_workflows')),
+
+    url(r'^reports/', include(wagtailadmin_reports_urls, namespace='wagtailadmin_reports')),
 
     url(r'^account/$', account.account, name='wagtailadmin_account'),
     url(r'^account/change_password/$', account.change_password, name='wagtailadmin_account_change_password'),
