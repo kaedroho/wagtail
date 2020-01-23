@@ -31,6 +31,7 @@ const PageChooserHeader = ({ modalId, onSearch, searchEnabled }) => (
                       placeholder={STRINGS.SEARCH}
                       type="text"
                       disabled={!searchEnabled}
+                      id={`${modalId}-search`}
                     />
                     <span />
                   </div>
