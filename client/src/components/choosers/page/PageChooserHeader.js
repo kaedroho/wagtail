@@ -8,12 +8,12 @@ const propTypes = {
   searchEnabled: PropTypes.bool.isRequired,
 };
 
-const PageChooserHeader = ({ onSearch, searchEnabled }) => (
+const PageChooserHeader = ({ modalId, onSearch, searchEnabled }) => (
   <header className="nice-padding hasform">
     <div className="row">
       <div className="left">
         <div className="col">
-          <h1 className="icon icon-doc-empty-inverse">
+          <h1 className="icon icon-doc-empty-inverse" id={`${modalId}-title`}>
             {STRINGS.CHOOSE_A_PAGE}
           </h1>
         </div>
