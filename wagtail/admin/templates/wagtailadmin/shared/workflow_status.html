@@ -1,6 +1,10 @@
 {% load wagtailui_tags i18n %}
-{% if workflow_tasks %}
-<h2>{{ workflow_name }}</h2>
+{% if workflow_state %}
+    <h2>
+        <a href="{% url 'wagtailadmin_pages:workflow_history_detail' page.id workflow_state.id %}">
+            {{ workflow_state.workflow.name }}
+        </a>
+    </h2>
     {% if current_task_number %}
         {% blocktrans %} Task {{ current_task_number }} of {{ workflow_tasks.count }}{% endblocktrans %}: {{ task_name }}
     {% else %}

@@ -28,7 +28,7 @@ from wagtail.admin.mail import send_notification
 from wagtail.admin.navigation import get_explorable_root_page
 from wagtail.core import hooks
 from wagtail.core.models import (
-    Page, PageRevision, Task, TaskState, UserPagePermissionsProxy, WorkflowTask)
+    Page, PageRevision, Task, TaskState, UserPagePermissionsProxy, WorkflowTask, WorkflowState)
 from wagtail.search.query import MATCH_ALL
 
 
@@ -370,7 +370,6 @@ def edit(request, page_id):
 
     workflow_tasks = []
     workflow_state = page.current_workflow_state
-    workflow_name = ''
     task_name = ''
     current_task_number = None
     if workflow_state:
@@ -382,7 +381,6 @@ def edit(request, page_id):
             # The Task has been removed from the Workflow
             pass
         task_name = task.name
-        workflow_name = workflow.name
 
         workflow_tasks = workflow_state.all_tasks_with_status()
 
@@ -391,9 +389,9 @@ def edit(request, page_id):
         # TODO: allow this warning message to be adapted based on whether tasks will auto-re-approve when an edit is made on a later task or not
         # TODO: add icon to message when we have added a workflows icon
         if current_task_number:
-            workflow_info = format_html(_("<b>Page '{}'</b> is on <b>Task {} of {}: '{}'</b> in <b>Workflow '{}'</b>. "), page.get_admin_display_title(), current_task_number, workflow_tasks.count(), task_name, workflow_name)
+            workflow_info = format_html(_("<b>Page '{}'</b> is on <b>Task {} of {}: '{}'</b> in <b>Workflow '{}'</b>. "), page.get_admin_display_title(), current_task_number, workflow_tasks.count(), task_name, workflow.name)
         else:
-            workflow_info = format_html(_("<b>Page '{}'</b> is on <b>Task '{}'</b> in <b>Workflow '{}'</b>. "), page.get_admin_display_title(), current_task_number, workflow_tasks.count(), task_name, workflow_name)
+            workflow_info = format_html(_("<b>Page '{}'</b> is on <b>Task '{}'</b> in <b>Workflow '{}'</b>. "), page.get_admin_display_title(), current_task_number, workflow_tasks.count(), task_name, workflow.name)
         if task_has_been_approved:
             messages.warning(request, mark_safe(workflow_info + _("Editing this Page will cause completed Tasks to need re-approval.")))
         else:
@@ -606,7 +604,7 @@ def edit(request, page_id):
         'workflow_tasks': workflow_tasks,
         'current_task_number': current_task_number,
         'task_name': task_name,
-        'workflow_name': workflow_name,
+        'workflow_state': workflow_state,
     })
 
 
@@ -1393,4 +1391,19 @@ def revisions_unschedule(request, page_id, revision_id):
         'revision': revision,
         'next': next_url,
         'subtitle': subtitle
+    })
+
+
+def workflow_history(request, page_id):
+    page = get_object_or_404(Page, id=page_id).specific
+
+    user_perms = UserPagePermissionsProxy(request.user)
+    if not user_perms.for_page(page).can_edit():
+        raise PermissionDenied
+
+    workflow_states = WorkflowState.objects.filter(page=page)
+
+    return render(request, 'wagtailadmin/pages/workflow_history/index.html', {
+        'page': page,
+        'workflow_states': workflow_states,
     })
