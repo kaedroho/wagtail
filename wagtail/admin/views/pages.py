@@ -1395,7 +1395,7 @@ def revisions_unschedule(request, page_id, revision_id):
 
 
 def workflow_history(request, page_id):
-    page = get_object_or_404(Page, id=page_id).specific
+    page = get_object_or_404(Page, id=page_id)
 
     user_perms = UserPagePermissionsProxy(request.user)
     if not user_perms.for_page(page).can_edit():
@@ -1403,7 +1403,81 @@ def workflow_history(request, page_id):
 
     workflow_states = WorkflowState.objects.filter(page=page)
 
+    paginator = Paginator(workflow_states, per_page=20)
+    workflow_states = paginator.get_page(request.GET.get('p'))
+
     return render(request, 'wagtailadmin/pages/workflow_history/index.html', {
         'page': page,
         'workflow_states': workflow_states,
+    })
+
+
+def workflow_history_detail(request, page_id, workflow_state_id):
+    page = get_object_or_404(Page, id=page_id)
+
+    user_perms = UserPagePermissionsProxy(request.user)
+    if not user_perms.for_page(page).can_edit():
+        raise PermissionDenied
+
+    workflow_state = get_object_or_404(WorkflowState, page=page, id=workflow_state_id)
+
+    # Get QuerySet of all revisions that have existed during this workflow state
+    # It's possible that the page is edited while the workflow is running, so some
+    # tasks may be repeated. All tasks that have been completed no matter what
+    # revision needs to be displayed on this page.
+    page_revisions = PageRevision.objects.filter(
+        page=page,
+        id__in=TaskState.objects.filter(workflow_state=workflow_state).values_list('page_revision_id', flat=True)
+    ).order_by('created_at')
+
+    # Now get QuerySet of tasks completed for each revision
+    task_states_by_revision_task = [
+        (page_revision, {
+            task_state.task: task_state
+            for task_state in TaskState.objects.filter(workflow_state=workflow_state, page_revision=page_revision)
+        })
+        for page_revision in page_revisions
+    ]
+
+    # Make sure task states are always in a consistent order
+    # In some cases, they can be completed in a different order to what they are defined
+    tasks = workflow_state.workflow.tasks.all()
+    task_states_by_revision = [
+        (
+            page_revision,
+            [
+                task_states_by_task.get(task, None)
+                for task in tasks
+            ]
+        )
+        for page_revision, task_states_by_task in task_states_by_revision_task
+    ]
+
+    # Generate timeline
+    timeline = []
+
+    for page_revision in page_revisions:
+        timeline.append({
+            'time': page_revision.created_at,
+            'action': 'page_edited',
+            'revision': page_revision,
+        })
+
+    for task_state in TaskState.objects.filter(workflow_state=workflow_state):
+        if task_state.finished_at:
+            timeline.append({
+                'time': task_state.finished_at,
+                'action': 'task_finished',
+                'task_state': task_state,
+            })
+
+    timeline.sort(key=lambda t: t['time'])
+
+    return render(request, 'wagtailadmin/pages/workflow_history/detail.html', {
+        'page': page,
+        'workflow_state': workflow_state,
+        'tasks': tasks,
+        'task_states_by_revision': task_states_by_revision,
+        'grid_size': len(tasks) * 2 + 1,
+        'timeline': timeline,
     })

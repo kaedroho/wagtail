@@ -21,4 +21,7 @@
             {% endif %}
         {% endfor %}
     </div>
+    <a href="{% url 'wagtailadmin_pages:workflow_history' page.id %}">
+        Workflow history
+    </a>
 {% endif %}
