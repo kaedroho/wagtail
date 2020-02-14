@@ -1,3 +1,4 @@
+from datetime import timedelta
 from time import time
 
 from django.contrib.contenttypes.models import ContentType
@@ -1454,7 +1455,30 @@ def workflow_history_detail(request, page_id, workflow_state_id):
     ]
 
     # Generate timeline
-    timeline = []
+    completed_task_states = TaskState.objects.filter(
+        workflow_state=workflow_state
+    ).exclude(
+        finished_at__isnull=True
+    ).exclude(
+        status=TaskState.STATUS_CANCELLED
+    )
+
+    timeline = [
+        {
+            'time': workflow_state.created_at,
+            'action': 'workflow_started',
+            'workflow_state': workflow_state,
+        }
+    ]
+
+    if workflow_state.status != WorkflowState.STATUS_IN_PROGRESS:
+        last_task = completed_task_states.order_by('finished_at').last()
+        if last_task:
+            timeline.append({
+                'time': last_task.finished_at + timedelta(milliseconds=1),
+                'action': 'workflow_completed',
+                'workflow_state': workflow_state,
+            })
 
     for page_revision in page_revisions:
         timeline.append({
@@ -1463,13 +1487,12 @@ def workflow_history_detail(request, page_id, workflow_state_id):
             'revision': page_revision,
         })
 
-    for task_state in TaskState.objects.filter(workflow_state=workflow_state):
-        if task_state.finished_at:
-            timeline.append({
-                'time': task_state.finished_at,
-                'action': 'task_finished',
-                'task_state': task_state,
-            })
+    for task_state in completed_task_states:
+        timeline.append({
+            'time': task_state.finished_at,
+            'action': 'task_completed',
+            'task_state': task_state,
+        })
 
     timeline.sort(key=lambda t: t['time'])
 

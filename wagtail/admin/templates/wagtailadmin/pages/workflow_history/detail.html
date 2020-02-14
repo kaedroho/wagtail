@@ -82,16 +82,17 @@
                             {{ timeline_item.time }}
                         </td>
                         <td>
-                            {% if timeline_item.action == 'page_edited' %}
+                            {% if timeline_item.action == 'workflow_started' %}
+                                <b>Workflow started</b>
+                            {% elif timeline_item.action == 'workflow_completed' %}
+                                <b>Workflow completed</b>
+                                <div class="status-tag primary">{{ timeline_item.workflow_state.get_status_display }}</div>
+                            {% elif timeline_item.action == 'page_edited' %}
                                 Page edited by <b>{{ timeline_item.revision.user.get_full_name|default:timeline_item.revision.user.get_username }}</b> at <b>{{ timeline_item.revision.created_at }}</b>
-                            {% else %}
+                            {% elif timeline_item.action ==  'task_completed' %}
                                 <b>{{ timeline_item.task_state.task }}</b>
 
-                                {% if timeline_item.task_state.status == 'approved' or timeline_item.task_state.status == 'rejected' %}
-                                    <div class="status-tag primary">{{ timeline_item.task_state.get_status_display }}</div>
-                                {% else %}
-                                    <div class="status-tag primary">{{ timeline_item.task_state.get_status_display }}</div>
-                                {% endif %}
+                               <div class="status-tag primary">{{ timeline_item.task_state.get_status_display }}</div>
                             {% endif %}
                         </td>
                     </tr>
