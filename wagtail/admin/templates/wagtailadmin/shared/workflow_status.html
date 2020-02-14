@@ -14,7 +14,7 @@
         {% trans 'Approved task' as approved_title %}
         {% trans 'Incomplete task' as incomplete_title %}
         {% for task in workflow_tasks %}
-            <span data-wagtail-tooltip="{{ task.name }}: {{ task.status }}">
+            <span data-wagtail-tooltip="{{ task.name }}: {{ task.status_display }}">
                 {% if task.status == 'approved' %}
                     {% wagtail_icon name="success" title=approved_title %}
                 {% else %}

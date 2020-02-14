@@ -14,7 +14,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.handlers.base import BaseHandler
 from django.core.handlers.wsgi import WSGIRequest
 from django.db import models, transaction
-from django.db.models import Case, Q, Value, When
+from django.db.models import Case, Q, Value, When, F
 from django.db.models.expressions import Subquery, OuterRef
 from django.db.models.functions import Concat, Substr
 from django.http import Http404
@@ -2731,21 +2731,32 @@ class WorkflowState(models.Model):
 
     def all_tasks_with_status(self):
         """
-        Returns a queryset of Task objects that are linked with this workflow state's
+        Returns a list of Task objects that are linked with this workflow state's
         workflow. The status of that task in this workflow state is annotated in the
-        `.status` field.
+        `.status` field. And a displayable version of that status is annotated in the
+        `.status_display` field.
 
         This is different to querying TaskState as it also returns tasks that haven't
         been started yet (so won't have a TaskState).
         """
-        return self.workflow.tasks.annotate(
-            status=Subquery(
-                TaskState.objects.filter(
-                    task_id=OuterRef('id'),
-                    workflow_state_id=self.id,
-                ).values('status')
+        tasks = list(
+            self.workflow.tasks.annotate(
+                status=Subquery(
+                    TaskState.objects.filter(
+                        task_id=OuterRef('id'),
+                        workflow_state_id=self.id,
+                        page_revision_id=self.page.revisions.order_by('-created_at', '-id').values_list('id', flat=True).first()
+                    ).values('status')
+                ),
             )
         )
+
+        # Manually annotate status_display
+        status_choices = dict(self.STATUS_CHOICES)
+        for task in tasks:
+            task.status_display = status_choices.get(task.status, _("Not started"))
+
+        return tasks
 
     class Meta:
         verbose_name = _('Workflow state')
