@@ -386,17 +386,18 @@ def edit(request, page_id):
 
         workflow_tasks = workflow_state.all_tasks_with_status()
 
-        # add a warning message if tasks have been approved and may need to be re-approved
-        task_has_been_approved = any(filter(lambda task: task.status == TaskState.STATUS_APPROVED, workflow_tasks))
-        # TODO: add icon to message when we have added a workflows icon
-        if current_task_number:
-            workflow_info = format_html(_("<b>Page '{}'</b> is on <b>Task {} of {}: '{}'</b> in <b>Workflow '{}'</b>. "), page.get_admin_display_title(), current_task_number, len(workflow_tasks), task_name, workflow.name)
-        else:
-            workflow_info = format_html(_("<b>Page '{}'</b> is on <b>Task '{}'</b> in <b>Workflow '{}'</b>. "), page.get_admin_display_title(), current_task_number, len(workflow_tasks), task_name, workflow.name)
-        if task_has_been_approved and getattr(settings, 'WAGTAIL_WORKFLOW_REQUIRE_REAPPROVAL_ON_EDIT', True):
-            messages.warning(request, mark_safe(workflow_info + _("Editing this Page will cause completed Tasks to need re-approval.")))
-        else:
-            messages.success(request, workflow_info)
+        if request.method == "GET":
+            # add a warning message if tasks have been approved and may need to be re-approved
+            task_has_been_approved = any(filter(lambda task: task.status == TaskState.STATUS_APPROVED, workflow_tasks))
+            # TODO: add icon to message when we have added a workflows icon
+            if current_task_number:
+                workflow_info = format_html(_("<b>Page '{}'</b> is on <b>Task {} of {}: '{}'</b> in <b>Workflow '{}'</b>. "), page.get_admin_display_title(), current_task_number, len(workflow_tasks), task_name, workflow.name)
+            else:
+                workflow_info = format_html(_("<b>Page '{}'</b> is on <b>Task '{}'</b> in <b>Workflow '{}'</b>. "), page.get_admin_display_title(), current_task_number, len(workflow_tasks), task_name, workflow.name)
+            if task_has_been_approved and getattr(settings, 'WAGTAIL_WORKFLOW_REQUIRE_REAPPROVAL_ON_EDIT', True):
+                messages.warning(request, mark_safe(workflow_info + _("Editing this Page will cause completed Tasks to need re-approval.")))
+            else:
+                messages.success(request, workflow_info)
 
     else:
         # Show last workflow state
