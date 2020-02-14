@@ -1,6 +1,7 @@
 from datetime import timedelta
 from time import time
 
+from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
@@ -387,13 +388,12 @@ def edit(request, page_id):
 
         # add a warning message if tasks have been approved and may need to be re-approved
         task_has_been_approved = any(filter(lambda task: task.status == TaskState.STATUS_APPROVED, workflow_tasks))
-        # TODO: allow this warning message to be adapted based on whether tasks will auto-re-approve when an edit is made on a later task or not
         # TODO: add icon to message when we have added a workflows icon
         if current_task_number:
             workflow_info = format_html(_("<b>Page '{}'</b> is on <b>Task {} of {}: '{}'</b> in <b>Workflow '{}'</b>. "), page.get_admin_display_title(), current_task_number, len(workflow_tasks), task_name, workflow.name)
         else:
             workflow_info = format_html(_("<b>Page '{}'</b> is on <b>Task '{}'</b> in <b>Workflow '{}'</b>. "), page.get_admin_display_title(), current_task_number, len(workflow_tasks), task_name, workflow.name)
-        if task_has_been_approved:
+        if task_has_been_approved and getattr(settings, 'WAGTAIL_WORKFLOW_REQUIRE_REAPPROVAL_ON_EDIT', True):
             messages.warning(request, mark_safe(workflow_info + _("Editing this Page will cause completed Tasks to need re-approval.")))
         else:
             messages.success(request, workflow_info)
