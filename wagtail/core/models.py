@@ -2754,7 +2754,9 @@ class WorkflowState(models.Model):
         latest_revision_id = self.revisions().order_by('-created_at', '-id').values_list('id', flat=True).first()
 
         tasks = list(
-            self.workflow.tasks.annotate(
+            self.workflow.tasks
+            .filter(active=True)
+            .annotate(
                 status=Subquery(
                     TaskState.objects.filter(
                         task_id=OuterRef('id'),
@@ -2762,7 +2764,14 @@ class WorkflowState(models.Model):
                         page_revision_id=latest_revision_id
                     ).values('status')
                 ),
+                sort_order=Subquery(
+                    WorkflowTask.objects.filter(
+                        task_id=OuterRef('id'),
+                        workflow_id=self.workflow_id,
+                    ).values('sort_order')
+                )
             )
+            .order_by('sort_order')
         )
 
         # Manually annotate status_display
