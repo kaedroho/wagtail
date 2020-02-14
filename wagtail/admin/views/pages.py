@@ -1,3 +1,4 @@
+from datetime import timedelta
 from time import time
 
 from django.contrib.contenttypes.models import ContentType
@@ -28,7 +29,7 @@ from wagtail.admin.mail import send_notification
 from wagtail.admin.navigation import get_explorable_root_page
 from wagtail.core import hooks
 from wagtail.core.models import (
-    Page, PageRevision, Task, TaskState, UserPagePermissionsProxy, WorkflowTask)
+    Page, PageRevision, Task, TaskState, UserPagePermissionsProxy, WorkflowTask, WorkflowState)
 from wagtail.search.query import MATCH_ALL
 
 
@@ -368,47 +369,42 @@ def edit(request, page_id):
 
     next_url = get_valid_next_url_from_request(request)
 
-    task_statuses = []
+    workflow_tasks = []
     workflow_state = page.current_workflow_state
-    workflow_name = ''
     task_name = ''
-    total_tasks = 0
     current_task_number = None
     if workflow_state:
         workflow = workflow_state.workflow
         task = workflow_state.current_task_state.task
-        workflow_tasks = WorkflowTask.objects.filter(workflow=workflow)
         try:
-            current_task_number = workflow_tasks.get(task=task).sort_order + 1
+            current_task_number = WorkflowTask.objects.get(workflow=workflow, task=task).sort_order + 1
         except WorkflowTask.DoesNotExist:
             # The Task has been removed from the Workflow
             pass
         task_name = task.name
-        workflow_name = workflow.name
 
-        states = TaskState.objects.filter(workflow_state=workflow_state, page_revision=page.get_latest_revision()).values('task', 'status')
-        total_tasks = len(workflow_tasks)  # len used as queryset is to be iterated over
-
-        # create a list of task statuses to be passed into the template to show workflow progress
-        for workflow_task in workflow_tasks:
-            try:
-                status = states.get(task=workflow_task.task)['status']
-            except TaskState.DoesNotExist:
-                status = 'not_started'
-            task_statuses.append(status)
+        workflow_tasks = workflow_state.all_tasks_with_status()
 
         # add a warning message if tasks have been approved and may need to be re-approved
-        approved_task = True if 'approved' in task_statuses else False
+        task_has_been_approved = any(filter(lambda task: task.status == TaskState.STATUS_APPROVED, workflow_tasks))
         # TODO: allow this warning message to be adapted based on whether tasks will auto-re-approve when an edit is made on a later task or not
         # TODO: add icon to message when we have added a workflows icon
         if current_task_number:
-            workflow_info = format_html(_("<b>Page '{}'</b> is on <b>Task {} of {}: '{}'</b> in <b>Workflow '{}'</b>. "), page.get_admin_display_title(), current_task_number, total_tasks, task_name, workflow_name)
+            workflow_info = format_html(_("<b>Page '{}'</b> is on <b>Task {} of {}: '{}'</b> in <b>Workflow '{}'</b>. "), page.get_admin_display_title(), current_task_number, len(workflow_tasks), task_name, workflow.name)
         else:
-            workflow_info = format_html(_("<b>Page '{}'</b> is on <b>Task '{}'</b> in <b>Workflow '{}'</b>. "), page.get_admin_display_title(), current_task_number, total_tasks, task_name, workflow_name)
-        if approved_task:
+            workflow_info = format_html(_("<b>Page '{}'</b> is on <b>Task '{}'</b> in <b>Workflow '{}'</b>. "), page.get_admin_display_title(), current_task_number, len(workflow_tasks), task_name, workflow.name)
+        if task_has_been_approved:
             messages.warning(request, mark_safe(workflow_info + _("Editing this Page will cause completed Tasks to need re-approval.")))
         else:
             messages.success(request, workflow_info)
+
+    else:
+        # Show last workflow state
+        # TODO: Check that this is the best logic to use? Perhaps finding the latest revision with a task state would be better
+        workflow_state = page.workflow_states.order_by('created_at').last()
+
+        if workflow_state:
+            workflow_tasks = workflow_state.all_tasks_with_status()
 
     errors_debug = None
 
@@ -614,11 +610,10 @@ def edit(request, page_id):
         'page_locked': page_perms.page_locked(),
         'workflow_actions': page.current_workflow_task.get_actions(page, request.user) if page.current_workflow_task else [],
         'current_task_state': page.current_workflow_task_state,
-        'task_statuses': task_statuses,
+        'workflow_tasks': workflow_tasks,
         'current_task_number': current_task_number,
         'task_name': task_name,
-        'workflow_name': workflow_name,
-        'total_tasks': total_tasks
+        'workflow_state': workflow_state,
     })
 
 
@@ -1407,4 +1402,115 @@ def revisions_unschedule(request, page_id, revision_id):
         'revision': revision,
         'next': next_url,
         'subtitle': subtitle
+    })
+
+
+def workflow_history(request, page_id):
+    page = get_object_or_404(Page, id=page_id)
+
+    user_perms = UserPagePermissionsProxy(request.user)
+    if not user_perms.for_page(page).can_edit():
+        raise PermissionDenied
+
+    workflow_states = WorkflowState.objects.filter(page=page)
+
+    paginator = Paginator(workflow_states, per_page=20)
+    workflow_states = paginator.get_page(request.GET.get('p'))
+
+    return render(request, 'wagtailadmin/pages/workflow_history/index.html', {
+        'page': page,
+        'workflow_states': workflow_states,
+    })
+
+
+def workflow_history_detail(request, page_id, workflow_state_id):
+    page = get_object_or_404(Page, id=page_id)
+
+    user_perms = UserPagePermissionsProxy(request.user)
+    if not user_perms.for_page(page).can_edit():
+        raise PermissionDenied
+
+    workflow_state = get_object_or_404(WorkflowState, page=page, id=workflow_state_id)
+
+    # Get QuerySet of all revisions that have existed during this workflow state
+    # It's possible that the page is edited while the workflow is running, so some
+    # tasks may be repeated. All tasks that have been completed no matter what
+    # revision needs to be displayed on this page.
+    page_revisions = PageRevision.objects.filter(
+        page=page,
+        id__in=TaskState.objects.filter(workflow_state=workflow_state).values_list('page_revision_id', flat=True)
+    ).order_by('created_at')
+
+    # Now get QuerySet of tasks completed for each revision
+    task_states_by_revision_task = [
+        (page_revision, {
+            task_state.task: task_state
+            for task_state in TaskState.objects.filter(workflow_state=workflow_state, page_revision=page_revision)
+        })
+        for page_revision in page_revisions
+    ]
+
+    # Make sure task states are always in a consistent order
+    # In some cases, they can be completed in a different order to what they are defined
+    tasks = workflow_state.workflow.tasks.all()
+    task_states_by_revision = [
+        (
+            page_revision,
+            [
+                task_states_by_task.get(task, None)
+                for task in tasks
+            ]
+        )
+        for page_revision, task_states_by_task in task_states_by_revision_task
+    ]
+
+    # Generate timeline
+    completed_task_states = TaskState.objects.filter(
+        workflow_state=workflow_state
+    ).exclude(
+        finished_at__isnull=True
+    ).exclude(
+        status=TaskState.STATUS_CANCELLED
+    )
+
+    timeline = [
+        {
+            'time': workflow_state.created_at,
+            'action': 'workflow_started',
+            'workflow_state': workflow_state,
+        }
+    ]
+
+    if workflow_state.status != WorkflowState.STATUS_IN_PROGRESS:
+        last_task = completed_task_states.order_by('finished_at').last()
+        if last_task:
+            timeline.append({
+                'time': last_task.finished_at + timedelta(milliseconds=1),
+                'action': 'workflow_completed',
+                'workflow_state': workflow_state,
+            })
+
+    for page_revision in page_revisions:
+        timeline.append({
+            'time': page_revision.created_at,
+            'action': 'page_edited',
+            'revision': page_revision,
+        })
+
+    for task_state in completed_task_states:
+        timeline.append({
+            'time': task_state.finished_at,
+            'action': 'task_completed',
+            'task_state': task_state,
+        })
+
+    timeline.sort(key=lambda t: t['time'])
+
+    return render(request, 'wagtailadmin/pages/workflow_history/detail.html', {
+        'page': page,
+        'workflow_state': workflow_state,
+        'tasks': tasks,
+        'task_states_by_revision': task_states_by_revision,
+        'grid_size': len(tasks) * 2 + 1,
+        'timeline': timeline,
     })
