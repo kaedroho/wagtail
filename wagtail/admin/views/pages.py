@@ -386,7 +386,7 @@ def edit(request, page_id):
         workflow_tasks = workflow_state.all_tasks_with_status()
 
         # add a warning message if tasks have been approved and may need to be re-approved
-        task_has_been_approved = any(filter(lambda task: task.status == 'approved', workflow_tasks))
+        task_has_been_approved = any(filter(lambda task: task.status == TaskState.STATUS_APPROVED, workflow_tasks))
         # TODO: allow this warning message to be adapted based on whether tasks will auto-re-approve when an edit is made on a later task or not
         # TODO: add icon to message when we have added a workflows icon
         if current_task_number:
@@ -397,6 +397,14 @@ def edit(request, page_id):
             messages.warning(request, mark_safe(workflow_info + _("Editing this Page will cause completed Tasks to need re-approval.")))
         else:
             messages.success(request, workflow_info)
+
+    else:
+        # Show last workflow state
+        # TODO: Check that this is the best logic to use? Perhaps finding the latest revision with a task state would be better
+        workflow_state = page.workflow_states.order_by('created_at').last()
+
+        if workflow_state:
+            workflow_tasks = workflow_state.all_tasks_with_status()
 
     errors_debug = None
 

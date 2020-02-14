@@ -1,17 +1,21 @@
 {% extends "wagtailadmin/base.html" %}
 {% load i18n wagtailadmin_tags %}
 
-{% block titletag %}{% blocktrans with title=page.get_admin_display_title %}Viewing workflow state {{ title }}{% endblocktrans %}{% endblock %}
+{% block titletag %}{% blocktrans with title=page.get_admin_display_title %}Workflow progress {{ title }}{% endblocktrans %}{% endblock %}
 
 {% block content %}
-    {% trans "Viewing workflow state" as comparing_str %}
+    {% trans "Workflow progress" as comparing_str %}
     {% include "wagtailadmin/shared/header.html" with title=comparing_str subtitle=page.get_admin_display_title icon="doc-empty-inverse" %}
 
     <div class="nice-padding">
         <p style="margin-bottom: 30px;">
-            <a href="{% url 'wagtailadmin_pages:edit' page.id %}" class="button button-small button-secondary">{% trans "Review / Edit page" %}</a>
-            <a href="{% url 'wagtailadmin_pages:workflow_history' page.id %}" class="button button-small button-secondary">{% trans "View workflow history" %}</a>
+            <a href="{% url 'wagtailadmin_pages:edit' page.id %}" class="button button-small button-secondary">{% trans "Edit / Review page" %}</a>
+            <a href="{% url 'wagtailadmin_pages:workflow_history' page.id %}" class="button button-small button-secondary">{% trans "Workflow log" %}</a>
         </p>
+
+        <h2>
+            {{ workflow_state.workflow.name }}
+        </h2>
 
         <p>
             {% blocktrans with modified_by=workflow_state.requested_by.get_full_name|default:workflow_state.requested_by.get_username %}Requested by <b>{{ modified_by }}</b>{% endblocktrans %}
@@ -19,16 +23,16 @@
         </p>
 
         <p>
-            Started at <b>{{ workflow_state.created_at }}</b>
+            {% blocktrans with workflow_state.created_at as started_at %}Started at <b>{{ started_at }}</b>{% endblocktrans %}
         </p>
 
         <p>
-            Status <span class="status-tag primary">{{ workflow_state.get_status_display }}</span>
+            {% blocktrans with workflow_state.get_status_display as status %}Status <span class="status-tag primary"> {{ status }}</span>{% endblocktrans %}
         </p>
 
         <div class="tab-buttons" style="margin-top: 30px;">
-            <button data-tab-button="tasks" class="active">Tasks</button>
-            <button data-tab-button="timeline">Timeline</button>
+            <button data-tab-button="tasks" class="active">{% trans "Tasks" %}</button>
+            <button data-tab-button="timeline">{% trans "Timeline" %}</button>
         </div>
     </div>
 
@@ -49,16 +53,19 @@
                     <tr>
                         <td class="left-column">
                             {% if forloop.first %}
-                                Initial Revision
+                                {% trans "Initial Revision" %}
                             {% else %}
                                 {% if not forloop.first %}
-                                    Page edited by {{ revision.user.get_full_name|default:revision.user.get_username }} at {{ revision.created_at }}
+                                    {% blocktrans with revision.user.get_full_name|default:revision.user.get_username as who and revision.created_at as at %}
+                                        Page edited by {{ who }} at {{ at }}
+                                    {% endblocktrans %}
                                 {% endif %}
                             {% endif %}
                         </td>
                         {% for task_state in task_states %}
                             <td>
                                 {% if task_state.status == 'approved' or task_state.status == 'rejected' %}
+                                    {# FIXME: i18n #}
                                     <div class="status-tag primary">{{ task_state.get_status_display }}</div> at <b>{{ task_state.finished_at }}</b>
                                 {% else %}
                                     <div class="status-tag primary">{{ task_state.get_status_display }}</div>
@@ -83,12 +90,14 @@
                         </td>
                         <td>
                             {% if timeline_item.action == 'workflow_started' %}
-                                <b>Workflow started</b>
+                                <b>{% trans "Workflow started" %}</b>
                             {% elif timeline_item.action == 'workflow_completed' %}
-                                <b>Workflow completed</b>
+                                <b>{% trans "Workflow completed" %}</b>
                                 <div class="status-tag primary">{{ timeline_item.workflow_state.get_status_display }}</div>
                             {% elif timeline_item.action == 'page_edited' %}
-                                Page edited by <b>{{ timeline_item.revision.user.get_full_name|default:timeline_item.revision.user.get_username }}</b> at <b>{{ timeline_item.revision.created_at }}</b>
+                                {% blocktrans with timeline_item.revision.user.get_full_name|default:timeline_item.revision.user.get_username as who and timeline_item.revision.created_at as at %}
+                                    Page edited by {{ who }} at {{ at }}
+                                {% endblocktrans %}
                             {% elif timeline_item.action ==  'task_completed' %}
                                 <b>{{ timeline_item.task_state.task }}</b>
 

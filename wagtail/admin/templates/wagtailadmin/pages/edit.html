@@ -144,6 +144,7 @@
             );
         });
 
+        {% if page.current_workflow_state %}
         /* When a workflow action button is pressed, trigger a POST request to the workflow_action view */
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('[data-workflow-action]').forEach(function (buttonElement) {
@@ -181,6 +182,7 @@
                 }, {capture: true});
             });
         });
+        {% endif %}
 
         /* Tooltips used by the workflow status component */
         $(function() {
@@ -192,6 +194,6 @@
                 trigger: 'hover',
                 placement: 'bottom',
             });
-        })
+        });
     </script>
 {% endblock %}

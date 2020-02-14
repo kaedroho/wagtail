@@ -5,10 +5,12 @@
             {{ workflow_state.workflow.name }}
         </a>
     </h2>
-    {% if current_task_number %}
-        {% blocktrans %} Task {{ current_task_number }} of {{ workflow_tasks.count }}{% endblocktrans %}: {{ task_name }}
-    {% else %}
-        {% trans 'Task' %}: {{ task_name }}
+    {% if page.current_workflow_state %}
+        {% if current_task_number %}
+            {% blocktrans with workflow_tasks|length as num_tasks %} Task {{ current_task_number }} of {{ num_tasks }}{% endblocktrans %}: {{ task_name }}
+        {% else %}
+            {% trans 'Task' %}: {{ task_name }}
+        {% endif %}
     {% endif %}
     <div>
         {% trans 'Approved task' as approved_title %}
@@ -24,6 +26,6 @@
         {% endfor %}
     </div>
     <a href="{% url 'wagtailadmin_pages:workflow_history' page.id %}">
-        Workflow history
+        All workflows
     </a>
 {% endif %}
