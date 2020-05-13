@@ -18,6 +18,7 @@ from wagtail.search.index import RelatedFields, SearchField, get_indexed_models
 from wagtail.search.query import And, Boost, MatchAll, Not, Or, PlainText
 from wagtail.search.utils import ADD, MUL, OR
 
+from .fold_to_ascii import fold
 from .models import IndexEntry
 from .query import Lexeme, RawSearchQuery
 from .utils import (
@@ -76,6 +77,9 @@ class ObjectIndexer:
         """
         Converts an array of strings into a SearchVector that can be indexed.
         """
+        texts = [(fold(text.strip()), weight) for text, weight in texts]
+        texts = [(text, weight) for text, weight in texts if text]
+
         if not texts:
             return EMPTY_VECTOR
 
@@ -327,7 +331,7 @@ class PostgresSearchQueryCompiler(BaseSearchQueryCompiler):
 
     def build_tsquery_content(self, query, invert=False):
         if isinstance(query, PlainText):
-            terms = query.query_string.split()
+            terms = fold(query.query_string).split()
             if not terms:
                 return None
 
