@@ -17,7 +17,7 @@ All custom tasks must be models inheriting from ``wagtailcore.Task``. In this se
 
     # <project>/models.py
 
-    from wagtail.core.models import Task
+    from wagtail.core.models import WorkflowTask
 
 
     class UserApprovalTask(Task):
@@ -37,7 +37,7 @@ For example:
     from django.conf import settings
     from django.db import models
     from wagtail.admin.edit_handlers import FieldPanel
-    from wagtail.core.models import Task
+    from wagtail.core.models import WorkflowTask
 
 
     class UserApprovalTask(Task):
@@ -46,7 +46,7 @@ For example:
         panels = Task.panels + [FieldPanel('user')]
 
 
-Any fields that shouldn't be edited after task creation - for example, anything that would fundamentally change the meaning of the task in any history logs - 
+Any fields that shouldn't be edited after task creation - for example, anything that would fundamentally change the meaning of the task in any history logs -
 can be added to ``exclude_on_edit``. For example:
 
 .. code-block:: python
@@ -56,7 +56,7 @@ can be added to ``exclude_on_edit``. For example:
     from django.conf import settings
     from django.db import models
     from wagtail.admin.edit_handlers import FieldPanel
-    from wagtail.core.models import Task
+    from wagtail.core.models import WorkflowTask
 
 
     class UserApprovalTask(Task):
@@ -68,24 +68,24 @@ can be added to ``exclude_on_edit``. For example:
         exclude_on_edit = {'user'}
 
 
-Custom TaskState models
+Custom WorkflowTaskState models
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 You might also need to store custom state information for the task: for example, a comment left by an approving user.
-Normally, this is done on an instance of ``TaskState``, which is created when a page starts the task. However, this can 
+Normally, this is done on an instance of ``WorkflowTaskState``, which is created when a page starts the task. However, this can
 also be subclassed equivalently to ``Task``:
 
 .. code-block:: python
 
     # <project>/models.py
 
-    from wagtail.core.models import TaskState
+    from wagtail.core.models import WorkflowTaskState
 
 
-    class UserApprovalTaskState(TaskState):
+    class UserApprovalWorkflowTaskState(WorkflowTaskState):
         pass
 
-Your custom task must then be instructed to generate an instance of your custom task state on start instead of a plain ``TaskState`` instance:
+Your custom task must then be instructed to generate an instance of your custom task state on start instead of a plain ``WorkflowTaskState`` instance:
 
 .. code-block:: python
 
@@ -94,10 +94,10 @@ Your custom task must then be instructed to generate an instance of your custom 
     from django.conf import settings
     from django.db import models
     from wagtail.admin.edit_handlers import FieldPanel
-    from wagtail.core.models import Task, TaskState
+    from wagtail.core.models import WorkflowTask, WorkflowTaskState
 
 
-    class UserApprovalTaskState(TaskState):
+    class UserApprovalWorkflowTaskState(WorkflowTaskState):
         pass
 
 
@@ -106,7 +106,7 @@ Your custom task must then be instructed to generate an instance of your custom 
 
         panels = Task.panels + [FieldPanel('user')]
 
-        task_state_class = UserApprovalTaskState
+        task_state_class = UserApprovalWorkflowTaskState
 
         # prevent editing of ``user`` after the task is created
         exclude_on_edit = {'user'}
@@ -115,7 +115,7 @@ Your custom task must then be instructed to generate an instance of your custom 
 Customising behaviour
 ~~~~~~~~~~~~~~~~~~~~~
 
-Both ``Task`` and ``TaskState`` have a number of methods which can be overridden to implement custom behaviour. Here are some of the most useful:
+Both ``Task`` and ``WorkflowTaskState`` have a number of methods which can be overridden to implement custom behaviour. Here are some of the most useful:
 
 ``Task.user_can_access_editor(page, user)``, ``Task.user_can_lock(page, user)``, ``Task.user_can_unlock(page, user)``:
 
@@ -148,7 +148,7 @@ For example:
 ``Task.on_action(task_state, user, action_name)``:
 
 This performs the actions specified in ``Task.get_actions(page, user)``: it is passed an action name, eg ``approve``, and the relevant task state. By default,
-it calls ``approve`` and ``reject`` methods on the task state when the corresponding action names are passed through. 
+it calls ``approve`` and ``reject`` methods on the task state when the corresponding action names are passed through.
 
 For example,  let's say we wanted to add an additional option: cancelling the entire workflow:
 
@@ -162,7 +162,7 @@ For example,  let's say we wanted to add an additional option: cancelling the en
 
 ``Task.get_task_states_user_can_moderate(user, **kwargs)``:
 
-This returns a QuerySet of ``TaskStates`` (or subclasses) the given user can moderate - this is currently used to select pages to display on the user's dashboard.
+This returns a QuerySet of ``WorkflowTaskStates`` (or subclasses) the given user can moderate - this is currently used to select pages to display on the user's dashboard.
 
 For example:
 
@@ -171,9 +171,9 @@ For example:
     def get_task_states_user_can_moderate(self, user, **kwargs):
         if user == self.user:
             # get all task states linked to the (base class of) current task
-            return TaskState.objects.filter(status=TaskState.STATUS_IN_PROGRESS, task=self.task_ptr)
+            return WorkflowTaskState.objects.filter(status=WorkflowTaskState.STATUS_IN_PROGRESS, task=self.workflowtask_ptr)
         else:
-            return TaskState.objects.none()
+            return WorkflowTaskState.objects.none()
 
 
 Adding notifications
@@ -190,22 +190,22 @@ As an example, we'll add email notifications for when our new task is started.
     # <project>/mail.py
 
     from wagtail.admin.mail import EmailNotifier
-    from wagtail.core.models import TaskState
+    from wagtail.core.models import WorkflowTaskState
 
-    from .models import UserApprovalTaskState
+    from .models import UserApprovalWorkflowTaskState
 
 
-    class BaseUserApprovalTaskStateEmailNotifier(EmailNotifier):
+    class BaseUserApprovalWorkflowTaskStateEmailNotifier(EmailNotifier):
         """A base EmailNotifier to send updates for UserApprovalTask events"""
 
         def __init__(self):
-            # Allow UserApprovalTaskState and TaskState to send notifications
-            super().__init__((UserApprovalTaskState, TaskState))
+            # Allow UserApprovalWorkflowTaskState and WorkflowTaskState to send notifications
+            super().__init__((UserApprovalWorkflowTaskState, WorkflowTaskState))
 
         def can_handle(self, instance, **kwargs):
             if super().can_handle(instance, **kwargs) and isinstance(instance.task.specific, UserApprovalTask):
                 # Don't send notifications if a Task has been cancelled and then resumed - ie page was updated to a new revision
-                return not TaskState.objects.filter(workflow_state=instance.workflow_state, task=instance.task, status=TaskState.STATUS_CANCELLED).exists()
+                return not WorkflowTaskState.objects.filter(workflow_state=instance.workflow_state, task=instance.task, status=WorkflowTaskState.STATUS_CANCELLED).exists()
             return False
 
         def get_context(self, task_state, **kwargs):
@@ -224,11 +224,11 @@ As an example, we'll add email notifications for when our new task is started.
             return recipients
 
         def get_template_base_prefix(self, instance, **kwargs):
-            # Get the template base prefix for TaskState, so use the ``wagtailadmin/notifications/task_state_`` set of notification templates
+            # Get the template base prefix for WorkflowTaskState, so use the ``wagtailadmin/notifications/task_state_`` set of notification templates
             return super().get_template_base_prefix(self, instance.task_state_ptr, **kwargs)
 
 
-    class UserApprovalTaskStateSubmissionEmailNotifier(BaseUserApprovalTaskStateEmailNotifier):
+    class UserApprovalWorkflowTaskStateSubmissionEmailNotifier(BaseUserApprovalWorkflowTaskStateEmailNotifier):
         """An EmailNotifier to send updates for UserApprovalTask submission events"""
 
         notification = 'submitted'
@@ -243,15 +243,15 @@ Next, you need to instantiate the notifier, and connect it to the ``task_submitt
     # <project>/signal_handlers.py
 
     from wagtail.core.signals import task_submitted
-    from .mail import UserApprovalTaskStateSubmissionEmailNotifier
+    from .mail import UserApprovalWorkflowTaskStateSubmissionEmailNotifier
 
 
-    task_submission_email_notifier = UserApprovalTaskStateSubmissionEmailNotifier()
+    task_submission_email_notifier = UserApprovalWorkflowTaskStateSubmissionEmailNotifier()
 
     def register_signal_handlers():
         task_submitted.connect(user_approval_task_submission_email_notifier, dispatch_uid='user_approval_task_submitted_email_notification')
 
-``register_signal_handlers()`` should then be run on loading the app: for example, by adding it to the ``ready()`` method in your ``AppConfig`` 
+``register_signal_handlers()`` should then be run on loading the app: for example, by adding it to the ``ready()`` method in your ``AppConfig``
 (and making sure this config is set as ``default_app_config`` in ``<project>/__init__.py``).
 
 .. code-block:: python

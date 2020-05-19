@@ -31,7 +31,7 @@ from wagtail.contrib.sitemaps import Sitemap
 from wagtail.contrib.table_block.blocks import TableBlock
 from wagtail.core.blocks import CharBlock, RawHTMLBlock, RichTextBlock, StructBlock
 from wagtail.core.fields import RichTextField, StreamField
-from wagtail.core.models import Orderable, Page, PageManager, PageQuerySet, Task
+from wagtail.core.models import Orderable, Page, PageManager, PageQuerySet, WorkflowTask
 from wagtail.documents.edit_handlers import DocumentChooserPanel
 from wagtail.documents.models import AbstractDocument, Document
 from wagtail.images.blocks import ImageChooserBlock
@@ -1455,5 +1455,5 @@ class TaggedRestaurant(ItemBase):
     )
 
 
-class SimpleTask(Task):
+class SimpleTask(WorkflowTask):
     pass

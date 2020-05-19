@@ -1,4 +1,4 @@
-from wagtail.core.models import Task
+from wagtail.core.models import WorkflowTask
 
 
 TASK_TYPES = []

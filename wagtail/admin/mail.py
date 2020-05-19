@@ -8,7 +8,7 @@ from django.template.loader import render_to_string
 from django.utils.translation import override
 
 from wagtail.admin.auth import users_with_page_permission
-from wagtail.core.models import GroupApprovalTask, PageRevision, TaskState, WorkflowState
+from wagtail.core.models import GroupApprovalTask, PageRevision, WorkflowTaskState, WorkflowState
 from wagtail.core.utils import camelcase_to_underscore
 from wagtail.users.models import UserProfile
 
@@ -329,12 +329,12 @@ class BaseGroupApprovalTaskStateEmailNotifier(EmailNotificationMixin, Notifier):
     """A base notifier to send email updates for GroupApprovalTask events"""
 
     def __init__(self):
-        super().__init__((TaskState,))
+        super().__init__((WorkflowTaskState,))
 
     def can_handle(self, instance, **kwargs):
         if super().can_handle(instance, **kwargs) and isinstance(instance.task.specific, GroupApprovalTask):
             # Don't send notifications if a Task has been cancelled and then resumed - ie page was updated to a new revision
-            return not TaskState.objects.filter(workflow_state=instance.workflow_state, task=instance.task, status=TaskState.STATUS_CANCELLED).exists()
+            return not WorkflowTaskState.objects.filter(workflow_state=instance.workflow_state, task=instance.task, status=WorkflowTaskState.STATUS_CANCELLED).exists()
         return False
 
     def get_context(self, task_state, **kwargs):

@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from django_filters.widgets import SuffixedMultiWidget
 
 from wagtail.admin.widgets import AdminDateInput, BooleanButtonSelect, ButtonSelect, FilteredSelect
-from wagtail.core.models import Page, Task, TaskState, Workflow, WorkflowState
+from wagtail.core.models import Page, Workflow, WorkflowTask, WorkflowState, WorkflowTaskState
 
 
 class DateRangePickerWidget(SuffixedMultiWidget):
@@ -125,11 +125,11 @@ class WorkflowTasksReportFilterSet(WagtailFilterSet):
     )
 
     # When a workflow is chosen in the 'id_workflow' selector, filter this list of tasks
-    # to just the ones whose get_workflows() includes the selected workflow.
+    # to just the ones available on the selected workflow
     task = FilteredModelChoiceFilter(
-        queryset=Task.objects.all(), filter_field='id_workflow', filter_accessor='get_workflows'
+        queryset=WorkflowTask.objects.all(), filter_field='id_workflow', filter_accessor=lambda task: Workflow.objects.filter(id=task.workflow_id)
     )
 
     class Meta:
-        model = TaskState
+        model = WorkflowTaskState
         fields = ['workflow', 'task', 'status', 'started_at', 'finished_at']

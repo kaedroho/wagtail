@@ -562,9 +562,9 @@ Database fields
 
     .. attribute:: current_task_state
 
-        (foreign key to ``TaskState``)
+        (foreign key to ``WorkflowTaskState``)
 
-        The ``TaskState`` model for the task the workflow is currently at: either completing (if in progress) or the final task state (if finished)
+        The ``WorkflowTaskState`` model for the task the workflow is currently at: either completing (if in progress) or the final task state (if finished)
 
 Methods and properties
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -628,7 +628,7 @@ Methods and properties
 
     .. attribute:: task_state_class
 
-        The specific task state class to generate to store state information for this task. If not specified, this will be ``TaskState``.
+        The specific task state class to generate to store state information for this task. If not specified, this will be ``WorkflowTaskState``.
 
     .. automethod:: get_verbose_name
 
@@ -651,7 +651,7 @@ Methods and properties
     .. automethod:: deactivate
 
 
-``TaskState``
+``WorkflowTaskState``
 =============
 
 Task states store state information about the progress of a task on a particular page revision.
@@ -659,7 +659,7 @@ Task states store state information about the progress of a task on a particular
 Database fields
 ~~~~~~~~~~~~~~~
 
-.. class:: TaskState
+.. class:: WorkflowTaskState
 
     .. attribute:: workflow_state
 
@@ -684,7 +684,7 @@ Database fields
 
         (text)
 
-        The completion status of the task on this revision. Options are available in ``TaskState.STATUS_CHOICES``)
+        The completion status of the task on this revision. Options are available in ``WorkflowTaskState.STATUS_CHOICES``)
 
     .. attribute:: content_type
 
@@ -708,7 +708,7 @@ Database fields
 Methods and properties
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. class:: TaskState
+.. class:: WorkflowTaskState
 
     .. attribute:: STATUS_CHOICES
 
@@ -717,7 +717,7 @@ Methods and properties
 
     .. attribute:: exclude_fields_in_copy
 
-        A list of fields not to copy when the ``TaskState.copy()`` method is called.
+        A list of fields not to copy when the ``WorkflowTaskState.copy()`` method is called.
 
     .. automethod:: specific
 

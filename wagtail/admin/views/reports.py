@@ -13,7 +13,7 @@ from xlsxwriter.workbook import Workbook
 from wagtail.admin.auth import permission_denied
 from wagtail.admin.filters import (
     LockedPagesReportFilterSet, WorkflowReportFilterSet, WorkflowTasksReportFilterSet)
-from wagtail.core.models import Page, TaskState, UserPagePermissionsProxy, WorkflowState
+from wagtail.core.models import Page, WorkflowTaskState, UserPagePermissionsProxy, WorkflowState
 
 
 class Echo:
@@ -339,4 +339,4 @@ class WorkflowTasksView(ReportView):
 
     def get_queryset(self):
         pages = UserPagePermissionsProxy(self.request.user).editable_pages()
-        return TaskState.objects.filter(workflow_state__page__in=pages).order_by('-started_at')
+        return WorkflowTaskState.objects.filter(workflow_state__page__in=pages).order_by('-started_at')

@@ -14,7 +14,7 @@ from taggit.managers import TaggableManager
 
 from wagtail.admin import compare, widgets
 from wagtail.core.fields import RichTextField
-from wagtail.core.models import GroupApprovalTask, Page, Task, Workflow
+from wagtail.core.models import GroupApprovalTask, Page, Workflow, WorkflowTask
 from wagtail.core.utils import camelcase_to_underscore, resolve_model_string
 from wagtail.utils.decorators import cached_classmethod
 
@@ -789,18 +789,18 @@ Page.base_form_class = WagtailAdminPageForm
 # Similarly, set up wagtailcore.Workflow to have edit handlers
 Workflow.panels = [
     FieldPanel("name", heading=gettext_lazy("Give your workflow a name")),
-    InlinePanel("workflow_tasks", heading=gettext_lazy("Add tasks to your workflow")),
+    InlinePanel("tasks", heading=gettext_lazy("Add tasks to your workflow")),
 ]
-Task.panels = [
+WorkflowTask.panels = [
     FieldPanel("name", heading=gettext_lazy("Give your task a name")),
 ]
-GroupApprovalTask.panels = Task.panels + [FieldPanel('groups', heading=gettext_lazy("Choose approval groups"))]
+GroupApprovalTask.panels = WorkflowTask.panels + [FieldPanel('groups', heading=gettext_lazy("Choose approval groups"))]
 # do not allow editing of group post creation - this could lead to confusing history if a group is changed after tasks
 # are started/completed
 GroupApprovalTask.exclude_on_edit = {'groups'}
 
 Workflow.base_form_class = WagtailAdminModelForm
-Task.base_form_class = WagtailAdminModelForm
+WorkflowTask.base_form_class = WagtailAdminModelForm
 
 
 class ExcludeFieldsOnEditMixin:
@@ -836,7 +836,7 @@ def get_simple_edit_handler(cls):
 
 
 Workflow.get_edit_handler = get_simple_edit_handler
-Task.get_edit_handler = get_simple_edit_handler
+WorkflowTask.get_edit_handler = get_simple_edit_handler
 
 
 @cached_classmethod

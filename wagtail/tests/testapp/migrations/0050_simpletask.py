@@ -15,8 +15,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='SimpleTask',
             fields=[
-                ('task_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='wagtailcore.Task')),
+                ('workflowtask_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='wagtailcore.WorkflowTask')),
             ],
-            bases=('wagtailcore.task',),
+            bases=('wagtailcore.workflowtask',),
         ),
     ]

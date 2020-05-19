@@ -2472,25 +2472,16 @@ class WorkflowPage(models.Model):
         verbose_name_plural = _('workflow pages')
 
 
-class WorkflowTask(Orderable):
-    workflow = ParentalKey('Workflow', on_delete=models.CASCADE, verbose_name=_('workflow_tasks'),
-                           related_name='workflow_tasks')
-    task = models.ForeignKey('Task', on_delete=models.CASCADE, verbose_name=_('task'), related_name='workflow_tasks',
-                             limit_choices_to={'active': True})
-
-    class Meta(Orderable.Meta):
-        unique_together = [('workflow', 'task')]
-        verbose_name = _('workflow task order')
-        verbose_name_plural = _('workflow task orders')
-
-
-class TaskManager(models.Manager):
+class WorkflowTaskManager(models.Manager):
     def active(self):
         return self.filter(active=True)
 
 
-class Task(models.Model):
+class WorkflowTask(models.Model):
+    workflow = ParentalKey('Workflow', on_delete=models.CASCADE, verbose_name=_('workflow_tasks'),
+                           related_name='tasks')
     name = models.CharField(max_length=255, verbose_name=_('name'))
+    sort_order = models.IntegerField(blank=True, editable=False, null=True)
     content_type = models.ForeignKey(
         ContentType,
         verbose_name=_('content type'),
@@ -2499,7 +2490,7 @@ class Task(models.Model):
     )
     active = models.BooleanField(verbose_name=_('active'), default=True, help_text=_(
         "Active tasks can be added to workflows. Deactivating a task does not remove it from existing workflows."))
-    objects = TaskManager()
+    objects = WorkflowTaskManager()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -2526,7 +2517,7 @@ class Task(models.Model):
     @cached_property
     def specific(self):
         """
-        Return this Task in its most specific subclassed form.
+        Return this WorkflowTask in its most specific subclassed form.
         """
         # the ContentType.objects manager keeps a cache, so this should potentially
         # avoid a database lookup over doing self.content_type. I think.
@@ -2549,12 +2540,12 @@ class Task(models.Model):
 
     @classmethod
     def get_task_state_class(self):
-        return self.task_state_class or TaskState
+        return self.task_state_class or WorkflowTaskState
 
     def start(self, workflow_state, user=None):
-        """Start this task on the provided workflow state by creating an instance of TaskState"""
+        """Start this task on the provided workflow state by creating an instance of WorkflowTaskState"""
         task_state = self.get_task_state_class()(workflow_state=workflow_state)
-        task_state.status = TaskState.STATUS_IN_PROGRESS
+        task_state.status = WorkflowTaskState.STATUS_IN_PROGRESS
         task_state.page_revision = workflow_state.page.get_latest_revision()
         task_state.task = self
         task_state.save()
@@ -2591,25 +2582,21 @@ class Task(models.Model):
 
     def get_task_states_user_can_moderate(self, user, **kwargs):
         """Returns a ``QuerySet`` of the task states the current user can moderate"""
-        return TaskState.objects.none()
-
-    @property
-    def get_workflows(self):
-        """Returns a ``QuerySet`` of the workflows that this task is part of """
-        return Workflow.objects.filter(workflow_tasks__task=self)
+        return WorkflowTaskState.objects.none()
 
     @transaction.atomic
     def deactivate(self, user=None):
         """Set ``active`` to False and cancel all in progress task states linked to this task"""
         self.active = False
         self.save()
-        in_progress_states = TaskState.objects.filter(task=self, status=TaskState.STATUS_IN_PROGRESS)
+        in_progress_states = WorkflowTaskState.objects.filter(task=self, status=WorkflowTaskState.STATUS_IN_PROGRESS)
         for state in in_progress_states:
             state.cancel(user=user)
 
     class Meta:
         verbose_name = _('task')
         verbose_name_plural = _('tasks')
+        ordering = ['sort_order']
 
 
 class WorkflowManager(models.Manager):
@@ -2629,7 +2616,7 @@ class Workflow(ClusterableModel):
     @property
     def tasks(self):
         """Returns all ``Task`` instances linked to this workflow"""
-        return Task.objects.filter(workflow_tasks__workflow=self).order_by('workflow_tasks__sort_order')
+        return WorkflowTask.objects.filter(workflow_tasks__workflow=self).order_by('workflow_tasks__sort_order')
 
     @transaction.atomic
     def start(self, page, user):
@@ -2655,7 +2642,7 @@ class Workflow(ClusterableModel):
         verbose_name_plural = _('workflows')
 
 
-class GroupApprovalTask(Task):
+class GroupApprovalTask(WorkflowTask):
     groups = models.ManyToManyField(Group, verbose_name=_('groups'), help_text=_('Pages at this step in a workflow will be moderated or approved by these groups of users'))
 
     def start(self, workflow_state, user=None):
@@ -2689,9 +2676,9 @@ class GroupApprovalTask(Task):
 
     def get_task_states_user_can_moderate(self, user, **kwargs):
         if self.groups.filter(id__in=user.groups.all()).exists() or user.is_superuser:
-            return TaskState.objects.filter(status=TaskState.STATUS_IN_PROGRESS, task=self.task_ptr)
+            return WorkflowTaskState.objects.filter(status=WorkflowTaskState.STATUS_IN_PROGRESS, task=self.workflowtask_ptr)
         else:
-            return TaskState.objects.none()
+            return WorkflowTaskState.objects.none()
 
     class Meta:
         verbose_name = _('Group approval task')
@@ -2722,7 +2709,7 @@ class WorkflowState(models.Model):
                                      editable=True,
                                      on_delete=models.SET_NULL,
                                      related_name='requested_workflows')
-    current_task_state = models.OneToOneField('TaskState', on_delete=models.SET_NULL, null=True, blank=True,
+    current_task_state = models.OneToOneField('WorkflowTaskState', on_delete=models.SET_NULL, null=True, blank=True,
                                               verbose_name=_("current task state"))
 
     # allows a custom function to be called on finishing the Workflow successfully.
@@ -2777,13 +2764,13 @@ class WorkflowState(models.Model):
     def get_next_task(self):
         """Returns the next active task associated with the latest page revision, which has not been either approved or skipped"""
         return (
-            Task.objects.filter(workflow_tasks__workflow=self.workflow, active=True)
+            WorkflowTask.objects.filter(workflow=self.workflow, active=True)
             .exclude(
-                task_states__in=TaskState.objects.filter(
+                task_states__in=WorkflowTaskState.objects.filter(
                     Q(page_revision=self.page.get_latest_revision()),
-                    Q(status=TaskState.STATUS_APPROVED) | Q(status=TaskState.STATUS_SKIPPED)
+                    Q(status=WorkflowTaskState.STATUS_APPROVED) | Q(status=WorkflowTaskState.STATUS_SKIPPED)
                 )
-            ).order_by('workflow_tasks__sort_order').first()
+            ).order_by('sort_order').first()
         )
 
     def cancel(self, user=None):
@@ -2792,7 +2779,7 @@ class WorkflowState(models.Model):
             raise PermissionDenied
         self.status = self.STATUS_CANCELLED
         self.save()
-        for state in self.task_states.filter(status=TaskState.STATUS_IN_PROGRESS):
+        for state in self.task_states.filter(status=WorkflowTaskState.STATUS_IN_PROGRESS):
             # Cancel all in progress task states
             state.specific.cancel(user=user)
         workflow_cancelled.send(sender=self.__class__, instance=self, user=user)
@@ -2809,7 +2796,7 @@ class WorkflowState(models.Model):
 
     def copy_approved_task_states_to_revision(self, revision):
         """This creates copies of previously approved task states with page_revision set to a different revision."""
-        approved_states = TaskState.objects.filter(workflow_state=self, status=TaskState.STATUS_APPROVED)
+        approved_states = WorkflowTaskState.objects.filter(workflow_state=self, status=WorkflowTaskState.STATUS_APPROVED)
         for state in approved_states:
             state.copy(update_attrs={'page_revision': revision})
 
@@ -2822,20 +2809,20 @@ class WorkflowState(models.Model):
 
     def all_tasks_with_status(self):
         """
-        Returns a list of Task objects that are linked with this workflow state's
+        Returns a list of WorkflowTask objects that are linked with this workflow state's
         workflow. The status of that task in this workflow state is annotated in the
         `.status` field. And a displayable version of that status is annotated in the
         `.status_display` field.
 
-        This is different to querying TaskState as it also returns tasks that haven't
-        been started yet (so won't have a TaskState).
+        This is different to querying WorkflowTaskState as it also returns tasks that haven't
+        been started yet (so won't have a WorkflowTaskState).
         """
         latest_revision_id = self.revisions().order_by('-created_at', '-id').values_list('id', flat=True).first()
 
         tasks = list(
             self.workflow.tasks.annotate(
                 status=Subquery(
-                    TaskState.objects.filter(
+                    WorkflowTaskState.objects.filter(
                         task_id=OuterRef('id'),
                         workflow_state_id=self.id,
                         page_revision_id=latest_revision_id
@@ -2860,8 +2847,8 @@ class WorkflowState(models.Model):
         ]
 
 
-class TaskState(MultiTableCopyMixin, models.Model):
-    """Tracks the status of a given Task for a particular page revision."""
+class WorkflowTaskState(MultiTableCopyMixin, models.Model):
+    """Tracks the status of a given WorkflowTask for a particular page revision."""
     STATUS_IN_PROGRESS = 'in_progress'
     STATUS_APPROVED = 'approved'
     STATUS_REJECTED = 'rejected'
@@ -2877,7 +2864,7 @@ class TaskState(MultiTableCopyMixin, models.Model):
 
     workflow_state = models.ForeignKey('WorkflowState', on_delete=models.CASCADE, verbose_name=_('workflow state'), related_name='task_states')
     page_revision = models.ForeignKey('PageRevision', on_delete=models.CASCADE, verbose_name=_('page revision'), related_name='task_states')
-    task = models.ForeignKey('Task', on_delete=models.CASCADE, verbose_name=_('task'), related_name='task_states')
+    task = models.ForeignKey('WorkflowTask', on_delete=models.CASCADE, verbose_name=_('task'), related_name='task_states')
     status = models.fields.CharField(choices=STATUS_CHOICES, verbose_name=_("status"), max_length=50, default=STATUS_IN_PROGRESS)
     started_at = models.DateTimeField(verbose_name=_('started at'), auto_now_add=True)
     finished_at = models.DateTimeField(verbose_name=_('finished at'), blank=True, null=True)
@@ -2913,7 +2900,7 @@ class TaskState(MultiTableCopyMixin, models.Model):
     @cached_property
     def specific(self):
         """
-        Return this TaskState in its most specific subclassed form.
+        Return this WorkflowTaskState in its most specific subclassed form.
         """
         # the ContentType.objects manager keeps a cache, so this should potentially
         # avoid a database lookup over doing self.content_type. I think.
@@ -2960,8 +2947,8 @@ class TaskState(MultiTableCopyMixin, models.Model):
 
     @cached_property
     def task_type_started_at(self):
-        """Finds the first chronological started_at for successive TaskStates - ie started_at if the task had not been restarted"""
-        task_states = TaskState.objects.filter(workflow_state=self.workflow_state).order_by('-started_at').select_related('task')
+        """Finds the first chronological started_at for successive WorkflowTaskStates - ie started_at if the task had not been restarted"""
+        task_states = WorkflowTaskState.objects.filter(workflow_state=self.workflow_state).order_by('-started_at').select_related('task')
         started_at = None
         for task_state in task_states:
             if task_state.task == self.task:

@@ -131,10 +131,10 @@ This signal is emitted from a ``WorkflowState`` when a page's workflow is cancel
 task_submitted
 --------------
 
-This signal is emitted from a ``TaskState`` when a page is submitted to a task.
+This signal is emitted from a ``WorkflowTaskState`` when a page is submitted to a task.
 
-:sender: ``TaskState``
-:instance: The specific ``TaskState`` instance.
+:sender: ``WorkflowTaskState``
+:instance: The specific ``WorkflowTaskState`` instance.
 :user: The user who submitted the page to the task
 :kwargs: Any other arguments passed to ``task_submitted.send()``
 
@@ -142,10 +142,10 @@ This signal is emitted from a ``TaskState`` when a page is submitted to a task.
 task_rejected
 -------------
 
-This signal is emitted from a ``TaskState`` when a page is rejected from a task.
+This signal is emitted from a ``WorkflowTaskState`` when a page is rejected from a task.
 
-:sender: ``TaskState``
-:instance: The specific ``TaskState`` instance.
+:sender: ``WorkflowTaskState``
+:instance: The specific ``WorkflowTaskState`` instance.
 :user: The user who rejected the task
 :kwargs: Any other arguments passed to ``task_rejected.send()``
 
@@ -153,10 +153,10 @@ This signal is emitted from a ``TaskState`` when a page is rejected from a task.
 task_approved
 -------------
 
-This signal is emitted from a ``TaskState`` when a page's task is approved
+This signal is emitted from a ``WorkflowTaskState`` when a page's task is approved
 
-:sender: ``TaskState``
-:instance: The specific ``TaskState`` instance.
+:sender: ``WorkflowTaskState``
+:instance: The specific ``WorkflowTaskState`` instance.
 :user: The user who approved the task
 :kwargs: Any other arguments passed to ``task_approved.send()``
 
@@ -164,9 +164,9 @@ This signal is emitted from a ``TaskState`` when a page's task is approved
 task_cancelled
 --------------
 
-This signal is emitted from a ``TaskState`` when a page's task is cancelled.
+This signal is emitted from a ``WorkflowTaskState`` when a page's task is cancelled.
 
-:sender: ``TaskState``
-:instance: The specific ``TaskState`` instance.
+:sender: ``WorkflowTaskState``
+:instance: The specific ``WorkflowTaskState`` instance.
 :user: The user who cancelled the task
 :kwargs: Any other arguments passed to ``task_cancelled.send()``

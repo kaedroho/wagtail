@@ -30,7 +30,7 @@ from wagtail.admin.mail import send_notification
 from wagtail.admin.navigation import get_explorable_root_page
 from wagtail.core import hooks
 from wagtail.core.models import (
-    Page, PageRevision, Task, TaskState, UserPagePermissionsProxy, WorkflowState)
+    Page, PageRevision, WorkflowTask, WorkflowTaskState, UserPagePermissionsProxy, WorkflowState)
 from wagtail.search.query import MATCH_ALL
 
 
@@ -395,7 +395,7 @@ def edit(request, page_id):
                 current_task_number = i + 1
 
         # add a warning message if tasks have been approved and may need to be re-approved
-        task_has_been_approved = any(filter(lambda task: task.status == TaskState.STATUS_APPROVED, workflow_tasks))
+        task_has_been_approved = any(filter(lambda task: task.status == WorkflowTaskState.STATUS_APPROVED, workflow_tasks))
 
         # TODO: add icon to message when we have added a workflows icon
         if request.method == 'GET':
@@ -1148,7 +1148,7 @@ def workflow_action(request, page_id):
 
     task_state_id = request.POST.get('task_state_id', None)
 
-    task_state = TaskState.objects.get(id=task_state_id) if task_state_id else page.current_workflow_task_state
+    task_state = WorkflowTaskState.objects.get(id=task_state_id) if task_state_id else page.current_workflow_task_state
     task_state = task_state.specific
 
     task = task_state.task.specific
@@ -1186,14 +1186,14 @@ def preview_for_moderation(request, revision_id):
 
 @require_GET
 def preview_revision_for_task(request, page_id, task_id):
-    """Preview the revision linked to the in-progress TaskState of a specified Task. This enables pages in moderation
-    to be edited and new TaskStates linked to the new revisions created, with preview links remaining valid"""
+    """Preview the revision linked to the in-progress WorkflowTaskState of a specified Task. This enables pages in moderation
+    to be edited and new WorkflowTaskStates linked to the new revisions created, with preview links remaining valid"""
 
     page = get_object_or_404(Page, id=page_id)
     task = get_object_or_404(Task, id=task_id).specific
     try:
-        task_state = TaskState.objects.get(page_revision__page=page, task=task, status=TaskState.STATUS_IN_PROGRESS)
-    except TaskState.DoesNotExist:
+        task_state = WorkflowTaskState.objects.get(page_revision__page=page, task=task, status=WorkflowTaskState.STATUS_IN_PROGRESS)
+    except WorkflowTaskState.DoesNotExist:
         messages.error(request, _("The page '{0}' is not currently awaiting moderation in task '{1}'.").format(page.get_admin_display_title(), task.name))
         return redirect('wagtailadmin_home')
 
@@ -1458,14 +1458,14 @@ def workflow_history_detail(request, page_id, workflow_state_id):
     # revision needs to be displayed on this page.
     page_revisions = PageRevision.objects.filter(
         page=page,
-        id__in=TaskState.objects.filter(workflow_state=workflow_state).values_list('page_revision_id', flat=True)
+        id__in=WorkflowTaskState.objects.filter(workflow_state=workflow_state).values_list('page_revision_id', flat=True)
     ).order_by('created_at')
 
     # Now get QuerySet of tasks completed for each revision
     task_states_by_revision_task = [
         (page_revision, {
             task_state.task: task_state
-            for task_state in TaskState.objects.filter(workflow_state=workflow_state, page_revision=page_revision)
+            for task_state in WorkflowTaskState.objects.filter(workflow_state=workflow_state, page_revision=page_revision)
         })
         for page_revision in page_revisions
     ]
@@ -1485,12 +1485,12 @@ def workflow_history_detail(request, page_id, workflow_state_id):
     ]
 
     # Generate timeline
-    completed_task_states = TaskState.objects.filter(
+    completed_task_states = WorkflowTaskState.objects.filter(
         workflow_state=workflow_state
     ).exclude(
         finished_at__isnull=True
     ).exclude(
-        status=TaskState.STATUS_CANCELLED
+        status=WorkflowTaskState.STATUS_CANCELLED
     )
 
     timeline = [

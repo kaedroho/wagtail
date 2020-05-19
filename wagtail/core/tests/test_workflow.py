@@ -8,7 +8,7 @@ from django.db.utils import IntegrityError
 from django.test import TestCase, override_settings
 
 from freezegun import freeze_time
-from wagtail.core.models import GroupApprovalTask, Page, Task, Workflow, WorkflowPage, WorkflowTask
+from wagtail.core.models import GroupApprovalTask, Page, Workflow, WorkflowPage, WorkflowTask
 from wagtail.tests.testapp.models import SimplePage
 
 
@@ -17,10 +17,8 @@ class TestWorkflows(TestCase):
 
     def create_workflow_and_tasks(self):
         workflow = Workflow.objects.create(name='test_workflow')
-        task_1 = Task.objects.create(name='test_task_1')
-        task_2 = Task.objects.create(name='test_task_2')
-        WorkflowTask.objects.create(workflow=workflow, task=task_1, sort_order=1)
-        WorkflowTask.objects.create(workflow=workflow, task=task_2, sort_order=2)
+        task_1 = WorkflowTask.objects.create(name='test_task_1', workflow=workflow, sort_order=1)
+        task_2 = WorkflowTask.objects.create(name='test_task_2', workflow=workflow, sort_order=2)
         return workflow, task_1, task_2
 
     def start_workflow_on_homepage(self):
@@ -39,18 +37,11 @@ class TestWorkflows(TestCase):
         self.assertEqual(retrieved_workflow.name, 'test_workflow')
 
     def test_create_task(self):
-        # test creating and retrieving a base Task from the db
-        test_task = Task(name='test_task')
-        test_task.save()
-        retrieved_task = Task.objects.get(id=test_task.id)
-        self.assertEqual(retrieved_task.name, 'test_task')
-
-    def test_add_task_to_workflow(self):
+        # test creating and retrieving a base WorkflowTask from the db
         workflow = Workflow.objects.create(name='test_workflow')
-        task = Task.objects.create(name='test_task')
-        WorkflowTask.objects.create(workflow=workflow, task=task, sort_order=1)
-        self.assertIn(task, Task.objects.filter(workflow_tasks__workflow=workflow))
-        self.assertIn(workflow, Workflow.objects.filter(workflow_tasks__task=task))
+        task = WorkflowTask.objects.create(name='test_task', workflow=workflow)
+        retrieved_task = WorkflowTask.objects.get(id=task.id)
+        self.assertEqual(retrieved_task.name, 'test_task')
 
     def test_add_workflow_to_page(self):
         # test adding a Workflow to a Page via WorkflowPage
@@ -61,10 +52,11 @@ class TestWorkflows(TestCase):
         self.assertEqual(homepage.workflowpage.workflow, workflow)
 
     def test_get_specific_task(self):
-        # test ability to get instance of subclassed Task type using Task.specific
-        group_approval_task = GroupApprovalTask.objects.create(name='test_group_approval')
+        # test ability to get instance of subclassed WorkflowTask type using WorkflowTask.specific
+        workflow = Workflow.objects.create(name='test_workflow')
+        group_approval_task = GroupApprovalTask.objects.create(name='test_group_approval', workflow=workflow)
         group_approval_task.groups.set(Group.objects.all())
-        task = Task.objects.get(name='test_group_approval')
+        task = WorkflowTask.objects.get(name='test_group_approval')
         specific_task = task.specific
         self.assertIsInstance(specific_task, GroupApprovalTask)
 
@@ -94,7 +86,7 @@ class TestWorkflows(TestCase):
 
     @freeze_time("2017-01-01 12:00:00")
     def test_start_workflow_on_page(self):
-        # test the first WorkflowState and TaskState models are set up correctly when Workflow.start(page) is used.
+        # test the first WorkflowState and WorkflowWorkflowTaskState models are set up correctly when Workflow.start(page) is used.
         workflow, task_1, task_2 = self.create_workflow_and_tasks()
         homepage = Page.objects.get(url_path='/home/')
         homepage.save_revision()
@@ -121,7 +113,7 @@ class TestWorkflows(TestCase):
 
     @freeze_time("2017-01-01 12:00:00")
     def test_approve_workflow(self):
-        # tests that approving both TaskStates in a Workflow via Task.on_action approves tasks and publishes the revision correctly
+        # tests that approving both WorkflowWorkflowTaskStates in a Workflow via WorkflowTask.on_action approves tasks and publishes the revision correctly
         data = self.start_workflow_on_homepage()
         workflow_state = data['workflow_state']
         task_2 = data['task_2']
@@ -138,7 +130,7 @@ class TestWorkflows(TestCase):
 
     @override_settings(WAGTAIL_WORKFLOW_REQUIRE_REAPPROVAL_ON_EDIT=True)
     def test_workflow_resets_when_new_revision_created(self):
-        # test that a Workflow on its second Task returns to its first task (upon WorkflowState.update()) if a new revision is created
+        # test that a Workflow on its second WorkflowTask returns to its first task (upon WorkflowState.update()) if a new revision is created
         data = self.start_workflow_on_homepage()
         workflow_state = data['workflow_state']
         task_1 = data['task_1']
@@ -157,7 +149,7 @@ class TestWorkflows(TestCase):
 
     @override_settings(WAGTAIL_WORKFLOW_REQUIRE_REAPPROVAL_ON_EDIT=False)
     def test_workflow_does_not_reset_when_new_revision_created_if_reapproval_turned_off(self):
-        # test that a Workflow on its second Task does not return to its first task (upon WorkflowState.update()) if a new revision is created
+        # test that a Workflow on its second WorkflowTask does not return to its first task (upon WorkflowState.update()) if a new revision is created
         data = self.start_workflow_on_homepage()
         workflow_state = data['workflow_state']
         task_1 = data['task_1']
@@ -176,7 +168,7 @@ class TestWorkflows(TestCase):
         self.assertEqual(workflow_state.status, workflow_state.STATUS_APPROVED)
 
     def test_reject_workflow(self):
-        # test that both WorkflowState and TaskState are marked as rejected upon Task.on_action with action=reject
+        # test that both WorkflowState and WorkflowWorkflowTaskState are marked as rejected upon WorkflowTask.on_action with action=reject
         data = self.start_workflow_on_homepage()
         workflow_state = data['workflow_state']
         task_state = workflow_state.current_task_state
