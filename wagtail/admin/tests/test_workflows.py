@@ -234,125 +234,6 @@ class TestRemoveWorkflow(TestCase, WagtailTestUtils):
         self.assertEqual(WorkflowPage.objects.filter(workflow=self.workflow, page=self.page).count(), 0)
 
 
-# class TestTaskIndexView(TestCase, WagtailTestUtils):
-
-#     def setUp(self):
-#         delete_existing_workflows()
-#         self.login()
-
-#     def get(self, params={}):
-#         return self.client.get(reverse('wagtailadmin_workflows:task_index'), params)
-
-#     def test_simple(self):
-#         response = self.get()
-#         self.assertEqual(response.status_code, 200)
-#         self.assertTemplateUsed(response, 'wagtailadmin/workflows/task_index.html')
-
-#         # Initially there should be no tasks listed
-#         self.assertContains(response, "There are no enabled tasks")
-
-#         SimpleTask.objects.create(name="test_task", active=True)
-
-#         # Now the listing should contain our task
-#         response = self.get()
-#         self.assertEqual(response.status_code, 200)
-#         self.assertTemplateUsed(response, 'wagtailadmin/workflows/task_index.html')
-#         self.assertNotContains(response, "There are no enabled tasks")
-#         self.assertContains(response, "test_task")
-
-#     def test_deactivated(self):
-#         Task.objects.create(name="test_task", active=False)
-
-#         # The listing should contain our task, as well as marking it as disabled
-#         response = self.get(params={'show_disabled': 'True'})
-#         self.assertEqual(response.status_code, 200)
-#         self.assertNotContains(response, "No tasks have been created.")
-#         self.assertContains(response, "test_task")
-#         self.assertContains(response, '<span class="status-tag">Disabled</span>', html=True)
-
-#         # The listing should not contain task if show_disabled query parameter is 'False'
-#         response = self.get(params={})
-#         self.assertEqual(response.status_code, 200)
-#         self.assertContains(response, "There are no enabled tasks")
-#         self.assertNotContains(response, "test_task")
-
-
-# class TestCreateTaskView(TestCase, WagtailTestUtils):
-
-#     def setUp(self):
-#         delete_existing_workflows()
-#         self.login()
-
-#     def get(self, params={}):
-#         return self.client.get(reverse('wagtailadmin_workflows:add_task', kwargs={'app_label': SimpleTask._meta.app_label, 'model_name': SimpleTask._meta.model_name}), params)
-
-#     def post(self, post_data={}):
-#         return self.client.post(reverse('wagtailadmin_workflows:add_task', kwargs={'app_label': SimpleTask._meta.app_label, 'model_name': SimpleTask._meta.model_name}), post_data)
-
-#     def test_get(self):
-#         response = self.get()
-#         self.assertEqual(response.status_code, 200)
-#         self.assertTemplateUsed(response, 'wagtailadmin/workflows/create_task.html')
-
-#     def test_post(self):
-#         response = self.post({'name': 'test_task', 'active': 'on'})
-
-#         # Should redirect back to index
-#         self.assertRedirects(response, reverse('wagtailadmin_workflows:task_index'))
-
-#         # Check that the task was created
-#         tasks = Task.objects.filter(name="test_task", active=True)
-#         self.assertEqual(tasks.count(), 1)
-
-
-# class TestSelectTaskTypeView(TestCase, WagtailTestUtils):
-
-#     def setUp(self):
-#         delete_existing_workflows()
-#         self.login()
-
-#     def get(self):
-#         return self.client.get(reverse('wagtailadmin_workflows:select_task_type'))
-
-#     def test_get(self):
-#         response = self.get()
-#         self.assertEqual(response.status_code, 200)
-#         self.assertTemplateUsed(response, 'wagtailadmin/workflows/select_task_type.html')
-
-#         # Check that the list of available task types includes SimpleTask and GroupApprovalTask
-#         self.assertContains(response, SimpleTask.get_verbose_name())
-#         self.assertContains(response, GroupApprovalTask.get_verbose_name())
-
-
-# class TestEditTaskView(TestCase, WagtailTestUtils):
-
-#     def setUp(self):
-#         delete_existing_workflows()
-#         self.login()
-#         self.task = SimpleTask.objects.create(name="test_task")
-
-#     def get(self, params={}):
-#         return self.client.get(reverse('wagtailadmin_workflows:edit_task', args=[self.task.id]), params)
-
-#     def post(self, post_data={}):
-#         return self.client.post(reverse('wagtailadmin_workflows:edit_task', args=[self.task.id]), post_data)
-
-#     def test_get(self):
-#         response = self.get()
-#         self.assertEqual(response.status_code, 200)
-#         self.assertTemplateUsed(response, 'wagtailadmin/workflows/edit_task.html')
-
-#     def test_post(self):
-#         response = self.post({'name': 'test_task_modified', 'active': 'on'})
-
-#         # Should redirect back to index
-#         self.assertRedirects(response, reverse('wagtailadmin_workflows:task_index'))
-
-#         # Check that the task was updated
-#         task = Task.objects.get(id=self.task.id)
-#         self.assertEqual(task.name, "test_task_modified")
-
-
 class TestSubmitToWorkflow(TestCase, WagtailTestUtils):
     def setUp(self):
         delete_existing_workflows()
@@ -917,23 +798,6 @@ class TestDisableViews(TestCase, WagtailTestUtils):
 
         self.assertEqual(WorkflowTaskState.objects.filter(workflow_state__workflow=self.workflow, status=WorkflowTaskState.STATUS_IN_PROGRESS).count(), 0)
 
-    def test_disable_task(self):
-        """Test that deactivating a task sets it to inactive and cancels in progress states"""
-        self.login(self.submitter)
-        self.submit()
-        self.login(self.superuser)
-
-        response = self.client.post(reverse('wagtailadmin_workflows:disable_task', args=(self.task_1.pk,)))
-        self.assertEqual(response.status_code, 302)
-        self.task_1.refresh_from_db()
-        self.assertEqual(self.task_1.active, False)
-        states = WorkflowTaskState.objects.filter(workflow_state__page=self.page, task=self.task_1.workflowtask_ptr)
-        self.assertEqual(states.filter(status=WorkflowTaskState.STATUS_IN_PROGRESS).count(), 0)
-        self.assertEqual(states.filter(status=WorkflowTaskState.STATUS_CANCELLED).count(), 1)
-
-        # Check that the page's WorkflowState has moved on to the next active task
-        self.assertEqual(self.page.current_workflow_state.current_task_state.task.specific, self.task_2)
-
     def test_enable_workflow(self):
         self.login(self.superuser)
         self.workflow.active = False
@@ -943,13 +807,3 @@ class TestDisableViews(TestCase, WagtailTestUtils):
         self.assertEqual(response.status_code, 302)
         self.workflow.refresh_from_db()
         self.assertEqual(self.workflow.active, True)
-
-    def test_enable_task(self):
-        self.login(self.superuser)
-        self.task_1.active = False
-        self.task_1.save()
-
-        response = self.client.post(reverse('wagtailadmin_workflows:enable_task', args=(self.task_1.pk,)))
-        self.assertEqual(response.status_code, 302)
-        self.task_1.refresh_from_db()
-        self.assertEqual(self.task_1.active, True)
