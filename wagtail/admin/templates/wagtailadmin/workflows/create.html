@@ -1,11 +1,13 @@
 {% extends "wagtailadmin/base.html" %}
-{% load i18n %}
+{% load i18n wagtailadmin_tags %}
 
 {% block titletag %}{{ view.page_title }}{% endblock %}
 
 {% block extra_css %}
     {% include "wagtailadmin/pages/_editor_css.html" %}
+    <link rel="stylesheet" href="{% versioned_static 'wagtailadmin/css/layouts/workflow-edit.css' %}" type="text/css" />
     {{ edit_handler.form.media.css }}
+    {{ pages_formset.media.css }}
 
     {{ view.media.css }}
 {% endblock %}
@@ -13,6 +15,7 @@
 {% block extra_js %}
     {% include "wagtailadmin/pages/_editor_js.html" %}
     {{ edit_handler.form.media.js }}
+    {{ pages_formset.media.js }}
     {{ edit_handler.html_declarations }}
 
     {{ view.media.js }}
@@ -22,10 +25,22 @@
 
     {% include "wagtailadmin/shared/header.html" with title=view.page_title icon=view.header_icon merged=1 %}
 
-    <form action="{{ view.get_add_url }}" enctype="multipart/form-data" method="POST" novalidate>
-        {% csrf_token %}
+    <ul class="tab-nav merged">
+        <li class="active"><a href="#workflow">{% trans "Workflow" %}</a></li>
+        <li><a href="#pages">{% trans "Pages" %}</a></li>
+    </ul>
 
-        {% block form %}{{ edit_handler.render_form_content }}{% endblock %}
+    <form action="{{ view.get_add_url }}" enctype="multipart/form-data" method="POST" novalidate>
+        <div class="tab-content">
+            {% csrf_token %}
+
+            <section id="workflow" class="active">
+                {% block form %}{{ edit_handler.render_form_content }}{% endblock %}
+            </section>
+            <section id="pages" class="nice-padding">
+                {% include "wagtailadmin/workflows/includes/workflow_pages_formset.html" with formset=pages_formset %}
+            </section>
+        </div>
 
         {% block footer %}
             <footer role="contentinfo">

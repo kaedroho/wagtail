@@ -75,7 +75,7 @@ class TestWorkflowsCreateView(TestCase, WagtailTestUtils):
         self.login()
         self.task_1 = SimpleTask.objects.create(name="first_task")
         self.task_2 = SimpleTask.objects.create(name="second_task")
-
+        self.root_page = Page.objects.get(depth=1)
 
     def get(self, params={}):
         return self.client.get(reverse('wagtailadmin_workflows:add'), params)
@@ -90,11 +90,29 @@ class TestWorkflowsCreateView(TestCase, WagtailTestUtils):
 
     def test_post(self):
         response = self.post({
-            'name': ['test_workflow'], 'active': ['on'], 'workflow_tasks-TOTAL_FORMS': ['2'],
-            'workflow_tasks-INITIAL_FORMS': ['0'], 'workflow_tasks-MIN_NUM_FORMS': ['0'],
-            'workflow_tasks-MAX_NUM_FORMS': ['1000'], 'workflow_tasks-0-task': [str(self.task_1.id)], 'workflow_tasks-0-id': [''],
-            'workflow_tasks-0-ORDER': ['1'], 'workflow_tasks-0-DELETE': [''], 'workflow_tasks-1-task': [str(self.task_2.id)],
-            'workflow_tasks-1-id': [''], 'workflow_tasks-1-ORDER': ['2'], 'workflow_tasks-1-DELETE': ['']})
+            'name': ['test_workflow'],
+            'active': ['on'],
+            'workflow_tasks-TOTAL_FORMS': ['2'],
+            'workflow_tasks-INITIAL_FORMS': ['0'],
+            'workflow_tasks-MIN_NUM_FORMS': ['0'],
+            'workflow_tasks-MAX_NUM_FORMS': ['1000'],
+            'workflow_tasks-0-task': [str(self.task_1.id)],
+            'workflow_tasks-0-id': [''],
+            'workflow_tasks-0-ORDER': ['1'],
+            'workflow_tasks-0-DELETE': [''],
+            'workflow_tasks-1-task': [str(self.task_2.id)],
+            'workflow_tasks-1-id': [''],
+            'workflow_tasks-1-ORDER': ['2'],
+            'workflow_tasks-1-DELETE': [''],
+            'pages-TOTAL_FORMS': ['2'],
+            'pages-INITIAL_FORMS': ['1'],
+            'pages-MIN_NUM_FORMS': ['0'],
+            'pages-MAX_NUM_FORMS': ['1000'],
+            'pages-0-page': [str(self.root_page.id)],
+            'pages-0-DELETE': [''],
+            'pages-1-page': [''],
+            'pages-1-DELETE': [''],
+        })
 
 
         # Should redirect back to index
@@ -157,7 +175,16 @@ class TestWorkflowsEditView(TestCase, WagtailTestUtils):
             'workflow_tasks-1-task': [str(self.task_2.id)],
             'workflow_tasks-1-id': [''],
             'workflow_tasks-1-ORDER': ['2'],
-            'workflow_tasks-1-DELETE': ['']})
+            'workflow_tasks-1-DELETE': [''],
+            'pages-TOTAL_FORMS': ['2'],
+            'pages-INITIAL_FORMS': ['1'],
+            'pages-MIN_NUM_FORMS': ['0'],
+            'pages-MAX_NUM_FORMS': ['1000'],
+            'pages-0-page': [str(self.page.id)],
+            'pages-0-DELETE': [''],
+            'pages-1-page': [''],
+            'pages-1-DELETE': [''],
+        })
 
 
         # Should redirect back to index

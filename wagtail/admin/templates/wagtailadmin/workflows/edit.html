@@ -6,13 +6,16 @@
 {% block extra_css %}
     {% include "wagtailadmin/pages/_editor_css.html" %}
     {{ edit_handler.form.media.css }}
+    {{ pages_formset.media.css }}
 
     {{ view.media.css }}
+    <link rel="stylesheet" href="{% versioned_static 'wagtailadmin/css/layouts/workflow-edit.css' %}" type="text/css" />
 {% endblock %}
 
 {% block extra_js %}
     {% include "wagtailadmin/pages/_editor_js.html" %}
     {{ edit_handler.form.media.js }}
+    {{ pages_formset.media.js }}
     {{ edit_handler.html_declarations }}
 
     {{ view.media.js }}
@@ -22,10 +25,22 @@
 
     {% include "wagtailadmin/shared/header.html" with title=view.page_title icon=view.header_icon merged=1 %}
 
-    <form action="{% block form_action %}{{ view.edit_url }}{% endblock %}"{% if is_multipart %} enctype="multipart/form-data"{% endif %} method="POST" novalidate>
-        {% csrf_token %}
+    <ul class="tab-nav merged">
+        <li class="active"><a href="#workflow">{% trans "Workflow" %}</a></li>
+        <li><a href="#pages">{% trans "Pages" %}</a></li>
+    </ul>
 
-        {% block form %}{{ edit_handler.render_form_content }}{% endblock %}
+    <form action="{% block form_action %}{{ view.edit_url }}{% endblock %}"{% if is_multipart %} enctype="multipart/form-data"{% endif %} method="POST" novalidate>
+        <div class="tab-content">
+            {% csrf_token %}
+
+            <section id="workflow" class="active">
+                {% block form %}{{ edit_handler.render_form_content }}{% endblock %}
+            </section>
+            <section id="pages" class="nice-padding">
+                {% include "wagtailadmin/workflows/includes/workflow_pages_formset.html" with formset=pages_formset %}
+            </section>
+        </div>
 
         <div class="object">
             <ul class="object-layout">
@@ -39,6 +54,7 @@
             </ul>
         </div>
     </form>
+
     {% if can_enable or can_disable %}
         <div class="nice-padding">
             <form action="{{ view.get_enable_url }}" method="POST" novalidate>
@@ -54,21 +70,4 @@
             </form>
         </div>
     {% endif %}
-    <div class="object">
-        <div class="title-wrapper">{% trans 'Select page(s) to link workflow to' %}</div>
-        <div class="object-layout">
-            <div class="object-layout_big-part">
-                <div class="multiple">
-                    <p>{% trans 'Child pages will also use this workflow' %}</p>
-                    {% if pages %}
-                        {% include "wagtailadmin/workflows/listing/_list_workflow_pages.html" %}
-                        {% paginate pages base_url=request.path %}
-                    {% endif %}
-                    <p class="add">
-                        <a class="button bicolor icon icon-plus" href="{% url 'wagtailadmin_workflows:add_to_page' workflow.pk %}">Add</a>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
 {% endblock %}
