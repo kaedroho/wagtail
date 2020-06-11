@@ -12,6 +12,8 @@
 
         {{ form }}
 
-        <button type="submit">{% trans "Save" %}</button>
+        <div style="clear: both;">
+            <button type="submit" class="button action-save button-longrunning" data-clicked-text="{% trans 'Saving…' %}">{% trans "Save" %}</button>
+        </div>
     </form>
 </div>
