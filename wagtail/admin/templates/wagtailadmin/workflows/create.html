@@ -25,22 +25,25 @@
 
     {% include "wagtailadmin/shared/header.html" with title=view.page_title icon=view.header_icon merged=1 %}
 
-    <ul class="tab-nav merged">
-        <li class="active"><a href="#workflow">{% trans "Workflow" %}</a></li>
-        <li><a href="#pages">{% trans "Pages" %}</a></li>
-    </ul>
-
     <form action="{{ view.get_add_url }}" enctype="multipart/form-data" method="POST" novalidate>
-        <div class="tab-content">
-            {% csrf_token %}
+        {% csrf_token %}
 
-            <section id="workflow" class="active">
-                {% block form %}{{ edit_handler.render_form_content }}{% endblock %}
-            </section>
-            <section id="pages" class="nice-padding">
-                {% include "wagtailadmin/workflows/includes/workflow_pages_formset.html" with formset=pages_formset %}
-            </section>
-        </div>
+        {% block form %}{{ edit_handler.render_form_content }}{% endblock %}
+
+        <ul class="objects">
+            <li class="object">
+                <div class="title-wrapper">
+                    <label>
+                        Assign your workflow to pages
+                    </label>
+                </div>
+                <div class="object-layout">
+                    <div class="object-layout_big-part">
+                        {% include "wagtailadmin/workflows/includes/workflow_pages_formset.html" with formset=pages_formset %}
+                    </div>
+                </div>
+            </li>
+        </ul>
 
         {% block footer %}
             <footer role="contentinfo">
