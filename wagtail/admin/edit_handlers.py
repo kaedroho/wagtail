@@ -788,7 +788,7 @@ Page.base_form_class = WagtailAdminPageForm
 
 # Similarly, set up wagtailcore.Workflow to have edit handlers
 Workflow.panels = [
-    FieldPanel("name", heading=gettext_lazy("Give your workflow a name")),
+    FieldPanel("name", heading=gettext_lazy("Give your workflow a name"), classname="full title"),
     InlinePanel("workflow_tasks", heading=gettext_lazy("Add tasks to your workflow")),
 ]
 Task.panels = [
