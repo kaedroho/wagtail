@@ -43,25 +43,6 @@ label,
     &.no-float {
         float: none;
     }
-
-    @include media-breakpoint-up(sm) {
-        @include column(2);
-        padding-top: 1.2em;
-        padding-left: 0;
-
-        .radio_select &,
-        .model_multiple_choice_field &,
-        .boolean_field &,
-        .model_choice_field &,
-        .image_field & {
-            padding-top: 0;
-        }
-
-        // Horrid specificity war
-        .model_choice_field.select & {
-            padding-top: 1.2em;
-        }
-    }
 }
 
 input,
