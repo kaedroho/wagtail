@@ -1,42 +1,38 @@
-{% load wagtailadmin_tags i18n %}
+{% load i18n wagtailadmin_tags %}
 {% if workflow_state %}
-    {% with workflow_state.workflow as workflow %}
-
-    <h2>
-        <a href="{% url 'wagtailadmin_pages:workflow_history_detail' page.id workflow_state.id %}">
-            {{ workflow.name }}
-        </a>
-    </h2>
-
-    {% if current_task_state %}
-        {% with current_task_state.task as task %}
-
-        {% if current_task_number %}
-            {% blocktrans with workflow_tasks|length as total_tasks %} Task {{ current_task_number }} of {{ total_tasks }}{% endblocktrans %}: {{ task.name }}
+<li>
+    <button data-url="{% url 'wagtailadmin_pages:workflow_status' page.id %}"
+            class="button button-small button-nobg text-notransform action-workflow-status">
+        {% if workflow_state.status == 'needs_changes' %}
+            {% icon name="warning" %}
+            {% trans "Changes requested" %}
+            {% include "wagtailadmin/shared/last_updated.html" with since_text=since_text last_updated=workflow_state.current_task_state.finished_at time_prefix="at" %}
         {% else %}
-            {% trans 'Task' %}: {{ task.name }}
+            {% if workflow_state.status == "in_progress" %}
+                {% trans "Awaiting" %}
+                {% trans "since" as since_text %}
+            {% else %}
+                {{ workflow_state.get_status_display }}
+            {% endif %}
+            {{ workflow_state.current_task_state.task.name }}
+            {% include "wagtailadmin/shared/last_updated.html" with since_text=since_text last_updated=workflow_state.current_task_state.started_at %}
         {% endif %}
-
-        {% endwith %}
+    </button>
+</li>
+{% else %}
+<li class="header-meta--status">
+    {% if page.get_latest_revision %}
+        {% if page.get_latest_revision.user %}
+            <span class="avatar small" data-wagtail-tooltip="{{ page.get_latest_revision.user.get_full_name|default:page.get_latest_revision.user.get_username }}"><img src="{% avatar_url page.get_latest_revision.user size=25 %}" alt="" /></span>
+        {% endif %}
+        {% if page.get_latest_revision == page.live_revision %}
+            {% trans "Published" %}
+        {% else %}
+            {% trans "Draft saved" %}
+        {% endif %}
+        {% include "wagtailadmin/shared/last_updated.html" with last_updated=page.get_latest_revision.created_at time_prefix="at" %}
+    {% else %}
+        {% trans "Draft" %}
     {% endif %}
-
-    <div>
-        {% trans 'Approved task' as approved_title %}
-        {% trans 'Incomplete task' as incomplete_title %}
-        {% for task in workflow_tasks %}
-            <span data-wagtail-tooltip="{{ task.name }}: {{ task.status_display }}">
-                {% if task.status == 'approved' %}
-                    {% icon "success" title=approved_title class_name="icon uniform" %}
-                {% else %}
-                    {% icon "radio-empty" title=incomplete_title class_name="icon uniform" %}
-                {% endif %}
-            </span>
-        {% endfor %}
-    </div>
-
-    {% endwith %}
-
-    <a href="{% url 'wagtailadmin_pages:workflow_history' page.id %}">
-        {% trans "Workflow history" %}
-    </a>
+</li>
 {% endif %}

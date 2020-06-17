@@ -7,14 +7,12 @@
     input[type=button],
     button,
     .button {
-        padding: 0;
+        padding: 0 5em 0 1em;
         display: block;
         width: 100%;
         height: 3em;
         line-height: 3em;
         text-align: left;
-        padding-left: 1em;
-        padding-right: 5em;
         float: left;
     }
 
@@ -150,6 +148,10 @@
         &:hover {
             background-color: $color-teal-darker;
         }
+
+        .icon {
+            @include svg-icon(1.5em);
+        }
     }
 
     .bicolor + .dropdown-toggle {
@@ -184,6 +186,32 @@
 
             .dropdown-toggle {
                 border-radius: 0 3px 0 0;
+            }
+        }
+    }
+
+    &.dropdown-button--white {
+        ul {
+            background-color: $color-grey-3;
+        }
+        li {
+            a,
+            .button {
+                background-color: $color-white;
+                color: $color-button;
+                border: none;
+
+                &:hover {
+                    background-color: $color-grey-4;
+                }
+
+                &.no {
+                    color: $color-button-no;
+                }
+
+                &.warning {
+                    color: $color-button-warning;
+                }
             }
         }
     }
@@ -239,4 +267,12 @@
 // Transitions
 .dropdown ul {
     @include transition(opacity 0.2s linear);
+}
+
+.dropdown-button {
+
+    .button .icon {
+        @include svg-icon();
+        margin-right: 0.5em;
+    }
 }

@@ -89,6 +89,11 @@
     position: initial;
 }
 
+@mixin svg-icon ($size: 1.5em, $position: text-top) {
+    width: $size;
+    height: $size;
+    vertical-align: $position;
+}
 
 @mixin icon () {
     @include font-smoothing;
@@ -106,6 +111,11 @@
     margin-right: 0.2em;
 }
 
+@mixin svg-icon ($size: 1.5em, $position: text-top) {
+    width: $size;
+    height: $size;
+    vertical-align: $position;
+}
 
 // Applies given rules on hover, except for touch screens.
 // Relies on feature detection to add a no-touch class on the html element.

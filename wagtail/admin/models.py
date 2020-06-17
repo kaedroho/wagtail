@@ -8,12 +8,12 @@ from taggit.models import Tag
 # wagtail admin (namely, base_form_class and get_edit_handler). Importing this within
 # wagtail.admin.models ensures that this happens in advance of running wagtail.admin's
 # system checks.
-from wagtail.admin import edit_handlers  # NOQA
+from wagtail.admin import edit_handlers, log_action_registry  # NOQA
 from wagtail.core.models import Page
 
 
 def get_object_usage(obj):
-    "Returns a queryset of pages that link to a particular object"
+    """Returns a queryset of pages that link to a particular object"""
 
     pages = Page.objects.none()
 

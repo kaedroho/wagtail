@@ -24,7 +24,7 @@ h6 {
 
 h1 {
     line-height: 1.3em;
-    font-size: 1.5em;
+    font-size: 1.915em;  // approximately 26px
     text-transform: uppercase;
     color: $color-grey-1;
     font-weight: 600;
@@ -38,7 +38,7 @@ h1 {
 h2 {
     text-transform: uppercase;
     font-size: 1.3em;
-    font-family: Open Sans;
+    font-family: Open Sans, Arial, sans-serif;
     font-weight: 600;
     color: $color-grey-2;
 }

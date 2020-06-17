@@ -6,7 +6,12 @@
     }
 
     .breadcrumb {
-        margin: -1.2em 0 2em;
+        margin-top: -1.2em;
+        margin-bottom: 2em;
+        margin-left: -$desktop-nice-padding;
+        margin-right: -$desktop-nice-padding;
+
+        padding-left: calc(#{$desktop-nice-padding} - 2em);
 
         @include media-breakpoint-up(sm) {
             margin-top: -1.8em;
@@ -31,15 +36,68 @@
     }
 
     .header-title {
-        padding-left: 3.1em;
+        padding-left: 0;
+    }
 
-        @include media-breakpoint-down(xs) {
-            padding-left: 0;
-            margin-left: -28px;
-            // Because it's nested within tab-merged which we've given padding
-            // on mobile viewports due to snippets
+    .header-meta {
+        list-style: none;
+        margin-top: 0;
+        margin-bottom: 0;
+
+        li {
+            border: none;
+            float: left;
+            height: 1.5em;
+            line-height: 2em;
+            margin: 1em 0 1.5em;
+
+            .icon {
+                @include svg-icon(1.25em, text-bottom);
+
+                margin-right: 0.4em;
+
+                &-warning {
+                    @include svg-icon();
+                }
+            }
+
+            &:first-child .button {
+                margin-left: -0.8em;
+            }
+
+            .avatar {
+                margin-left: 0;
+            }
+        }
+
+        .button {
+            font-size: 1em;
+            margin-top: -.25em; // Account for the button border
+            overflow: auto;
+            line-height: 2em;
+        }
+
+        .action-workflow-status {
+            font-weight: 600;
+
+            span {
+                font-weight: 500;
+            }
+        }
+
+        .human-readable-date {
+            display: inline;
+        }
+
+        &--status {
+            padding-right: 0.8em;
+        }
+
+        &--type {
+            padding: 0 0.8em;
         }
     }
+
 }
 
 $object-title-height: 40px;
@@ -100,7 +158,7 @@ $object-title-height: 40px;
         background: $color-salmon-light;
         color: #200200;
         text-transform: uppercase;
-        padding: 0.9em 0 0.9em 4.1em;
+        padding: 0.9em 0 0.9em 5em;
         font-size: 0.95em;
         margin: 0;
         line-height: 1.5em;
@@ -136,7 +194,7 @@ $object-title-height: 40px;
             top: 0;
             line-height: 1.8em;
             left: 0;
-            width: 1.7em;
+            width: $desktop-nice-padding;
             color: $color-white;
             padding: 0;
             margin: 0;
@@ -234,6 +292,12 @@ $object-title-height: 40px;
             font-size: 1.8rem;
             line-height: 1.4em;
             width: 1.4em;
+        }
+    }
+
+    &.privacy {
+        > .title-wrapper:before {
+            content: map-get($icons, 'view');
         }
     }
 
@@ -352,6 +416,12 @@ $object-title-height: 40px;
 footer .preview {
     button,
     .button {
+        padding: 0 1em;
+
+        .icon {
+            margin-right: 0.5em;
+        }
+
         @include media-breakpoint-down(xs) {
             width: 100%;
             margin-top: 2px;
@@ -480,10 +550,64 @@ footer .preview {
     }
 }
 
-.lock-status {
-    margin: 0 0.5em 0.5em 0;
+.button.button--live {
+    background-color: $color-white;
+    color: $color-teal-dark;
+    font-weight: 600;
+    line-height: 2.5em;
+    padding: 0 0.8em;
+
+    .icon {
+        @include svg-icon(1.25em);
+        margin-right: 0.4em;
+    }
+
+    &:hover {
+        background-color: $color-teal-darker;
+        color: $color-white;
+    }
 }
 
-.lock-status.status-tag {
-    color: $color-teal;
+.workflow-timeline {
+    list-style: none;
+    padding: 0;
+
+    li {
+        margin-bottom: 1.25em;
+        position: relative;
+    }
+    li:not(:last-child)::after {
+        content: '';
+        color: $color-grey-3;
+        position: absolute;
+        top: 1.5em;
+        left: calc(.75em - 1px);
+        height: 100%;
+        border-left: 2px dotted;
+    }
+
+    .icon {
+        fill: $color-grey-3;
+    }
+
+    .in_progress {
+        font-weight: 700;
+
+        .icon {
+            fill: $color-text-base;
+        }
+    }
+
+    .approved .icon {
+        fill: $color-teal;
+    }
+
+    .needs_changes .icon,
+    .rejected .icon {
+        fill: $color-orange;
+    }
+
+    .cancelled .icon {
+        fill: $color-red-dark;
+    }
 }
