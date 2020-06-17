@@ -16,7 +16,7 @@ from wagtail.admin import messages
 from wagtail.admin.auth import PermissionPolicyChecker
 from wagtail.admin.edit_handlers import Workflow
 from wagtail.admin.forms.search import SearchForm
-from wagtail.admin.forms.workflows import AddWorkflowToPageForm, WorkflowPagesFormSet
+from wagtail.admin.forms.workflows import AddWorkflowToPageForm, WorkflowPagesFormSet, get_task_form_class
 from wagtail.admin.modal_workflow import render_modal_workflow
 from wagtail.admin.views.generic import CreateView, DeleteView, EditView, IndexView
 from wagtail.admin.views.pages import get_valid_next_url_from_request
@@ -379,7 +379,6 @@ class CreateTask(CreateView):
     edit_url_name = 'wagtailadmin_workflows:edit_task'
     index_url_name = 'wagtailadmin_workflows:task_index'
     header_icon = 'clipboard-list'
-    edit_handler = None
 
     @cached_property
     def model(self):
@@ -397,24 +396,8 @@ class CreateTask(CreateView):
 
         return model
 
-    def get_edit_handler(self):
-        if not self.edit_handler:
-            self.edit_handler = self.model.get_edit_handler()
-            self.edit_handler = self.edit_handler.bind_to(request=self.request)
-        return self.edit_handler
-
     def get_form_class(self):
-        return self.get_edit_handler().get_form_class()
-
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        self.edit_handler = self.edit_handler.bind_to(form=form)
-        return form
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['edit_handler'] = self.edit_handler
-        return context
+        return get_task_form_class(self.model)
 
     def get_add_url(self):
         return reverse(self.add_url_name, kwargs={'app_label': self.kwargs.get('app_label'), 'model_name': self.kwargs.get('model_name')})
@@ -434,7 +417,6 @@ class EditTask(EditView):
     enable_item_label = _('Enable')
     enable_url_name = 'wagtailadmin_workflows:enable_task'
     header_icon = 'clipboard-list'
-    edit_handler = None
 
     @cached_property
     def model(self):
@@ -447,23 +429,11 @@ class EditTask(EditView):
     def get_object(self, queryset=None):
         return super().get_object().specific
 
-    def get_edit_handler(self):
-        if not self.edit_handler:
-            self.edit_handler = self.model.get_edit_handler()
-            self.edit_handler = self.edit_handler.bind_to(request=self.request, instance=self.get_object())
-        return self.edit_handler
-
     def get_form_class(self):
-        return self.get_edit_handler().get_form_class()
-
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        self.edit_handler = self.edit_handler.bind_to(form=form)
-        return form
+        return get_task_form_class(self.model, for_edit=True)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['edit_handler'] = self.edit_handler
         context['can_disable'] = (self.permission_policy is None or self.permission_policy.user_has_permission(self.request.user, 'delete')) and self.object.active
         context['can_enable'] = (self.permission_policy is None or self.permission_policy.user_has_permission(self.request.user, 'create')) and not self.object.active
 
@@ -577,9 +547,7 @@ def task_chooser(request):
         create_model = None
 
     if create_model:
-        edit_handler = create_model.get_edit_handler()
-        edit_handler = edit_handler.bind_to(request=request)
-        createform_class = edit_handler.get_form_class()
+        createform_class = get_task_form_class(create_model)
     else:
         createform_class = None
 
@@ -657,10 +625,7 @@ def task_chosen(request, task_id):
 @task_permission_checker.require('add')
 def task_edit(request, task_id):
     task = get_object_or_404(Task, id=task_id).specific
-
-    edit_handler = task.get_edit_handler()
-    edit_handler = edit_handler.bind_to(request=request)
-    form_class = edit_handler.get_form_class()
+    form_class = get_task_form_class(task.__class__, for_edit=True)
 
     if request.method == 'POST':
         form = form_class(request.POST, request.FILES, instance=task, prefix='edit-task')
