@@ -786,29 +786,6 @@ Page.settings_panels = [
 
 Page.base_form_class = WagtailAdminPageForm
 
-# Similarly, set up wagtailcore.Workflow to have edit handlers
-Workflow.panels = [
-    FieldPanel("name", heading=gettext_lazy("Give your workflow a name"), classname="full title"),
-    InlinePanel("workflow_tasks", heading=gettext_lazy("Add tasks to your workflow")),
-]
-
-Workflow.base_form_class = WagtailAdminModelForm
-
-
-@cached_classmethod
-def get_simple_edit_handler(cls):
-    """
-    Get the EditHandler to use in the Wagtail admin when editing this class, constructing an ObjectList from the contents of cls.panels.
-    """
-    if hasattr(cls, 'edit_handler'):
-        edit_handler = cls.edit_handler
-    else:
-        edit_handler = ObjectList(cls.panels, base_form_class=cls.base_form_class)
-    return edit_handler.bind_to(model=cls)
-
-
-Workflow.get_edit_handler = get_simple_edit_handler
-
 
 @cached_classmethod
 def get_edit_handler(cls):

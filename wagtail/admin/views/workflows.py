@@ -16,7 +16,7 @@ from wagtail.admin import messages
 from wagtail.admin.auth import PermissionPolicyChecker
 from wagtail.admin.edit_handlers import Workflow
 from wagtail.admin.forms.search import SearchForm
-from wagtail.admin.forms.workflows import WorkflowPagesFormSet, get_task_form_class
+from wagtail.admin.forms.workflows import WorkflowPagesFormSet, get_task_form_class, get_workflow_edit_handler
 from wagtail.admin.modal_workflow import render_modal_workflow
 from wagtail.admin.views.generic import CreateView, DeleteView, EditView, IndexView
 from wagtail.admin.views.pages import get_valid_next_url_from_request
@@ -66,18 +66,11 @@ class Create(CreateView):
 
     def get_edit_handler(self):
         if not self.edit_handler:
-            self.edit_handler = self.model.get_edit_handler()
-            self.edit_handler = self.edit_handler.bind_to(request=self.request)
+            self.edit_handler = get_workflow_edit_handler().bind_to(request=self.request)
         return self.edit_handler
 
     def get_form_class(self):
-        form_class = self.get_edit_handler().get_form_class()
-
-        # TODO Unhack
-        from wagtail.admin.widgets.workflows import AdminTaskChooser
-        form_class.formsets['workflow_tasks'].form.base_fields['task'].widget = AdminTaskChooser(show_clear_link=False)
-
-        return form_class
+        return self.get_edit_handler().get_form_class()
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
@@ -138,18 +131,11 @@ class Edit(EditView):
 
     def get_edit_handler(self):
         if not self.edit_handler:
-            self.edit_handler = self.model.get_edit_handler()
-            self.edit_handler = self.edit_handler.bind_to(request=self.request, instance=self.get_object())
+            self.edit_handler = get_workflow_edit_handler().bind_to(request=self.request)
         return self.edit_handler
 
     def get_form_class(self):
-        form_class = self.get_edit_handler().get_form_class()
-
-        # TODO Unhack
-        from wagtail.admin.widgets.workflows import AdminTaskChooser
-        form_class.formsets['workflow_tasks'].form.base_fields['task'].widget = AdminTaskChooser(show_clear_link=False)
-
-        return form_class
+        return self.get_edit_handler().get_form_class()
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
