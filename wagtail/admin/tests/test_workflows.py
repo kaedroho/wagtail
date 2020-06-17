@@ -204,43 +204,6 @@ class TestWorkflowsEditView(TestCase, WagtailTestUtils):
         self.assertEqual(WorkflowTask.objects.get(workflow=workflow, task=self.task_2.task_ptr).sort_order, 1)
 
 
-class TestAddWorkflowToPage(TestCase, WagtailTestUtils):
-    fixtures = ['test.json']
-
-    def setUp(self):
-        delete_existing_workflows()
-        self.login()
-        self.workflow = Workflow.objects.create(name="workflow")
-        self.page = Page.objects.first()
-        self.other_workflow = Workflow.objects.create(name="other_workflow")
-        self.other_page = Page.objects.last()
-        WorkflowPage.objects.create(workflow=self.other_workflow, page=self.other_page)
-
-    def get(self, params={}):
-        return self.client.get(reverse('wagtailadmin_workflows:add_to_page', args=[self.workflow.id]), params)
-
-    def post(self, post_data={}):
-        return self.client.post(reverse('wagtailadmin_workflows:add_to_page', args=[self.workflow.id]), post_data)
-
-    def test_get(self):
-        response = self.get()
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'wagtailadmin/workflows/add_to_page.html')
-
-    def test_post(self):
-        # Check that a WorkflowPage instance is created correctly when a page with no existing workflow is created
-        self.post({'page': str(self.page.id), 'workflow': str(self.workflow.id)})
-        self.assertEqual(WorkflowPage.objects.filter(workflow=self.workflow, page=self.page).count(), 1)
-
-        # Check that trying to add a WorkflowPage for a page with an existing workflow does not create
-        self.post({'page': str(self.other_page.id), 'workflow': str(self.workflow.id)})
-        self.assertEqual(WorkflowPage.objects.filter(workflow=self.workflow, page=self.other_page).count(), 0)
-
-        # Check that this can be overridden by setting overwrite_existing to true
-        self.post({'page': str(self.other_page.id), 'overwrite_existing': 'True', 'workflow': str(self.workflow.id)})
-        self.assertEqual(WorkflowPage.objects.filter(workflow=self.workflow, page=self.other_page).count(), 1)
-
-
 class TestRemoveWorkflow(TestCase, WagtailTestUtils):
     fixtures = ['test.json']
 
