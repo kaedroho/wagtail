@@ -25,6 +25,7 @@ from django.views.generic.edit import FormView
 
 from wagtail.admin import messages
 from wagtail.admin.views.reports import SpreadsheetExportMixin
+from wagtail.core.models import TranslatableMixin, Locale
 
 from .forms import ParentChooserForm
 
@@ -221,7 +222,8 @@ class IndexView(SpreadsheetExportMixin, WMABaseView):
     SEARCH_VAR = 'q'
     ERROR_FLAG = 'e'
     EXPORT_VAR = 'export'
-    IGNORED_PARAMS = (ORDER_VAR, ORDER_TYPE_VAR, SEARCH_VAR, EXPORT_VAR)
+    LANG_VAR = 'lang'
+    IGNORED_PARAMS = (ORDER_VAR, ORDER_TYPE_VAR, SEARCH_VAR, EXPORT_VAR, LANG_VAR)
 
     # sortable_by is required by the django.contrib.admin.templatetags.admin_list.result_headers
     # template tag as of Django 2.1 - see https://docs.djangoproject.com/en/2.1/ref/contrib/admin/#django.contrib.admin.ModelAdmin.sortable_by
@@ -511,6 +513,17 @@ class IndexView(SpreadsheetExportMixin, WMABaseView):
                 ordering_fields[idx] = 'desc' if pfx == '-' else 'asc'
         return ordering_fields
 
+    def get_locale(self, request):
+        if self.LANG_VAR in request.GET:
+            try:
+                return Locale.objects.get(language_code=request.GET[self.LANG_VAR])
+            except Locale.DoesNotExist:
+                pass
+
+        # Default to active locale (this will take into account the user's chosen admin language)
+        return Locale.get_active()
+
+
     def get_queryset(self, request=None):
         request = request or self.request
 
@@ -524,6 +537,9 @@ class IndexView(SpreadsheetExportMixin, WMABaseView):
             new_qs = filter_spec.queryset(request, qs)
             if new_qs is not None:
                 qs = new_qs
+
+        if issubclass(qs.model, TranslatableMixin):
+            qs = qs.filter(locale=self.get_locale(request))
 
         try:
             # Finally, we apply the remaining lookup parameters from the query
@@ -611,6 +627,18 @@ class IndexView(SpreadsheetExportMixin, WMABaseView):
             context.update({
                 'no_valid_parents': not valid_parent_count,
                 'required_parent_types': allowed_parent_types,
+            })
+
+        if issubclass(self.model, TranslatableMixin):
+            context.update({
+                'locales': Locale.objects.filter(is_active=True),
+                'chosen_locale': self.get_locale(self.request),
+            })
+
+        else:
+            context.update({
+                'locales': [],
+                'chosen_locale': None,
             })
 
         context.update(kwargs)
