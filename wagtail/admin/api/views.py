@@ -5,6 +5,8 @@ from rest_framework.authentication import SessionAuthentication
 from wagtail.api.v2.views import PagesAPIViewSet
 from wagtail.core.models import Page
 
+from wagtail_localize.models import Locale
+
 from .filters import ForExplorerFilter, HasChildrenFilter
 from .serializers import AdminPageSerializer
 
@@ -26,6 +28,7 @@ class PagesAdminAPIViewSet(PagesAPIViewSet):
         'descendants',
         'parent',
         'ancestors',
+        'translations',
     ]
 
     body_fields = PagesAPIViewSet.body_fields + [

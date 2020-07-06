@@ -8,6 +8,8 @@ from taggit.managers import _TaggableManager
 
 from wagtail.core import fields as wagtailcore_fields
 
+from wagtail_localize.models import TranslatableMixin
+
 from .utils import get_object_detail_url
 
 
@@ -84,6 +86,21 @@ class PageTypeField(Field):
         name = page.specific_class._meta.app_label + '.' + page.specific_class.__name__
         self.context['view'].seen_types[name] = page.specific_class
         return name
+
+
+class PageLocaleField(Field):
+    """
+    Serializes the "locale" field for pages.
+    """
+    def get_attribute(self, instance):
+        return instance
+
+    def to_representation(self, page):
+        if isinstance(page, TranslatableMixin):
+            return page.locale.language_code
+
+        if issubclass(page.specific_class, TranslatableMixin):
+            return page.specific_class.objects.only('locale').get(id=page.id).language_code
 
 
 class RelatedField(relations.RelatedField):
@@ -310,6 +327,7 @@ class BaseSerializer(serializers.ModelSerializer):
 
 class PageSerializer(BaseSerializer):
     type = PageTypeField(read_only=True)
+    locale = PageLocaleField(read_only=True)
     html_url = PageHtmlUrlField(read_only=True)
     parent = PageParentField(read_only=True)
 

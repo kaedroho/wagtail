@@ -1,11 +1,14 @@
 from django.conf import settings
 from django.db import models
+from django.shortcuts import get_object_or_404
 from rest_framework.filters import BaseFilterBackend
 from taggit.managers import TaggableManager
 
 from wagtail.core.models import Page
 from wagtail.search.backends import get_search_backend
 from wagtail.search.backends.base import FilterFieldError, OrderByFieldError
+
+from wagtail_localize.models import Locale
 
 from .utils import BadRequestError, parse_boolean
 
@@ -178,5 +181,18 @@ class DescendantOfFilter(BaseFilterBackend):
                 raise BadRequestError("ancestor page doesn't exist")
 
             queryset = queryset.descendant_of(parent_page)
+
+        return queryset
+
+
+class LocaleFilter(BaseFilterBackend):
+    """
+    Implements the ?locale filter which limits the set of pages to a
+    particular locale.
+    """
+    def filter_queryset(self, request, queryset, view):
+        if 'locale' in request.GET:
+            locale = get_object_or_404(Locale, language_code=request.GET['locale'])
+            queryset = queryset & locale.get_all_pages()
 
         return queryset
