@@ -182,11 +182,14 @@ class Site(models.Model):
         result = cache.get('wagtail_site_root_paths')
 
         if result is None:
-            result = [
-                (site.id, site.root_page.url_path, site.root_url)
-                for site in Site.objects.select_related('root_page').order_by(
-                    '-root_page__url_path', '-is_default_site', 'hostname')
-            ]
+            result = []
+
+            for site in Site.objects.select_related('root_page').order_by('-root_page__url_path', '-is_default_site', 'hostname'):
+                result.extend([
+                    (site.id, root_page.locale.language_code, root_page.url_path, site.root_url)
+                    for root_page in site.root_page.get_translations(inclusive=True).select_related('locale')
+                ])
+
             cache.set('wagtail_site_root_paths', result, 3600)
 
         return result
@@ -284,15 +287,6 @@ class TranslatableMixin(models.Model):
         translated = self.__class__.objects.get(id=self.id)
         translated.id = None
         translated.locale = locale
-
-        # TODO: Think of a new solution for this
-        # if isinstance(self, AbstractImage):
-        #     # As we've copied the image record we also need to copy the original image file itself.
-        #     # This is in case either image record is changed or deleted, the other record will still
-        #     # have its file.
-        #     file_stem, file_ext = os.path.splitext(self.file.name)
-        #     new_name = "{}-{}{}".format(file_stem, locale.slug, file_ext)
-        #     translated.file = ContentFile(self.file.read(), name=new_name)
 
         return translated
 
@@ -1128,19 +1122,19 @@ class Page(AbstractPage, index.Indexed, ClusterableModel, metaclass=PageBase):
         """
 
         possible_sites = [
-            (pk, path, url)
-            for pk, path, url in self._get_site_root_paths(request)
+            (pk, language_code, path, url)
+            for pk, language_code, path, url in self._get_site_root_paths(request)
             if self.url_path.startswith(path)
         ]
 
         if not possible_sites:
             return None
 
-        site_id, root_path, root_url = possible_sites[0]
+        site_id, language_code, root_path, root_url = possible_sites[0]
 
         site = Site.find_for_request(request)
         if site:
-            for site_id, root_path, root_url in possible_sites:
+            for site_id, language_code, root_path, root_url in possible_sites:
                 if site_id == site.pk:
                     break
             else:
@@ -1149,8 +1143,9 @@ class Page(AbstractPage, index.Indexed, ClusterableModel, metaclass=PageBase):
         # The page may not be routable because wagtail_serve is not registered
         # This may be the case if Wagtail is used headless
         try:
-            page_path = reverse(
-                'wagtail_serve', args=(self.url_path[len(root_path):],))
+            with translation.override(language_code):
+                page_path = reverse(
+                    'wagtail_serve', args=(self.url_path[len(root_path):],))
         except NoReverseMatch:
             return (site_id, None, None)
 
