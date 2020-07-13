@@ -1192,14 +1192,13 @@ class TestCopyPage(TestCase):
         self.assertNotEqual(page.id, new_page.id)
 
     def test_copy_page_with_additional_excluded_fields(self):
-
         homepage = Page.objects.get(url_path='/home/')
-        page = PageWithExcludedCopyField(
+        page = homepage.add_child(instance=PageWithExcludedCopyField(
             title='Discovery',
             slug='disco',
             content='NCC-1031',
-            special_field='Context is for Kings')
-        new_page = page.copy(to=homepage)
+            special_field='Context is for Kings'))
+        new_page = page.copy(to=homepage, update_attrs={'slug': 'disco-2'})
 
         self.assertEqual(page.title, new_page.title)
         self.assertNotEqual(page.id, new_page.id)
