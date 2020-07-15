@@ -155,6 +155,7 @@ class ExplorerPanel extends React.Component {
               depth={path.length}
               page={page}
               onClick={this.onHeaderClick}
+              switchLocale={this.props.switchLocale}
             />
 
             {this.renderChildren()}

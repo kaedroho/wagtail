@@ -9,8 +9,8 @@ export const getPage = (id) => {
   return get(url);
 };
 
-export const getPageChildren = (id, options = {}) => {
-  let url = `${ADMIN_API.PAGES}?child_of=${id}&for_explorer=1`;
+export const getPageChildren = (id, locale, options = {}) => {
+  let url = `${ADMIN_API.PAGES}?child_of=${id}&locale=${locale}&for_explorer=1`;
 
   if (options.fields) {
     url += `&fields=${global.encodeURIComponent(options.fields.join(','))}`;

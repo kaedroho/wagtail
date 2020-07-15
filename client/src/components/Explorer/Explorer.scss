@@ -99,6 +99,18 @@ $menu-footer-height: 50px;
         color: $color-white;
     }
 
+    select {
+        width: unset;
+        float: right;
+        padding: 0;
+        text-align: center;
+
+        background-color: $c-explorer-bg-dark;
+        border-radius: 0;
+        border-color: #4c4e4d;
+        color: $color-white;
+    }
+
     @include hover {
         background-color: $c-explorer-bg-active;
     }

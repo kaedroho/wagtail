@@ -28,11 +28,11 @@ const getChildrenFailure = createAction('GET_CHILDREN_FAILURE', (id, error) => (
 /**
  * Gets the children of a node from the API.
  */
-function getChildren(id, offset = 0) {
+function getChildren(id, locale, offset = 0) {
   return (dispatch) => {
     dispatch(getChildrenStart(id));
 
-    return admin.getPageChildren(id, {
+    return admin.getPageChildren(id, locale, {
       offset: offset,
     }).then(({ items, meta }) => {
       const nbPages = offset + items.length;
@@ -41,7 +41,7 @@ function getChildren(id, offset = 0) {
       // Load more pages if necessary. Only one request is created even though
       // more might be needed, thus naturally throttling the loading.
       if (nbPages < meta.total_count && nbPages < MAX_EXPLORER_PAGES) {
-        dispatch(getChildren(id, nbPages));
+        dispatch(getChildren(id, locale, nbPages));
       }
     }, (error) => {
       dispatch(getChildrenFailure(id, error));
@@ -64,7 +64,7 @@ export function toggleExplorer(id) {
       dispatch(openExplorer(id));
 
       if (!page) {
-        dispatch(getChildren(id));
+        dispatch(getChildren(id, wagtailConfig.ACTIVE_LOCALE));
       }
 
       // We need to get the title of the starting page, only if it is not the site's root.
@@ -87,7 +87,20 @@ export function pushPage(id) {
     dispatch(pushPagePrivate(id));
 
     if (page && !page.isFetching && !(page.children.count > 0)) {
-      dispatch(getChildren(id));
+      dispatch(getChildren(id, page.meta.locale || wagtailConfig.ACTIVE_LOCALE));
+    }
+  };
+}
+
+export function switchLocale(locale) {
+  return (dispatch, getState) => {
+    const { nodes } = getState();
+    const page = nodes[id];
+
+    dispatch(pushPagePrivate(id));
+
+    if (page && !page.isFetching && !(page.children.count > 0)) {
+      dispatch(getChildren(id, locale));
     }
   };
 }

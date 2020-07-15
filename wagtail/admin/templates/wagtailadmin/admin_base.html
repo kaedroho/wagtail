@@ -27,6 +27,10 @@
                 EXTRA_CHILDREN_PARAMETERS: '',
             };
 
+            {% js_locales as locales %}
+            wagtailConfig.LOCALES = {{ locales|safe }};
+            wagtailConfig.ACTIVE_LOCALE = '{% js_active_locale %}';
+
             wagtailConfig.STRINGS = {% js_translation_strings %};
 
             wagtailConfig.ADMIN_URLS = {

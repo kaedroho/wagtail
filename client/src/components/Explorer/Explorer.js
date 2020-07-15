@@ -48,6 +48,7 @@ const mapDispatchToProps = (dispatch) => ({
   pushPage: (id) => dispatch(actions.pushPage(id)),
   popPage: () => dispatch(actions.popPage()),
   onClose: () => dispatch(actions.closeExplorer()),
+  switchLocale: (locale) => dispatch(actions.switchLocale(locale)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Explorer);

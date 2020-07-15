@@ -192,7 +192,13 @@ class LocaleFilter(BaseFilterBackend):
     """
     def filter_queryset(self, request, queryset, view):
         if 'locale' in request.GET:
+            _filtered_by_child_of = getattr(queryset, '_filtered_by_child_of', None)
+
             locale = get_object_or_404(Locale, language_code=request.GET['locale'])
             queryset = queryset & locale.get_all_pages()
+
+            if _filtered_by_child_of:
+                queryset._filtered_by_child_of = _filtered_by_child_of
+
 
         return queryset

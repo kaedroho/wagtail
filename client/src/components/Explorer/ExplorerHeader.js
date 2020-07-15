@@ -5,18 +5,30 @@ import { ADMIN_URLS, STRINGS } from '../../config/wagtailConfig';
 import Button from '../../components/Button/Button';
 import Icon from '../../components/Icon/Icon';
 
+
+const SelectLocale = ({initial, switchLocale}) => {
+  const options = wagtailConfig.LOCALES.map(({code, display_name}) => {
+    return <option value={code}>{display_name}</option>;
+  });
+
+  let onChange = (e) => {
+    e.preventDefault();
+    switchLocale(e.target.value)
+  };
+
+  return <select value={initial} onChange={onChange}>{options}</select>;
+}
+
 /**
  * The bar at the top of the explorer, displaying the current level
  * and allowing access back to the parent level.
  */
-const ExplorerHeader = ({ page, depth, onClick }) => {
+const ExplorerHeader = ({ page, depth, onClick, switchLocale }) => {
   const isRoot = depth === 1;
 
   return (
     <Button
-      href={page.id ? `${ADMIN_URLS.PAGES}${page.id}/` : ADMIN_URLS.PAGES}
       className="c-explorer__header"
-      onClick={onClick}
     >
       <div className="c-explorer__header__inner">
         <Icon
@@ -24,6 +36,7 @@ const ExplorerHeader = ({ page, depth, onClick }) => {
           className="icon--explorer-header"
         />
         <span>{page.admin_display_title || STRINGS.PAGES}</span>
+        <SelectLocale initial={page.meta.locale || wagtailConfig.ACTIVE_LOCALE} switchLocale={switchLocale} />
       </div>
     </Button>
   );

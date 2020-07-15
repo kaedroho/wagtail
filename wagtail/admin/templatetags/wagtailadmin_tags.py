@@ -535,3 +535,23 @@ def icons():
     icon_hooks = hooks.get_hooks('register_icons')
     icons = sorted(itertools.chain.from_iterable(hook([]) for hook in icon_hooks))
     return {'icons': icons}
+
+
+@register.simple_tag
+def js_locales():
+    from wagtail_localize.models import Locale
+
+    return json.dumps([
+        {
+            'code': locale.language_code,
+            'display_name': locale.get_display_name(),
+            'is_active': locale.is_active,
+        }
+        for locale in Locale.objects.all()
+    ])
+
+
+@register.simple_tag
+def js_active_locale():
+    from wagtail_localize.models import Locale
+    return Locale.get_active().language_code
