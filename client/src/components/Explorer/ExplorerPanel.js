@@ -94,7 +94,7 @@ class ExplorerPanel extends React.Component {
     const { page, nodes } = this.props;
     let children;
 
-    if (!page.isFetching && !page.children.items) {
+    if (!page.isFetchingChildren && !page.children.items) {
       children = (
         <div key="empty" className="c-explorer__placeholder">
           {STRINGS.NO_RESULTS}
@@ -117,7 +117,7 @@ class ExplorerPanel extends React.Component {
     return (
       <div className="c-explorer__drawer">
         {children}
-        {page.isFetching ? (
+        {page.isFetchingChildren || page.isFetchingTranslations ? (
           <div key="fetching" className="c-explorer__placeholder">
             <LoadingSpinner />
           </div>
@@ -132,7 +132,7 @@ class ExplorerPanel extends React.Component {
   }
 
   render() {
-    const { page, onClose, path } = this.props;
+    const { page, onClose, path, translations, locale, switchLocale } = this.props;
     const { transition, paused } = this.state;
 
     return (
@@ -142,7 +142,7 @@ class ExplorerPanel extends React.Component {
         className="explorer"
         paused={paused || !page || page.isFetching}
         focusTrapOptions={{
-          initialFocus: '.c-explorer__header',
+          initialFocus: '.c-explorer__header__title',
           onDeactivate: onClose,
         }}
       >
@@ -155,6 +155,9 @@ class ExplorerPanel extends React.Component {
               depth={path.length}
               page={page}
               onClick={this.onHeaderClick}
+              translations={translations}
+              locale={locale}
+              switchLocale={switchLocale}
             />
 
             {this.renderChildren()}
@@ -173,8 +176,13 @@ ExplorerPanel.propTypes = {
   nodes: PropTypes.object.isRequired,
   path: PropTypes.array.isRequired,
   page: PropTypes.shape({
-    isFetching: PropTypes.bool,
+    isFetchingChildren: PropTypes.bool,
+    isFetchingTranslations: PropTypes.bool,
     children: PropTypes.shape({
+      count: PropTypes.number,
+      items: PropTypes.array,
+    }),
+    translations: PropTypes.shape({
       count: PropTypes.number,
       items: PropTypes.array,
     }),

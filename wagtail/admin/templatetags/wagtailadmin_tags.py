@@ -23,7 +23,7 @@ from wagtail.admin.search import admin_search_areas
 from wagtail.admin.staticfiles import versioned_static as versioned_static_func
 from wagtail.core import hooks
 from wagtail.core.models import (
-    CollectionViewRestriction, Page, PageViewRestriction, UserPagePermissionsProxy)
+    CollectionViewRestriction, Page, PageViewRestriction, UserPagePermissionsProxy, Locale)
 from wagtail.core.utils import cautious_slugify as _cautious_slugify
 from wagtail.core.utils import accepts_kwarg, camelcase_to_underscore, escape_script
 from wagtail.users.utils import get_gravatar_url
@@ -547,3 +547,25 @@ def icons():
     icon_hooks = hooks.get_hooks('register_icons')
     icons = sorted(itertools.chain.from_iterable(hook([]) for hook in icon_hooks))
     return {'icons': icons}
+
+
+@register.simple_tag
+def js_i18n_enabled():
+    return getattr(settings, 'WAGTAIL_I18N_ENABLED', False)
+
+
+@register.simple_tag
+def js_locales():
+    return json.dumps([
+        {
+            'code': locale.language_code,
+            'display_name': locale.get_display_name(),
+            'is_active': locale.is_active,
+        }
+        for locale in Locale.objects.all()
+    ])
+
+
+@register.simple_tag
+def js_active_locale():
+    return Locale.get_active().language_code

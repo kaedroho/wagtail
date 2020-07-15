@@ -29,6 +29,7 @@ const getChildrenFailure = createAction('GET_CHILDREN_FAILURE', (id, error) => (
  * Gets the children of a node from the API.
  */
 function getChildren(id, offset = 0) {
+  console.log("GET CHILDREN", id)
   return (dispatch) => {
     dispatch(getChildrenStart(id));
 
@@ -49,6 +50,25 @@ function getChildren(id, offset = 0) {
   };
 }
 
+const getTranslationsStart = createAction('GET_TRANSLATIONS_START', id => ({ id }));
+const getTranslationsSuccess = createAction('GET_TRANSLATIONS_SUCCESS', (id, items, meta) => ({ id, items, meta }));
+const getTranslationsFailure = createAction('GET_TRANSLATIONS_FAILURE', (id, error) => ({ id, error }));
+
+/**
+ * Gets the translations of a node from the API.
+ */
+function getTranslations(id) {
+  return (dispatch) => {
+    dispatch(getTranslationsStart(id));
+
+    return admin.getPageTranslations(id).then(({ items, meta }) => {
+      dispatch(getTranslationsSuccess(id, items, meta));
+    }, (error) => {
+      dispatch(getTranslationsFailure(id, error));
+    });
+  };
+}
+
 const openExplorer = createAction('OPEN_EXPLORER', id => ({ id }));
 export const closeExplorer = createAction('CLOSE_EXPLORER');
 
@@ -65,6 +85,7 @@ export function toggleExplorer(id) {
 
       if (!page) {
         dispatch(getChildren(id));
+        dispatch(getTranslations(id));
       }
 
       // We need to get the title of the starting page, only if it is not the site's root.
@@ -77,17 +98,38 @@ export function toggleExplorer(id) {
 }
 
 export const popPage = createAction('POP_PAGE');
-const pushPagePrivate = createAction('PUSH_PAGE', id => ({ id }));
+const pushPagePrivate = createAction('PUSH_PAGE', (id, translations)=> ({ id, translations }));
 
 export function pushPage(id) {
   return (dispatch, getState) => {
     const { nodes } = getState();
     const page = nodes[id];
 
-    dispatch(pushPagePrivate(id));
+    dispatch(pushPagePrivate(id, page.meta.translations));
 
-    if (page && !page.isFetching && !(page.children.count > 0)) {
+    if (page && !page.isFetchingChildren && !(page.children.count > 0)) {
       dispatch(getChildren(id));
+    }
+
+    if (page && !page.isFetchingTranslations && !(page.translations.count > 0)) {
+      dispatch(getTranslations(id));
+    }
+  };
+}
+
+export const switchLocalePrivate = createAction('SWITCH_LOCALE', (locale)=> ({ locale }));
+
+export function switchLocale(locale) {
+  return (dispatch, getState) => {
+    const { nodes, explorer: { path } } = getState();
+
+    const translations = path[path.length - 1];
+    const page = nodes[translations.get(locale)];
+
+    dispatch(switchLocalePrivate(locale));
+
+    if (page && !page.isFetchingChildren && !(page.children.count > 0)) {
+      dispatch(getChildren(page.id || `1-${locale}`));
     }
   };
 }

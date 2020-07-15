@@ -1,7 +1,12 @@
 const defaultPageState = {
-  isFetching: false,
+  isFetchingChildren: false,
+  isFetchingTranslations: false,
   isError: false,
   children: {
+    items: [],
+    count: 0,
+  },
+  translations: {
     items: [],
     count: 0,
   },
@@ -25,12 +30,17 @@ const node = (state = defaultPageState, { type, payload }) => {
 
   case 'GET_CHILDREN_START':
     return Object.assign({}, state, {
-      isFetching: true,
+      isFetchingChildren: true,
+    });
+
+  case 'GET_TRANSLATIONS_START':
+    return Object.assign({}, state, {
+      isFetchingTranslations: true,
     });
 
   case 'GET_CHILDREN_SUCCESS':
     return Object.assign({}, state, {
-      isFetching: false,
+      isFetchingChildren: false,
       isError: false,
       children: {
         items: state.children.items.slice().concat(payload.items.map(item => item.id)),
@@ -38,10 +48,22 @@ const node = (state = defaultPageState, { type, payload }) => {
       },
     });
 
+  case 'GET_TRANSLATIONS_SUCCESS':
+    return Object.assign({}, state, {
+      isFetchingTranslations: false,
+      isError: false,
+      translations: {
+        items: state.translations.items.slice().concat(payload.items.map(item => item.id)),
+        count: payload.meta.total_count,
+      },
+    });
+
   case 'GET_PAGE_FAILURE':
   case 'GET_CHILDREN_FAILURE':
+  case 'GET_TRANSLATIONS_FAILURE':
     return Object.assign({}, state, {
-      isFetching: false,
+      isFetchingChildren: false,
+      isFetchingTranslations: false,
       isError: true,
     });
 
@@ -60,15 +82,34 @@ export default function nodes(state = defaultState, { type, payload }) {
   case 'OPEN_EXPLORER':
   case 'GET_PAGE_SUCCESS':
   case 'GET_CHILDREN_START':
+  case 'GET_TRANSLATIONS_START':
   case 'GET_PAGE_FAILURE':
   case 'GET_CHILDREN_FAILURE':
-    return Object.assign({}, state, {
-      // Delegate logic to single-node reducer.
-      [payload.id]: node(state[payload.id], { type, payload }),
-    });
+  case 'GET_TRANSLATIONS_FAILURE':
+    if (payload.id == 1 && type == 'OPEN_EXPLORER') {
+      state = Object.assign({}, state, {
+        // Delegate logic to single-node reducer.
+        [payload.id]: node(state[payload.id], { type, payload }),
+      });
+
+      wagtailConfig.LOCALES.map(({code}) => {
+        state = Object.assign({}, state, {
+          // Delegate logic to single-node reducer.
+          [`${payload.id}-${code}`]: node(state[`${payload.id}-${code}`], { type, payload }),
+        });
+      });
+
+      return state;
+    } else {
+      return Object.assign({}, state, {
+        // Delegate logic to single-node reducer.
+        [payload.id]: node(state[payload.id], { type, payload }),
+      });
+    }
 
   // eslint-disable-next-line no-case-declarations
   case 'GET_CHILDREN_SUCCESS':
+  case 'GET_TRANSLATIONS_SUCCESS':
     const newState = Object.assign({}, state, {
       [payload.id]: node(state[payload.id], { type, payload }),
     });
