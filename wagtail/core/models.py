@@ -387,7 +387,7 @@ class Locale(models.Model):
             return cls.get_default()
 
     def language_code_is_valid(self):
-        return self.language_code in get_languages()
+        return self.language_code in get_content_languages()
 
     def get_display_name(self):
         return get_content_languages().get(self.language_code)

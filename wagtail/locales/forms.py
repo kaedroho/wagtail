@@ -4,11 +4,12 @@ from django.utils.translation import gettext_lazy as _
 
 from wagtail.admin.widgets import AdminPageChooser
 from wagtail.core.models import Locale
+from wagtail.core.utils import get_content_languages
 
 
 class LocaleForm(forms.ModelForm):
     required_css_class = "required"
-    language_code = forms.ChoiceField(label=_("Language"), choices=settings.LANGUAGES)
+    language_code = forms.ChoiceField(label=_("Language"), choices=get_content_languages().items())
 
     def __init__(self, *args, **kwargs):
         instance = kwargs.get('instance')
@@ -19,7 +20,7 @@ class LocaleForm(forms.ModelForm):
 
         self.fields['language_code'].choices = [
             (language_code, display_name)
-            for language_code, display_name in settings.LANGUAGES
+            for language_code, display_name in get_content_languages().items()
             if language_code not in used_language_codes or (instance and instance.language_code == language_code)
         ]
 
