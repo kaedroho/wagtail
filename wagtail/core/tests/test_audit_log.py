@@ -1,280 +1,249 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
-from django.contrib.auth import get_user_model
+from django import VERSION as DJANGO_VERSION
+from django.contrib.auth.models import Group, Permission
 from django.test import TestCase
+from django.urls import reverse
 from django.utils import timezone
 from freezegun import freeze_time
 
-from wagtail.core.models import (
-    Page, PageLogEntry, PageViewRestriction, Task, Workflow, WorkflowTask)
+from wagtail.core.logging import LogActionRegistry
+from wagtail.core.models import GroupPagePermission, Page, PageLogEntry, PageViewRestriction
 from wagtail.tests.testapp.models import SimplePage
+from wagtail.tests.utils import WagtailTestUtils, get_user_model
 
 
-class TestAuditLogManager(TestCase):
+def test_hook(actions):
+    return actions.register_action('test.custom_action', 'Custom action', 'Tested!')
+
+
+class TestAuditLogHooks(TestCase, WagtailTestUtils):
     def setUp(self):
+        self.root_page = Page.objects.get(id=2)
+
+    def test_register_log_actions_hook(self):
+        # testapp/wagtail_hooks.py defines a 'blockquote' rich text feature with a hallo.js
+        # plugin, via the register_rich_text_features hook; test that we can retrieve it here
+        log_actions = LogActionRegistry()
+        actions = log_actions.get_actions()
+        self.assertIn('wagtail.create', actions)
+
+    def test_action_format_message(self):
+        log_entry = PageLogEntry.objects.log_action(self.root_page, action='test.custom_action')
+
+        log_actions = LogActionRegistry()
+        self.assertEqual(log_actions.format_message(log_entry), "Unknown test.custom_action")
+        self.assertNotIn('test.custom_action', log_actions.get_actions())
+
+        with self.register_hook('register_log_actions', test_hook):
+            log_actions = LogActionRegistry()
+            self.assertIn('test.custom_action', log_actions.get_actions())
+            self.assertEqual(log_actions.format_message(log_entry), "Tested!")
+            self.assertEqual(log_actions.get_action_label('test.custom_action'), 'Custom action')
+
+
+class TestAuditLogAdmin(TestCase, WagtailTestUtils):
+    def setUp(self):
+        self.root_page = Page.objects.get(id=2)
+
+        self.hello_page = SimplePage(
+            title="Hello world!",
+            slug='hello-world',
+            content="hello",
+            live=False,
+        )
+        self.root_page.add_child(instance=self.hello_page)
+
+        self.about_page = SimplePage(title="About", slug="about", content="hello")
+        self.root_page.add_child(instance=self.about_page)
+
         User = get_user_model()
-        self.user = User.objects.create_superuser(
+        self.administrator = User.objects.create_superuser(
             username='administrator',
             email='administrator@email.com',
             password='password'
         )
-        self.page = Page.objects.get(pk=1)
-        self.simple_page = self.page.add_child(
-            instance=SimplePage(title="Simple page", slug="simple", content="Hello", owner=self.user)
-        )
+        self.editor = User.objects.create_user(username='the_editor', email='editor@email.com', password='password')
+        sub_editors = Group.objects.create(name='Sub editors')
+        sub_editors.permissions.add(Permission.objects.get(
+            content_type__app_label='wagtailadmin',
+            codename='access_admin'
+        ))
+        self.editor.groups.add(sub_editors)
 
-    def test_log_action(self):
-        now = timezone.now()
-
-        with freeze_time(now):
-            entry = PageLogEntry.objects.log_action(
-                self.page, 'test', user=self.user
+        for permission_type in ['add', 'edit', 'publish']:
+            GroupPagePermission.objects.create(
+                group=sub_editors, page=self.hello_page, permission_type=permission_type
             )
 
-        self.assertEqual(entry.content_type, self.page.content_type)
-        self.assertEqual(entry.user, self.user)
-        self.assertEqual(entry.timestamp, now)
+    def _update_page(self, page):
+        # save revision
+        page.save_revision(user=self.editor, log_action=True)
+        # schedule for publishing
+        page.go_live_at = timezone.now() + timedelta(seconds=1)
+        revision = page.save_revision(user=self.editor, log_action=True)
+        revision.publish(user=self.editor)
 
-    def test_get_for_model(self):
-        PageLogEntry.objects.log_action(self.page, 'test')
-        PageLogEntry.objects.log_action(self.simple_page, 'test')
+        # publish
+        with freeze_time(timezone.now() + timedelta(seconds=2)):
+            revision.publish(user=self.editor)
 
-        entries = PageLogEntry.objects.get_for_model(SimplePage)
-        self.assertEqual(entries.count(), 2)
+            # lock/unlock
+            page.save(user=self.editor, log_action='wagtail.lock')
+            page.save(user=self.editor, log_action='wagtail.unlock')
+
+            # change privacy
+            restriction = PageViewRestriction(page=page, restriction_type=PageViewRestriction.LOGIN)
+            restriction.save(user=self.editor)
+            restriction.restriction_type = PageViewRestriction.PASSWORD
+            restriction.save(user=self.administrator)
+            restriction.delete()
+
+    def test_page_history(self):
+        self._update_page(self.hello_page)
+
+        history_url = reverse('wagtailadmin_pages:history', kwargs={'page_id': self.hello_page.id})
+
+        self.login(user=self.editor)
+
+        response = self.client.get(history_url)
+        self.assertEqual(response.status_code, 200)
+
+        self.assertContains(response, "Created", 1)
+        self.assertContains(response, "Draft saved", 2)
+        self.assertContains(response, "Locked", 1)
+        self.assertContains(response, "Unlocked", 1)
+        self.assertContains(response, "Page scheduled for publishing", 1)
+        self.assertContains(response, "Published", 1)
+
+        if DJANGO_VERSION >= (3, 0):
+            self.assertContains(
+                response, "Added the &#x27;Private, accessible to logged-in users&#x27; view restriction"
+            )
+            self.assertContains(
+                response,
+                "Updated the view restriction to &#x27;Private, accessible with the following password&#x27;"
+            )
+            self.assertContains(
+                response,
+                "Removed the &#x27;Private, accessible with the following password&#x27; view restriction"
+            )
+        else:
+            self.assertContains(
+                response, "Added the &#39;Private, accessible to logged-in users&#39; view restriction"
+            )
+            self.assertContains(
+                response,
+                "Updated the view restriction to &#39;Private, accessible with the following password&#39;"
+            )
+            self.assertContains(
+                response,
+                "Removed the &#39;Private, accessible with the following password&#39; view restriction"
+            )
+
+        self.assertContains(response, 'system', 2)  # create without a user + remove restriction
+        self.assertContains(response, 'the_editor', 9)  # 7 entries by editor + 1 in sidebar menu + 1 in filter
+        self.assertContains(response, 'administrator', 2)  # the final restriction change + filter
+
+    def test_page_history_filters(self):
+        self.login(user=self.editor)
+        self._update_page(self.hello_page)
+
+        history_url = reverse('wagtailadmin_pages:history', kwargs={'page_id': self.hello_page.id})
+        response = self.client.get(history_url + '?action=wagtail.edit')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Draft saved", count=2)
+        self.assertNotContains(response, "Locked")
+        self.assertNotContains(response, "Unlocked")
+        self.assertNotContains(response, "Page scheduled for publishing")
+        self.assertNotContains(response, "Published")
+
+    def test_site_history(self):
+        self._update_page(self.hello_page)
+        self.about_page.save_revision(user=self.administrator, log_action=True)
+        self.about_page.delete(user=self.administrator)
+
+        site_history_url = reverse('wagtailadmin_reports:site_history')
+
+        # the editor has access to the root page, so should see everything
+        self.login(user=self.editor)
+
+        response = self.client.get(site_history_url)
+        self.assertEqual(response.status_code, 200)
+
+        self.assertNotContains(response, 'About')
+        self.assertContains(response, "Draft saved", 2)
+        self.assertNotContains(response, 'Deleted')
+
+        # once a page is deleted, its log entries are only visible to super admins or users with
+        # permissions on the root page
+        self.hello_page.delete(user=self.administrator)
+        response = self.client.get(site_history_url)
+        self.assertContains(response, "No log entries found")
+
+        # add the editor user to the Editors group which has permissions on the root page
+        self.editor.groups.add(Group.objects.get(name='Editors'))
+        response = self.client.get(site_history_url)
+
+        self.assertContains(response, 'About', 3)  # create, save draft, delete
+        self.assertContains(response, 'Created', 2)
+        self.assertContains(response, 'Deleted', 2)
+
+        # check with super admin
+        self.login(user=self.administrator)
+        response = self.client.get(site_history_url)
+
+        self.assertContains(response, 'About', 3)  # create, save draft, delete
+        self.assertContains(response, 'Deleted', 2)
+
+    def test_edit_form_has_history_link(self):
+        self.hello_page.save_revision()
+        self.login(user=self.editor)
+        response = self.client.get(
+            reverse('wagtailadmin_pages:edit', args=[self.hello_page.id])
+        )
+        self.assertEqual(response.status_code, 200)
+        history_url = reverse('wagtailadmin_pages:history', args=[self.hello_page.id])
+        self.assertContains(response, history_url)
+
+    def test_create_and_publish_does_not_log_revision_save(self):
+        self.login(user=self.administrator)
+        post_data = {
+            'title': "New page!",
+            'content': "Some content",
+            'slug': 'hello-world-redux',
+            'action-publish': 'action-publish',
+        }
+        response = self.client.post(
+            reverse('wagtailadmin_pages:add', args=('tests', 'simplepage', self.root_page.id)),
+            post_data, follow=True
+        )
+        self.assertEqual(response.status_code, 200)
+
+        page_id = Page.objects.get(path__startswith=self.root_page.path, slug='hello-world-redux').id
+
+        self.assertListEqual(
+            list(PageLogEntry.objects.filter(page=page_id).values_list('action', flat=True)),
+            ['wagtail.publish', 'wagtail.create']
+        )
+
+    def test_revert_and_publish_logs_reversion_and_publish(self):
+        revision = self.hello_page.save_revision(user=self.editor)
+        self.hello_page.save_revision(user=self.editor)
+
+        self.login(user=self.administrator)
+        response = self.client.post(
+            reverse('wagtailadmin_pages:edit', args=(self.hello_page.id, )),
+            {
+                'title': "Hello World!",
+                'content': "another hello",
+                'slug': 'hello-world',
+                'revision': revision.id, 'action-publish': 'action-publish'}, follow=True
+        )
+        self.assertEqual(response.status_code, 200)
+
+        entries = PageLogEntry.objects.filter(page=self.hello_page).values_list('action', flat=True)
         self.assertListEqual(
             list(entries),
-            list(PageLogEntry.objects.filter(page=self.simple_page))
+            ['wagtail.publish', 'wagtail.rename', 'wagtail.revert', 'wagtail.create']
         )
-
-    def test_get_for_user(self):
-        self.assertEqual(PageLogEntry.objects.get_for_user(self.user).count(), 1)  # the create from setUp
-
-
-class TestAuditLog(TestCase):
-    def setUp(self):
-        self.root_page = Page.objects.get(id=1)
-
-        self.home_page = self.root_page.add_child(
-            instance=SimplePage(title="Homepage", slug="home2", content="hello")
-        )
-
-        PageLogEntry.objects.all().delete()  # clean up the log entries here.
-
-    def test_page_create(self):
-        self.assertEqual(PageLogEntry.objects.count(), 0)  # homepage
-
-        page = self.home_page.add_child(
-            instance=SimplePage(title="Hello", slug="my-page", content="world")
-        )
-        self.assertEqual(PageLogEntry.objects.count(), 1)
-        log_entry = PageLogEntry.objects.order_by('pk').last()
-        self.assertEqual(log_entry.action, 'wagtail.create')
-        self.assertEqual(log_entry.page_id, page.id)
-        self.assertEqual(log_entry.content_type, page.content_type)
-        self.assertEqual(log_entry.label, page.get_admin_display_title())
-
-    def test_page_edit(self):
-        # Directly saving a revision should not yield a log entry
-        self.home_page.save_revision()
-        self.assertEqual(PageLogEntry.objects.count(), 0)
-
-        # Explicitly ask to record the revision change
-        self.home_page.save_revision(log_action=True)
-        self.assertEqual(PageLogEntry.objects.count(), 1)
-        self.assertEqual(PageLogEntry.objects.filter(action='wagtail.edit').count(), 1)
-
-        # passing a string for the action should log this.
-        self.home_page.save_revision(log_action='wagtail.custom_action')
-        self.assertEqual(PageLogEntry.objects.filter(action='wagtail.custom_action').count(), 1)
-
-    def test_page_publish(self):
-        revision = self.home_page.save_revision()
-        revision.publish()
-        self.assertEqual(PageLogEntry.objects.count(), 1)
-        self.assertEqual(PageLogEntry.objects.filter(action='wagtail.publish').count(), 1)
-
-    def test_page_rename(self):
-        # Should not log a name change when publishing the first revision
-        revision = self.home_page.save_revision()
-        self.home_page.title = "Old title"
-        self.home_page.save()
-        revision.publish()
-
-        self.assertEqual(PageLogEntry.objects.filter(action='wagtail.publish').count(), 1)
-        self.assertEqual(PageLogEntry.objects.filter(action='wagtail.rename').count(), 0)
-
-        # Now, check the rename is logged
-        revision = self.home_page.save_revision()
-        self.home_page.title = "New title"
-        self.home_page.save()
-        revision.publish()
-
-        self.assertEqual(PageLogEntry.objects.count(), 3)
-        self.assertEqual(PageLogEntry.objects.filter(action='wagtail.publish').count(), 2)
-        self.assertEqual(PageLogEntry.objects.filter(action='wagtail.rename').count(), 1)
-
-    def test_page_unpublish(self):
-        self.home_page.unpublish()
-        self.assertEqual(PageLogEntry.objects.count(), 1)
-        self.assertEqual(PageLogEntry.objects.filter(action='wagtail.unpublish').count(), 1)
-
-    def test_revision_revert(self):
-        revision1 = self.home_page.save_revision()
-        self.home_page.save_revision()
-
-        self.home_page.save_revision(log_action=True, previous_revision=revision1)
-        self.assertEqual(PageLogEntry.objects.filter(action='wagtail.revert').count(), 1)
-
-    def test_revision_schedule_publish(self):
-        go_live_at = timezone.make_aware(datetime.now() + timedelta(days=1))
-        self.home_page.go_live_at = go_live_at
-
-        # with no live revision
-        revision = self.home_page.save_revision()
-        revision.publish()
-
-        log_entries = PageLogEntry.objects.filter(action='wagtail.publish.schedule')
-        self.assertEqual(log_entries.count(), 1)
-        self.assertEqual(log_entries[0].data['revision']['id'], revision.id)
-        self.assertEqual(log_entries[0].data['revision']['go_live_at'], go_live_at.strftime("%d %b %Y %H:%M"))
-
-    def test_revision_schedule_revert(self):
-        revision1 = self.home_page.save_revision()
-        revision2 = self.home_page.save_revision()
-
-        self.home_page.go_live_at = timezone.make_aware(datetime.now() + timedelta(days=1))
-        schedule_revision = self.home_page.save_revision(log_action=True, previous_revision=revision2)
-        schedule_revision.publish(previous_revision=revision1)
-
-        self.assertListEqual(
-            list(PageLogEntry.objects.values_list('action', flat=True)),
-            ['wagtail.publish.schedule', 'wagtail.revert']  # order_by -timestamp, by default
-        )
-
-    def test_revision_cancel_schedule(self):
-        self.home_page.go_live_at = timezone.make_aware(datetime.now() + timedelta(days=1))
-        revision = self.home_page.save_revision()
-        revision.publish()
-
-        revision.approved_go_live_at = None
-        revision.save(update_fields=['approved_go_live_at'])
-
-        self.assertEqual(PageLogEntry.objects.filter(action='wagtail.schedule.cancel').count(), 1)
-
-    def test_page_lock_unlock(self):
-        self.home_page.save(log_action='wagtail.lock')
-        self.home_page.save(log_action='wagtail.unlock')
-
-        self.assertEqual(PageLogEntry.objects.filter(action__in=['wagtail.lock', 'wagtail.unlock']).count(), 2)
-
-    def test_page_copy(self):
-        self.home_page.copy(update_attrs={'title': "About us", 'slug': 'about-us'})
-
-        self.assertListEqual(
-            list(PageLogEntry.objects.values_list('action', flat=True)),
-            ['wagtail.publish', 'wagtail.copy', 'wagtail.create']
-        )
-
-    def test_page_move(self):
-        section = self.root_page.add_child(
-            instance=SimplePage(title="About us", slug="about", content="hello")
-        )
-
-        section.move(self.home_page)
-        self.assertEqual(PageLogEntry.objects.filter(action='wagtail.move').count(), 1)
-
-    def test_page_delete(self):
-        self.home_page.add_child(
-            instance=SimplePage(title="Child", slug="child-page", content="hello")
-        )
-        child = self.home_page.add_child(
-            instance=SimplePage(title="Another child", slug="child-page-2", content="hello")
-        )
-
-        child.delete()
-        self.assertEqual(PageLogEntry.objects.filter(action='wagtail.delete').count(), 1)
-
-        # check deleting a parent page logs child deletion
-        self.home_page.delete()
-        self.assertEqual(PageLogEntry.objects.filter(action='wagtail.delete').count(), 3)
-        self.assertListEqual(
-            list(PageLogEntry.objects.filter(action='wagtail.delete').values_list('label', flat=True)),
-            ['Homepage (simple page)', 'Child (simple page)', 'Another child (simple page)']
-        )
-
-    def test_workflow_actions(self):
-        workflow = Workflow.objects.create(name='test_workflow')
-        task_1 = Task.objects.create(name='test_task_1')
-        task_2 = Task.objects.create(name='test_task_2')
-        WorkflowTask.objects.create(workflow=workflow, task=task_1, sort_order=1)
-        WorkflowTask.objects.create(workflow=workflow, task=task_2, sort_order=2)
-
-        self.home_page.save_revision()
-        user = get_user_model().objects.first()
-        workflow_state = workflow.start(self.home_page, user)
-
-        workflow_entry = PageLogEntry.objects.filter(action='wagtail.workflow.start')
-        self.assertEqual(workflow_entry.count(), 1)
-        self.assertEqual(workflow_entry[0].data, {
-            'workflow': {
-                'id': workflow.id,
-                'title': workflow.name,
-                'status': workflow_state.status,
-                'task_state_id': workflow_state.current_task_state_id,
-                'next': {
-                    'id': workflow_state.current_task_state.task.id,
-                    'title': workflow_state.current_task_state.task.name,
-                },
-            }
-        })
-
-        # Approve
-        for action in ['approve', 'reject']:
-            with self.subTest(action):
-                task_state = workflow_state.current_task_state
-                task_state.task.on_action(task_state, user=None, action_name=action)
-                workflow_state.refresh_from_db()
-
-                entry = PageLogEntry.objects.filter(action='wagtail.workflow.{}'.format(action))
-                self.assertEqual(entry.count(), 1)
-                self.assertEqual(entry[0].data, {
-                    'workflow': {
-                        'id': workflow.id,
-                        'title': workflow.name,
-                        'status': task_state.status,
-                        'task_state_id': task_state.id,
-                        'task': {
-                            'id': task_state.task.id,
-                            'title': task_state.task.name,
-                        },
-                        'next': {
-                            'id': workflow_state.current_task_state.task.id,
-                            'title': workflow_state.current_task_state.task.name,
-                        },
-                    },
-                    'comment': '',
-                })
-
-    def test_workflow_completions_logs_publishing_user(self):
-        workflow = Workflow.objects.create(name='test_workflow')
-        task_1 = Task.objects.create(name='test_task_1')
-        WorkflowTask.objects.create(workflow=workflow, task=task_1, sort_order=1)
-
-        self.assertFalse(PageLogEntry.objects.filter(action='wagtail.publish').exists())
-
-        self.home_page.save_revision()
-        user = get_user_model().objects.first()
-        workflow_state = workflow.start(self.home_page, user)
-
-        publisher = get_user_model().objects.last()
-        task_state = workflow_state.current_task_state
-        task_state.task.on_action(task_state, user=None, action_name='approve')
-
-        self.assertEqual(PageLogEntry.objects.get(action='wagtail.publish').user, publisher)
-
-    def test_page_privacy(self):
-        restriction = PageViewRestriction.objects.create(page=self.home_page)
-        self.assertEqual(PageLogEntry.objects.filter(action='wagtail.view_restriction.create').count(), 1)
-        restriction.restriction_type = PageViewRestriction.PASSWORD
-        restriction.save()
-        self.assertEqual(PageLogEntry.objects.filter(action='wagtail.view_restriction.edit').count(), 1)
