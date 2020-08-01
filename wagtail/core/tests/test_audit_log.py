@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from django import VERSION as DJANGO_VERSION
 from django.contrib.auth.models import Group, Permission
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -28,8 +29,23 @@ class TestAuditLogHooks(TestCase, WagtailTestUtils):
         actions = log_actions.get_actions()
         self.assertIn('wagtail.create', actions)
 
+    def test_action_must_be_registered(self):
+        # We check actions are registered to let developers know if they have forgotten to register
+        # a new action or made a spelling mistake. It's not intended as a database-level constraint.
+        with self.assertRaises(ValidationError) as e:
+            PageLogEntry.objects.log_action(self.root_page, action='test.custom_action')
+
+        self.assertEqual(e.exception.message_dict, {
+            'action': ["The log action 'test.custom_action' has not been registered."]
+        })
+
     def test_action_format_message(self):
-        log_entry = PageLogEntry.objects.log_action(self.root_page, action='test.custom_action')
+        # All new logs should pass our validation, but older logs or logs that were added in bulk
+        # may be invalid.
+        # Using LogEntry.objects.update, we can bypass the on save validation.
+        log_entry = PageLogEntry.objects.log_action(self.root_page, action='wagtail.create')
+        PageLogEntry.objects.update(action='test.custom_action')
+        log_entry.refresh_from_db()
 
         log_actions = LogActionRegistry('register_log_actions')
         self.assertEqual(log_actions.format_message(log_entry), "Unknown test.custom_action")
