@@ -1,0 +1,38 @@
+{% extends "wagtailadmin/base.html" %}
+{% load i18n %}
+
+{% block titletag %}Create site locale{% endblock %}
+
+{% block content %}
+
+    {% include "wagtailadmin/shared/header.html" with title="Create site locale" icon="site" %}
+
+    <form action="{% url 'wagtaillocales:create_site_locale' locale.id site.id %}" method="POST" novalidate{% if form.is_multipart %} enctype="multipart/form-data"{% endif %}>
+        {% csrf_token %}
+
+        {% block hidden_fields %}
+            {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+        {% endblock %}
+
+        <div class="nice-padding">
+            <ul class="fields">
+                {% block visible_fields %}
+                    {% for field in form.visible_fields %}
+                        {% include "wagtailadmin/shared/field_as_li.html" %}
+                    {% endfor %}
+                {% endblock %}
+                <li><input type="submit" value="{% trans 'Save' %}" class="button" /></li>
+            </ul>
+        </div>
+    </form>
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    {{ form.media.js }}
+{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    {{ form.media.css }}
+{% endblock %}

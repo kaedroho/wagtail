@@ -31,3 +31,19 @@ class LocaleForm(forms.ModelForm):
     class Meta:
         model = Locale
         fields = ['language_code']
+
+
+class SiteLocaleForm(forms.Form):
+    required_css_class = "required"
+    copy_locale = forms.ModelChoiceField(label=_("Copy from locale"), queryset=Locale.objects.all())
+
+    def __init__(self, site, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Get language codes that are already used
+        used_language_codes = Locale.objects.values_list('language_code', flat=True)
+
+        self.fields['copy_locale'].queryset = Locale.objects.filter(id__in=site.root_page.get_translations(inclusive=True).values_list('locale_id', flat=True))
+
+    class Meta:
+        fields = ['copy_locale']
