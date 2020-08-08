@@ -50,40 +50,6 @@ logger = logging.getLogger('wagtail.core')
 PAGE_TEMPLATE_VAR = 'page'
 
 
-def _extract_field_data(source, exclude_fields=None):
-    """Get dictionaries representing the model's field data. Excluding many to many fields (which are handled by _copy_m2m_relations)'"""
-    exclude_fields = exclude_fields or []
-    data_dict = {}
-
-    for field in source._meta.get_fields():
-        # Ignore explicitly excluded fields
-        if field.name in exclude_fields:
-            continue
-
-        # Ignore reverse relations
-        if field.auto_created:
-            continue
-
-        # Copy parental m2m relations
-        # Otherwise add them to the m2m dict to be set after saving
-        if field.many_to_many:
-            if isinstance(field, ParentalManyToManyField):
-                parental_field = getattr(source, field.name)
-                if hasattr(parental_field, 'all'):
-                    values = parental_field.all()
-                    if values:
-                        data_dict[field.name] = values
-            continue
-
-        # Ignore parent links (page_ptr)
-        if isinstance(field, models.OneToOneField) and field.remote_field.parent_link:
-            continue
-
-        data_dict[field.name] = getattr(source, field.name)
-
-    return data_dict
-
-
 def _copy_m2m_relations(source, target, exclude_fields=None, update_attrs=None):
     """Copy non-ParentalManyToMany m2m relations"""
     update_attrs = update_attrs or {}
@@ -110,15 +76,36 @@ def _copy_m2m_relations(source, target, exclude_fields=None, update_attrs=None):
 
 
 def _copy(source, exclude_fields=None, update_attrs=None):
-    data_dict = _extract_field_data(source, exclude_fields=exclude_fields)
-    target = source.__class__(**data_dict)
+    exclude_fields = exclude_fields or []
+
+    if isinstance(source, ClusterableModel):
+        copy = source.copy_cluster(exclude_fields=exclude_fields)
+
+    else:
+        data_dict = {}
+
+        for field in source._meta.get_fields():
+            # Ignore explicitly excluded fields
+            if field.name in exclude_fields:
+                continue
+
+            # Ignore reverse relations
+            if field.auto_created:
+                continue
+
+            # Ignore parent links (page_ptr)
+            if isinstance(field, models.OneToOneField) and field.remote_field.parent_link:
+                continue
+
+            data_dict[field.name] = getattr(source, field.name)
+
+            copy = source.__class__(**data_dict)
 
     if update_attrs:
         for field, value in update_attrs.items():
-            setattr(target, field, value)
+            setattr(copy, field, value)
 
-    child_object_map = source.copy_all_child_relations(target, exclude=exclude_fields)
-    return target, child_object_map
+    return copy
 
 
 class SiteManager(models.Manager):
@@ -1390,7 +1377,11 @@ class Page(AbstractPage, index.Indexed, ClusterableModel, metaclass=PageBase):
         if update_attrs:
             base_update_attrs.update(update_attrs)
 
-        page_copy, child_object_map = _copy(specific_self, exclude_fields=exclude_fields, update_attrs=base_update_attrs)
+        page_copy, child_object_map = specific_self.copy_cluster(exclude_fields=exclude_fields)
+
+        if base_update_attrs:
+            for field, value in base_update_attrs.items():
+                setattr(page_copy, field, value)
 
         # Save copied child objects and run process_child_object on them if we need to
         for (child_relation, old_pk), child_object in child_object_map.items():
