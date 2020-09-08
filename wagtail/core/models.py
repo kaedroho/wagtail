@@ -1,6 +1,5 @@
 import json
 import logging
-from collections import defaultdict
 from io import StringIO
 from urllib.parse import urlparse
 
@@ -14,7 +13,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.handlers.base import BaseHandler
 from django.core.handlers.wsgi import WSGIRequest
 from django.db import models, transaction
-from django.db.models import Case, Q, Value, When
+from django.db.models import Q, Value
 from django.db.models.expressions import OuterRef, Subquery
 from django.db.models.functions import Concat, Lower, Substr
 from django.http import Http404
@@ -25,7 +24,9 @@ from django.utils import timezone
 from django.utils.cache import patch_cache_control
 from django.utils.encoding import force_str
 from django.utils.functional import cached_property
+from django.utils.html import format_html
 from django.utils.module_loading import import_string
+from django.utils.safestring import mark_safe
 from django.utils.text import capfirst, slugify
 from django.utils.translation import gettext_lazy as _
 from modelcluster.fields import ParentalKey, ParentalManyToManyField
@@ -39,6 +40,7 @@ from wagtail.core.signals import (
     task_approved, task_cancelled, task_rejected, task_submitted,
     workflow_approved, workflow_cancelled, workflow_rejected, workflow_submitted)
 from wagtail.core.sites import get_site_for_hostname
+from wagtail.core.treebeard import TreebeardPathFixMixin
 from wagtail.core.url_routing import RouteResult
 from wagtail.core.utils import WAGTAIL_APPEND_SLASH, camelcase_to_underscore, resolve_model_string
 from wagtail.search import index
@@ -48,17 +50,41 @@ logger = logging.getLogger('wagtail.core')
 PAGE_TEMPLATE_VAR = 'page'
 
 
-class MultiTableCopyMixin:
-    default_exclude_fields_in_copy = ['id']
+def _copy_m2m_relations(source, target, exclude_fields=None, update_attrs=None):
+    """Copy non-ParentalManyToMany m2m relations"""
+    update_attrs = update_attrs or {}
+    exclude_fields = exclude_fields or []
 
-    def _get_field_dictionaries(self, exclude_fields=None):
-        """Get dictionaries representing the model: one with all non m2m fields, and one containing the m2m fields"""
-        specific_self = self.specific
-        exclude_fields = exclude_fields or []
-        specific_dict = {}
-        specific_m2m_dict = {}
+    for field in source._meta.get_fields():
+        # Copy m2m relations. Ignore explicitly excluded fields, reverse relations, and Parental m2m fields.
+        if field.many_to_many and field.name not in exclude_fields and not field.auto_created and not isinstance(field, ParentalManyToManyField):
+            try:
+                # Do not copy m2m links with a through model that has a ParentalKey to the model being copied - these will be copied as child objects
+                through_model_parental_links = [field for field in field.through._meta.get_fields() if isinstance(field, ParentalKey) and (field.related_model == source.__class__ or field.related_model in source._meta.parents)]
+                if through_model_parental_links:
+                    continue
+            except AttributeError:
+                pass
 
-        for field in specific_self._meta.get_fields():
+            if field.name in update_attrs:
+                value = update_attrs[field.name]
+
+            else:
+                value = getattr(source, field.name).all()
+
+            getattr(target, field.name).set(value)
+
+
+def _copy(source, exclude_fields=None, update_attrs=None):
+    exclude_fields = exclude_fields or []
+
+    if isinstance(source, ClusterableModel):
+        copy = source.copy_cluster(exclude_fields=exclude_fields)
+
+    else:
+        data_dict = {}
+
+        for field in source._meta.get_fields():
             # Ignore explicitly excluded fields
             if field.name in exclude_fields:
                 continue
@@ -67,112 +93,19 @@ class MultiTableCopyMixin:
             if field.auto_created:
                 continue
 
-            # Copy parental m2m relations
-            # Otherwise add them to the m2m dict to be set after saving
-            if field.many_to_many:
-                if isinstance(field, ParentalManyToManyField):
-                    parental_field = getattr(specific_self, field.name)
-                    if hasattr(parental_field, 'all'):
-                        values = parental_field.all()
-                        if values:
-                            specific_dict[field.name] = values
-                else:
-                    try:
-                        # Do not copy m2m links with a through model that has a ParentalKey to the model being copied - these will be copied as child objects
-                        through_model_parental_links = [field for field in field.through._meta.get_fields() if isinstance(field, ParentalKey) and (field.related_model == specific_self.__class__ or field.related_model in specific_self._meta.parents)]
-                        if through_model_parental_links:
-                            continue
-                    except AttributeError:
-                        pass
-                    specific_m2m_dict[field.name] = getattr(specific_self, field.name).all()
-                continue
-
             # Ignore parent links (page_ptr)
             if isinstance(field, models.OneToOneField) and field.remote_field.parent_link:
                 continue
 
-            specific_dict[field.name] = getattr(specific_self, field.name)
+            data_dict[field.name] = getattr(source, field.name)
 
-        return specific_dict, specific_m2m_dict
+            copy = source.__class__(**data_dict)
 
-    def _get_copy_instance(self, specific_dict, specific_m2m_dict, update_attrs=None):
-        """Create a copy instance (without saving) from dictionaries of the model's fields, and update any attributes in update_attrs"""
+    if update_attrs:
+        for field, value in update_attrs.items():
+            setattr(copy, field, value)
 
-        if not update_attrs:
-            update_attrs = {}
-
-        specific_class = self.specific.__class__
-
-        copy_instance = specific_class(**specific_dict)
-
-        if update_attrs:
-            for field, value in update_attrs.items():
-                if field in specific_m2m_dict:
-                    continue
-                setattr(copy_instance, field, value)
-
-        return copy_instance
-
-    def _save_copy_instance(self, instance, **kwargs):
-        raise NotImplementedError
-
-    def _set_m2m_relations(self, instance, specific_m2m_dict, update_attrs=None):
-        """Set non-ParentalManyToMany m2m relations"""
-        if not update_attrs:
-            update_attrs = {}
-        for field_name, value in specific_m2m_dict.items():
-            value = update_attrs.get(field_name, value)
-            getattr(instance, field_name).set(value)
-
-        return instance
-
-    def _copy_child_objects_to_instance(self, instance, exclude_fields=None, process_child_object=None):
-        """Copy objects linked to the model by a ParentalKey, and set this to the new revision"""
-
-        # A dict that maps child objects to their new ids
-        # Used to remap child object ids in revisions
-        child_object_id_map = defaultdict(dict)
-        exclude_fields = exclude_fields or []
-        specific_self = self.specific
-        for child_relation in get_all_child_relations(specific_self):
-            accessor_name = child_relation.get_accessor_name()
-
-            if accessor_name in exclude_fields:
-                continue
-
-            parental_key_name = child_relation.field.attname
-            child_objects = getattr(specific_self, accessor_name, None)
-
-            if child_objects:
-                for child_object in child_objects.all():
-                    old_pk = child_object.pk
-                    child_object.pk = None
-                    setattr(child_object, parental_key_name, instance.id)
-
-                    if process_child_object is not None:
-                        process_child_object(specific_self, instance, child_relation, child_object)
-
-                    child_object.save()
-
-                    # Add mapping to new primary key (so we can apply this change to revisions)
-                    child_object_id_map[accessor_name][old_pk] = child_object.pk
-
-        return child_object_id_map
-
-    def _copy(self, exclude_fields=None, update_attrs=None, process_child_object=None, **kwargs):
-        exclude_fields = self.default_exclude_fields_in_copy + self.specific.exclude_fields_in_copy + (exclude_fields or [])
-
-        specific_dict, specific_m2m_dict = self._get_field_dictionaries(exclude_fields=exclude_fields)
-
-        copy_instance = self._get_copy_instance(specific_dict, specific_m2m_dict, update_attrs=update_attrs)
-
-        copy_instance = self._save_copy_instance(copy_instance, **kwargs)
-
-        copy_instance = self._set_m2m_relations(copy_instance, specific_m2m_dict, update_attrs)
-
-        child_object_id_map = self._copy_child_objects_to_instance(copy_instance, exclude_fields=exclude_fields, process_child_object=process_child_object)
-
-        return copy_instance, child_object_id_map
+    return copy
 
 
 class SiteManager(models.Manager):
@@ -372,7 +305,7 @@ class PageBase(models.base.ModelBase):
             PAGE_MODEL_CLASSES.append(cls)
 
 
-class AbstractPage(MP_Node):
+class AbstractPage(TreebeardPathFixMixin, MP_Node):
     """
     Abstract superclass for Page. According to Django's inheritance rules, managers set on
     abstract models are inherited by subclasses, but managers set on concrete models that are extended
@@ -385,7 +318,7 @@ class AbstractPage(MP_Node):
         abstract = True
 
 
-class Page(MultiTableCopyMixin, AbstractPage, index.Indexed, ClusterableModel, metaclass=PageBase):
+class Page(AbstractPage, index.Indexed, ClusterableModel, metaclass=PageBase):
     title = models.CharField(
         verbose_name=_('title'),
         max_length=255,
@@ -1425,7 +1358,7 @@ class Page(MultiTableCopyMixin, AbstractPage, index.Indexed, ClusterableModel, m
         :param log_action flag for logging the action. Pass None to skip logging.
             Can be passed an action string. Defaults to 'wagtail.copy'
         """
-
+        exclude_fields = self.default_exclude_fields_in_copy + self.exclude_fields_in_copy + (exclude_fields or [])
         specific_self = self.specific
         if keep_live:
             base_update_attrs = {}
@@ -1444,7 +1377,26 @@ class Page(MultiTableCopyMixin, AbstractPage, index.Indexed, ClusterableModel, m
         if update_attrs:
             base_update_attrs.update(update_attrs)
 
-        page_copy, child_object_id_map = self._copy(exclude_fields=exclude_fields, update_attrs=base_update_attrs, to=to, recursive=recursive, process_child_object=process_child_object)
+        page_copy, child_object_map = specific_self.copy_cluster(exclude_fields=exclude_fields)
+
+        if base_update_attrs:
+            for field, value in base_update_attrs.items():
+                setattr(page_copy, field, value)
+
+        # Save copied child objects and run process_child_object on them if we need to
+        for (child_relation, old_pk), child_object in child_object_map.items():
+            if process_child_object:
+                process_child_object(specific_self, page_copy, child_relation, child_object)
+
+        # Save the new page
+        if to:
+            if recursive and (to == self or to.is_descendant_of(self)):
+                raise Exception("You cannot copy a tree branch recursively into itself")
+            page_copy = to.add_child(instance=page_copy)
+        else:
+            page_copy = self.add_sibling(instance=page_copy)
+
+        _copy_m2m_relations(specific_self, page_copy, exclude_fields=exclude_fields, update_attrs=base_update_attrs)
 
         # Copy revisions
         if copy_revisions:
@@ -1473,7 +1425,8 @@ class Page(MultiTableCopyMixin, AbstractPage, index.Indexed, ClusterableModel, m
                         # Remap primary key to copied versions
                         # If the primary key is not recognised (eg, the child object has been deleted from the database)
                         # set the primary key to None
-                        child_object['pk'] = child_object_id_map[accessor_name].get(child_object['pk'], None)
+                        copied_child_object = child_object_map.get((child_relation, child_object['pk']))
+                        child_object['pk'] = copied_child_object.pk if copied_child_object else None
 
                 revision.content_json = json.dumps(revision_content)
 
@@ -1538,15 +1491,6 @@ class Page(MultiTableCopyMixin, AbstractPage, index.Indexed, ClusterableModel, m
                 )
 
         return page_copy
-
-    def _save_copy_instance(self, instance, to=None, recursive=False, **kwargs):
-        if to:
-            if recursive and (to == self or to.is_descendant_of(self)):
-                raise Exception("You cannot copy a tree branch recursively into itself")
-            instance = to.add_child(instance=instance)
-        else:
-            instance = self.add_sibling(instance=instance)
-        return instance
 
     copy.alters_data = True
 
@@ -2730,13 +2674,15 @@ class CollectionViewRestriction(BaseViewRestriction):
         verbose_name_plural = _('collection view restrictions')
 
 
-class Collection(MP_Node):
+class Collection(TreebeardPathFixMixin, MP_Node):
     """
     A location in which resources such as images and documents can be grouped
     """
     name = models.CharField(max_length=255, verbose_name=_('name'))
 
     objects = CollectionManager()
+    # Tell treebeard to order Collections' paths such that they are ordered by name at each level.
+    node_order_by = ['name']
 
     def __str__(self):
         return self.name
@@ -2760,13 +2706,33 @@ class Collection(MP_Node):
         """Return a query set of all collection view restrictions that apply to this collection"""
         return CollectionViewRestriction.objects.filter(collection__in=self.get_ancestors(inclusive=True))
 
-    @staticmethod
-    def order_for_display(queryset):
-        return queryset.annotate(
-            display_order=Case(
-                When(depth=1, then=Value('')),
-                default='name')
-        ).order_by('display_order')
+    def get_indented_name(self, indentation_start_depth=2, html=False):
+        """
+        Renders this Collection's name as a formatted string that displays its hierarchical depth via indentation.
+        If indentation_start_depth is supplied, the Collection's depth is rendered relative to that depth.
+        indentation_start_depth defaults to 2, the depth of the first non-Root Collection.
+        Pass html=True to get a HTML representation, instead of the default plain-text.
+
+        Example text output: "    ↳ Pies"
+        Example HTML output: "&nbsp;&nbsp;&nbsp;&nbsp;&#x21b3 Pies"
+        """
+        display_depth = self.depth - indentation_start_depth
+        # A Collection with a display depth of 0 or less (Root's can be -1), should have no indent.
+        if display_depth <= 0:
+            return self.name
+
+        # Indent each level of depth by 4 spaces (the width of the ↳ character in our admin font), then add ↳
+        # before adding the name.
+        if html:
+            # NOTE: &#x21b3 is the hex HTML entity for ↳.
+            return format_html(
+                "{indent}{icon} {name}",
+                indent=mark_safe('&nbsp;' * 4 * display_depth),
+                icon=mark_safe('&#x21b3'),
+                name=self.name
+            )
+        # Output unicode plain-text version
+        return "{}↳ {}".format(' ' * 4 * display_depth, self.name)
 
     class Meta:
         verbose_name = _('collection')
@@ -3464,7 +3430,7 @@ class TaskStateManager(models.Manager):
         return states
 
 
-class TaskState(MultiTableCopyMixin, models.Model):
+class TaskState(models.Model):
     """Tracks the status of a given Task for a particular page revision."""
     STATUS_IN_PROGRESS = 'in_progress'
     STATUS_APPROVED = 'approved'
@@ -3501,6 +3467,7 @@ class TaskState(MultiTableCopyMixin, models.Model):
         on_delete=models.CASCADE
     )
     exclude_fields_in_copy = []
+    default_exclude_fields_in_copy = ['id']
 
     objects = TaskStateManager()
 
@@ -3605,11 +3572,10 @@ class TaskState(MultiTableCopyMixin, models.Model):
     def copy(self, update_attrs=None, exclude_fields=None):
         """Copy this task state, excluding the attributes in the ``exclude_fields`` list and updating any attributes to values
         specified in the ``update_attrs`` dictionary of ``attribute``: ``new value`` pairs"""
-        copy_instance, _ = self._copy(exclude_fields, update_attrs)
-        return copy_instance
-
-    def _save_copy_instance(self, instance, **kwargs):
+        exclude_fields = self.default_exclude_fields_in_copy + self.exclude_fields_in_copy + (exclude_fields or [])
+        instance, _ = _copy(self.specific, exclude_fields, update_attrs)
         instance.save()
+        _copy_m2m_relations(self, instance, exclude_fields=exclude_fields)
         return instance
 
     def get_comment(self):
@@ -3756,7 +3722,7 @@ class BaseLogEntry(models.Model):
                 return self.user.get_username()
             except self._meta.get_field('user').related_model.DoesNotExist:
                 # User has been deleted
-                return _('user {id} (deleted)').format(id=self.user_id)
+                return _('user %(id)d (deleted)') % {'id': self.user_id}
         else:
             return _('system')
 

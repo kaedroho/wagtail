@@ -1,7 +1,6 @@
 import json
 from unittest import mock
 
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
@@ -98,6 +97,15 @@ class TestDocumentIndexView(TestCase, WagtailTestUtils):
             [collection.name for collection in response.context['collections']],
             ['Root', 'Evil plans', 'Good plans'])
 
+    def test_collection_nesting(self):
+        root_collection = Collection.get_first_root_node()
+        evil_plans = root_collection.add_child(name="Evil plans")
+        evil_plans.add_child(name="Eviler plans")
+
+        response = self.client.get(reverse('wagtaildocs:index'))
+        # "Eviler Plans" should be prefixed with &#x21b3 (↳) and 4 non-breaking spaces.
+        self.assertContains(response, '&nbsp;&nbsp;&nbsp;&nbsp;&#x21b3 Eviler plans')
+
 
 class TestDocumentAddView(TestCase, WagtailTestUtils):
     def setUp(self):
@@ -128,6 +136,15 @@ class TestDocumentAddView(TestCase, WagtailTestUtils):
 
         self.assertContains(response, '<label for="id_collection">')
         self.assertContains(response, "Evil plans")
+
+    def test_get_with_collection_nesting(self):
+        root_collection = Collection.get_first_root_node()
+        evil_plans = root_collection.add_child(name="Evil plans")
+        evil_plans.add_child(name="Eviler plans")
+
+        response = self.client.get(reverse('wagtaildocs:add'))
+        # "Eviler Plans" should be prefixed with &#x21b3 (↳) and 4 non-breaking spaces.
+        self.assertContains(response, '&nbsp;&nbsp;&nbsp;&nbsp;&#x21b3 Eviler plans')
 
     @override_settings(WAGTAILDOCS_DOCUMENT_MODEL='tests.CustomDocument')
     def test_get_with_custom_document_model(self):
@@ -243,14 +260,14 @@ class TestDocumentAddViewWithLimitedCollectionPermissions(TestCase, WagtailTestU
             permission=add_doc_permission
         )
 
-        user = get_user_model().objects.create_user(
+        user = self.create_user(
             username='moriarty',
             email='moriarty@example.com',
             password='password'
         )
         user.groups.add(conspirators_group)
 
-        self.client.login(username='moriarty', password='password')
+        self.login(username='moriarty', password='password')
 
     def test_get(self):
         response = self.client.get(reverse('wagtaildocs:add'))
@@ -260,6 +277,16 @@ class TestDocumentAddViewWithLimitedCollectionPermissions(TestCase, WagtailTestU
         # user only has access to one collection, so no 'Collection' option
         # is displayed on the form
         self.assertNotContains(response, '<label for="id_collection">')
+
+    def test_get_with_collection_nesting(self):
+        self.evil_plans_collection.add_child(name="Eviler plans")
+
+        response = self.client.get(reverse('wagtaildocs:add'))
+        self.assertEqual(response.status_code, 200)
+        # Unlike the above test, the user should have access to multiple Collections.
+        self.assertContains(response, '<label for="id_collection">')
+        # "Eviler Plans" should be prefixed with &#x21b3 (↳) and 4 non-breaking spaces.
+        self.assertContains(response, '&nbsp;&nbsp;&nbsp;&nbsp;&#x21b3 Eviler plans')
 
     def test_post(self):
         # Build a fake file
@@ -307,6 +334,15 @@ class TestDocumentEditView(TestCase, WagtailTestUtils):
         # (see TestDocumentEditViewWithCustomDocumentModel - this confirms that form media
         # definitions are being respected)
         self.assertNotContains(response, 'wagtailadmin/js/draftail.js')
+
+    def test_simple_with_collection_nesting(self):
+        root_collection = Collection.get_first_root_node()
+        evil_plans = root_collection.add_child(name="Evil plans")
+        evil_plans.add_child(name="Eviler plans")
+
+        response = self.client.get(reverse('wagtaildocs:edit', args=(self.document.id,)))
+        # "Eviler Plans" should be prefixed with &#x21b3 (↳) and 4 non-breaking spaces.
+        self.assertContains(response, '&nbsp;&nbsp;&nbsp;&nbsp;&#x21b3 Eviler plans')
 
     def test_post(self):
         # Build a fake file
@@ -826,6 +862,15 @@ class TestDocumentChooserView(TestCase, WagtailTestUtils):
         # draftail should NOT be a standard JS include on this page
         self.assertNotIn('wagtailadmin/js/draftail.js', response_json['html'])
 
+    def test_simple_with_collection_nesting(self):
+        root_collection = Collection.get_first_root_node()
+        evil_plans = root_collection.add_child(name="Evil plans")
+        evil_plans.add_child(name="Eviler plans")
+
+        response = self.client.get(reverse('wagtaildocs:chooser'))
+        # "Eviler Plans" should be prefixed with &#x21b3 (↳) and 4 non-breaking spaces.
+        self.assertContains(response, '&nbsp;&nbsp;&nbsp;&nbsp;&#x21b3 Eviler plans')
+
     @override_settings(WAGTAILDOCS_DOCUMENT_MODEL='tests.CustomDocument')
     def test_with_custom_document_model(self):
         response = self.client.get(reverse('wagtaildocs:chooser'))
@@ -1030,14 +1075,14 @@ class TestDocumentChooserUploadViewWithLimitedPermissions(TestCase, WagtailTestU
             permission=add_doc_permission
         )
 
-        user = get_user_model().objects.create_user(
+        user = self.create_user(
             username='moriarty',
             email='moriarty@example.com',
             password='password'
         )
         user.groups.add(conspirators_group)
 
-        self.client.login(username='moriarty', password='password')
+        self.login(username='moriarty', password='password')
 
     def test_simple(self):
         response = self.client.get(reverse('wagtaildocs:chooser_upload'))
@@ -1197,7 +1242,7 @@ class TestEditOnlyPermissions(TestCase, WagtailTestUtils):
         )
 
         # Create a user with change_document permission but not add_document
-        user = get_user_model().objects.create_user(
+        user = self.create_user(
             username='changeonly',
             email='changeonly@example.com',
             password='password'
@@ -1216,7 +1261,7 @@ class TestEditOnlyPermissions(TestCase, WagtailTestUtils):
         user.groups.add(self.changers_group)
 
         user.user_permissions.add(admin_permission)
-        self.assertTrue(self.client.login(username='changeonly', password='password'))
+        self.login(username='changeonly', password='password')
 
     def test_get_index(self):
         response = self.client.get(reverse('wagtaildocs:index'))

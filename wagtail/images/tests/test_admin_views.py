@@ -1,6 +1,5 @@
 import json
 
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.template.defaultfilters import filesizeformat
@@ -87,6 +86,14 @@ class TestImageIndexView(TestCase, WagtailTestUtils):
             [collection.name for collection in response.context['collections']],
             ['Root', 'Evil plans', 'Good plans'])
 
+    def test_collection_nesting(self):
+        root_collection = Collection.get_first_root_node()
+        evil_plans = root_collection.add_child(name="Evil plans")
+        evil_plans.add_child(name="Eviler plans")
+
+        response = self.get()
+        # "Eviler Plans" should be prefixed with &#x21b3 (↳) and 4 non-breaking spaces.
+        self.assertContains(response, '&nbsp;&nbsp;&nbsp;&nbsp;&#x21b3 Eviler plans')
 
     def test_tags(self):
         image_two_tags = Image.objects.create(
@@ -106,7 +113,6 @@ class TestImageIndexView(TestCase, WagtailTestUtils):
             [tag.name for tag in tags] == ["one", "two"]
             or [tag.name for tag in tags] == ["two", "one"]
         )
-
 
     def test_tag_filtering(self):
         Image.objects.create(
@@ -138,7 +144,6 @@ class TestImageIndexView(TestCase, WagtailTestUtils):
         response = self.get({'tag': 'two'})
         self.assertEqual(response.context['images'].paginator.count, 1)
 
-
     def test_tag_filtering_preserves_other_params(self):
         for i in range(1, 100):
             image = Image.objects.create(
@@ -148,7 +153,6 @@ class TestImageIndexView(TestCase, WagtailTestUtils):
             if (i % 2 != 0):
                 image.tags.add('even')
                 image.save()
-
 
         response = self.get({'tag': 'even', 'p': 2})
         self.assertEqual(response.status_code, 200)
@@ -202,6 +206,15 @@ class TestImageAddView(TestCase, WagtailTestUtils):
 
         self.assertContains(response, '<label for="id_collection">')
         self.assertContains(response, "Evil plans")
+
+    def test_get_with_collection_nesting(self):
+        root_collection = Collection.get_first_root_node()
+        evil_plans = root_collection.add_child(name="Evil plans")
+        evil_plans.add_child(name="Eviler plans")
+
+        response = self.get()
+        # "Eviler Plans" should be prefixed with &#x21b3 (↳) and 4 non-breaking spaces.
+        self.assertContains(response, '&nbsp;&nbsp;&nbsp;&nbsp;&#x21b3 Eviler plans')
 
     @override_settings(WAGTAILIMAGES_IMAGE_MODEL='tests.CustomImage')
     def test_get_with_custom_image_model(self):
@@ -377,14 +390,14 @@ class TestImageAddViewWithLimitedCollectionPermissions(TestCase, WagtailTestUtil
             permission=add_image_permission
         )
 
-        user = get_user_model().objects.create_user(
+        user = self.create_user(
             username='moriarty',
             email='moriarty@example.com',
             password='password'
         )
         user.groups.add(conspirators_group)
 
-        self.client.login(username='moriarty', password='password')
+        self.login(username='moriarty', password='password')
 
     def get(self, params={}):
         return self.client.get(reverse('wagtailimages:add'), params)
@@ -400,6 +413,16 @@ class TestImageAddViewWithLimitedCollectionPermissions(TestCase, WagtailTestUtil
         # user only has access to one collection, so no 'Collection' option
         # is displayed on the form
         self.assertNotContains(response, '<label for="id_collection">')
+
+    def test_get_with_collection_nesting(self):
+        self.evil_plans_collection.add_child(name="Eviler plans")
+
+        response = self.get()
+        self.assertEqual(response.status_code, 200)
+        # Unlike the above test, the user should have access to multiple Collections.
+        self.assertContains(response, '<label for="id_collection">')
+        # "Eviler Plans" should be prefixed with &#x21b3 (↳) and 4 non-breaking spaces.
+        self.assertContains(response, '&nbsp;&nbsp;&nbsp;&nbsp;&#x21b3 Eviler plans')
 
     def test_add(self):
         response = self.post({
@@ -453,6 +476,15 @@ class TestImageEditView(TestCase, WagtailTestUtils):
         # (see TestImageEditViewWithCustomImageModel - this confirms that form media
         # definitions are being respected)
         self.assertNotContains(response, 'wagtailadmin/js/draftail.js')
+
+    def test_simple_with_collection_nesting(self):
+        root_collection = Collection.get_first_root_node()
+        evil_plans = root_collection.add_child(name="Evil plans")
+        evil_plans.add_child(name="Eviler plans")
+
+        response = self.get()
+        # "Eviler Plans" should be prefixed with &#x21b3 (↳) and 4 non-breaking spaces.
+        self.assertContains(response, '&nbsp;&nbsp;&nbsp;&nbsp;&#x21b3 Eviler plans')
 
     @override_settings(WAGTAIL_USAGE_COUNT_ENABLED=True)
     def test_with_usage_count(self):
@@ -551,7 +583,6 @@ class TestImageEditView(TestCase, WagtailTestUtils):
     @override_settings(DEFAULT_FILE_STORAGE='wagtail.tests.dummy_external_storage.DummyExternalStorage')
     def test_get_missing_file_displays_warning_with_custom_storage(self):
         self.check_get_missing_file_displays_warning()
-
 
     def get_content(self, f=None):
         if f is None:
@@ -760,6 +791,15 @@ class TestImageChooserView(TestCase, WagtailTestUtils):
 
         # draftail should NOT be a standard JS include on this page
         self.assertNotIn('wagtailadmin/js/draftail.js', response_json['html'])
+
+    def test_simple_with_collection_nesting(self):
+        root_collection = Collection.get_first_root_node()
+        evil_plans = root_collection.add_child(name="Evil plans")
+        evil_plans.add_child(name="Eviler plans")
+
+        response = self.get()
+        # "Eviler Plans" should be prefixed with &#x21b3 (↳) and 4 non-breaking spaces.
+        self.assertContains(response, '&nbsp;&nbsp;&nbsp;&nbsp;&#x21b3 Eviler plans')
 
     @override_settings(WAGTAILIMAGES_IMAGE_MODEL='tests.CustomImage')
     def test_with_custom_image_model(self):
@@ -1072,14 +1112,14 @@ class TestImageChooserUploadViewWithLimitedPermissions(TestCase, WagtailTestUtil
             permission=add_image_permission
         )
 
-        user = get_user_model().objects.create_user(
+        user = self.create_user(
             username='moriarty',
             email='moriarty@example.com',
             password='password'
         )
         user.groups.add(conspirators_group)
 
-        self.client.login(username='moriarty', password='password')
+        self.login(username='moriarty', password='password')
 
     def test_get(self):
         response = self.client.get(reverse('wagtailimages:chooser_upload'))
@@ -1950,7 +1990,7 @@ class TestEditOnlyPermissions(TestCase, WagtailTestUtils):
         )
 
         # Create a user with change_image permission but not add_image
-        user = get_user_model().objects.create_user(
+        user = self.create_user(
             username='changeonly', email='changeonly@example.com', password='password'
         )
         change_permission = Permission.objects.get(content_type__app_label='wagtailimages', codename='change_image')
@@ -1965,7 +2005,7 @@ class TestEditOnlyPermissions(TestCase, WagtailTestUtils):
         )
 
         user.groups.add(image_changers_group)
-        self.assertTrue(self.client.login(username='changeonly', password='password'))
+        self.login(username='changeonly', password='password')
 
     def test_get_index(self):
         response = self.client.get(reverse('wagtailimages:index'))
@@ -2012,7 +2052,7 @@ class TestImageAddMultipleView(TestCase, WagtailTestUtils):
         self.assertTemplateUsed(response, 'wagtailimages/multiple/add.html')
 
     def test_as_ordinary_editor(self):
-        user = get_user_model().objects.create_user(username='editor', email='editor@email.com', password='password')
+        user = self.create_user(username='editor', password='password')
 
         add_permission = Permission.objects.get(content_type__app_label='wagtailimages', codename='add_image')
         admin_permission = Permission.objects.get(content_type__app_label='wagtailadmin', codename='access_admin')
@@ -2021,7 +2061,7 @@ class TestImageAddMultipleView(TestCase, WagtailTestUtils):
         GroupCollectionPermission.objects.create(group=image_adders_group, collection=Collection.get_first_root_node(), permission=add_permission)
         user.groups.add(image_adders_group)
 
-        self.client.login(username='editor', password='password')
+        self.login(username='editor', password='password')
 
         response = self.client.get(reverse('wagtailimages:add_multiple'))
         self.assertEqual(response.status_code, 200)
