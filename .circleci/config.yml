@@ -9,7 +9,7 @@ jobs:
       - restore_cache:
           keys:
             - pip-packages-v1-{{ .Branch }}
-            - pip-packages-v1-
+            - pip-packages-v1-master
       - run: pipenv install -e .[testing]
       - save_cache:
           paths:
