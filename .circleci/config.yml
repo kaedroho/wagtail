@@ -3,7 +3,7 @@ version: 2
 jobs:
   backend:
     docker:
-      - image: circleci/python:3.6.4
+      - image: circleci/python:3.8
     steps:
       - checkout
       - restore_cache:
@@ -27,7 +27,7 @@ jobs:
 
   frontend:
     docker:
-      - image: circleci/node:10
+      - image: circleci/node:14
     steps:
       - checkout
       - restore_cache:
@@ -48,7 +48,7 @@ jobs:
 
   nightly-build:
     docker:
-      - image: circleci/python:3.7.3
+      - image: circleci/python:3.8
     steps:
       - checkout
       - run: cd ~ && wget https://nodejs.org/dist/v8.7.0/node-v8.7.0-linux-x64.tar.gz
