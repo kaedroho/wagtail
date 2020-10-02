@@ -1,5 +1,16 @@
+===============
 Getting started
 ===============
+
+Demo site
+=========
+
+A demo site called "The Wagtail Bakery", exists containing example page types and models.
+
+The repo and installation instructions can be found here: `https://github.com/wagtail/bakerydemo <https://github.com/wagtail/bakerydemo>`_
+
+Installing Wagtail
+==================
 
 .. note::
    These instructions assume familiarity with virtual environments and the
@@ -61,5 +72,4 @@ There are a few optional packages which are not installed by default but are rec
     :maxdepth: 1
 
     tutorial
-    demo_site
     integrating_into_django
