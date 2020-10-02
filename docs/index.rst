@@ -39,6 +39,7 @@ Index
    topics/index
    advanced_topics/index
    reference/index
+   the_zen_of_wagtail
    support
    editor_manual/index
    contributing/index
