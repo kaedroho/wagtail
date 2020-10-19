@@ -7,10 +7,15 @@ Object {
       "count": 0,
       "items": Array [],
     },
+    "id": 0,
     "isError": true,
     "isFetching": false,
     "meta": Object {
       "children": Object {},
+      "status": Object {
+        "has_unpublished_changes": true,
+        "live": false,
+      },
     },
   },
 }
@@ -23,10 +28,15 @@ Object {
       "count": 0,
       "items": Array [],
     },
+    "id": 0,
     "isError": false,
     "isFetching": true,
     "meta": Object {
       "children": Object {},
+      "status": Object {
+        "has_unpublished_changes": true,
+        "live": false,
+      },
     },
   },
 }
@@ -43,10 +53,15 @@ Object {
         5,
       ],
     },
+    "id": 0,
     "isError": false,
     "isFetching": false,
     "meta": Object {
       "children": Object {},
+      "status": Object {
+        "has_unpublished_changes": true,
+        "live": false,
+      },
     },
   },
   "3": Object {
@@ -59,6 +74,10 @@ Object {
     "isFetching": false,
     "meta": Object {
       "children": Object {},
+      "status": Object {
+        "has_unpublished_changes": true,
+        "live": false,
+      },
     },
   },
   "4": Object {
@@ -71,6 +90,10 @@ Object {
     "isFetching": false,
     "meta": Object {
       "children": Object {},
+      "status": Object {
+        "has_unpublished_changes": true,
+        "live": false,
+      },
     },
   },
   "5": Object {
@@ -83,6 +106,10 @@ Object {
     "isFetching": false,
     "meta": Object {
       "children": Object {},
+      "status": Object {
+        "has_unpublished_changes": true,
+        "live": false,
+      },
     },
   },
 }
@@ -95,10 +122,15 @@ Object {
       "count": 0,
       "items": Array [],
     },
+    "id": 0,
     "isError": true,
     "isFetching": false,
     "meta": Object {
       "children": Object {},
+      "status": Object {
+        "has_unpublished_changes": true,
+        "live": false,
+      },
     },
   },
 }
@@ -111,10 +143,15 @@ Object {
       "count": 0,
       "items": Array [],
     },
+    "id": 0,
     "isError": false,
     "isFetching": false,
     "meta": Object {
       "children": Object {},
+      "status": Object {
+        "has_unpublished_changes": true,
+        "live": false,
+      },
     },
   },
 }
@@ -127,10 +164,15 @@ Object {
       "count": 0,
       "items": Array [],
     },
+    "id": 0,
     "isError": false,
     "isFetching": false,
     "meta": Object {
       "children": Object {},
+      "status": Object {
+        "has_unpublished_changes": true,
+        "live": false,
+      },
     },
   },
 }
