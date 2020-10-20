@@ -1,18 +1,5 @@
+import { WagtailPageAPI } from '../../../api/admin';
 import { OPEN_EXPLORER } from './explorer';
-
-export interface WagtailPageAPI {
-  id: number;
-  meta: {
-    status: {
-      live: boolean;
-      /* eslint-disable-next-line camelcase */
-      has_unpublished_changes: boolean;
-    }
-    children: any;
-  };
-  /* eslint-disable-next-line camelcase */
-  admin_display_title?: string;
-}
 
 export interface PageState extends WagtailPageAPI {
   isFetching: boolean;
