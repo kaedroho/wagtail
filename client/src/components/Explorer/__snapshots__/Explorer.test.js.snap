@@ -60,6 +60,7 @@ exports[`Explorer visible 1`] = `
           "status": Object {
             "has_unpublished_changes": true,
             "live": false,
+            "status": "",
           },
         },
       },
@@ -122,6 +123,7 @@ exports[`Explorer visible 2`] = `
           "status": Object {
             "has_unpublished_changes": true,
             "live": false,
+            "status": "",
           },
         },
       },
@@ -142,6 +144,7 @@ exports[`Explorer visible 2`] = `
         "status": Object {
           "has_unpublished_changes": true,
           "live": false,
+          "status": "",
         },
       },
     }

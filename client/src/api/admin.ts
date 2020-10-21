@@ -6,6 +6,7 @@ export interface WagtailPageAPI {
   id: number;
   meta: {
     status: {
+      status: string;
       live: boolean;
       /* eslint-disable-next-line camelcase */
       has_unpublished_changes: boolean;

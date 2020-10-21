@@ -33,7 +33,7 @@ const mapDispatchToProps = (dispatch) => ({
   onToggle: (page) => dispatch(actions.toggleExplorer(page)),
 });
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (_stateProps, dispatchProps, ownProps) => ({
   children: ownProps.children,
   onToggle: dispatchProps.onToggle.bind(null, ownProps.startPage),
 });

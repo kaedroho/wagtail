@@ -20,6 +20,7 @@ const defaultPageState: PageState = {
   },
   meta: {
     status: {
+      status: '',
       live: false,
       has_unpublished_changes: true
     },
