@@ -7,7 +7,7 @@ exports[`ExplorerPanel general rendering #isError 1`] = `
   className="explorer"
   focusTrapOptions={
     Object {
-      "initialFocus": ".c-explorer__header",
+      "initialFocus": ".c-explorer__header__title",
       "onDeactivate": [MockFunction],
     }
   }
@@ -40,6 +40,7 @@ exports[`ExplorerPanel general rendering #isError 1`] = `
     >
       <ExplorerHeader
         depth={1}
+        gotoPage={[MockFunction]}
         onClick={[Function]}
         page={
           Object {
@@ -91,78 +92,7 @@ exports[`ExplorerPanel general rendering #isFetching 1`] = `
   className="explorer"
   focusTrapOptions={
     Object {
-      "initialFocus": ".c-explorer__header",
-      "onDeactivate": [MockFunction],
-    }
-  }
-  paused={true}
-  role="dialog"
-  tag="div"
->
-  <Button
-    accessibleLabel={null}
-    className="c-explorer__close"
-    dialogTrigger={false}
-    href="#"
-    isLoading={false}
-    onClick={null}
-    preventDefault={true}
-    target={null}
-  >
-    Close explorer
-  </Button>
-  <Transition
-    className="c-explorer"
-    component="nav"
-    duration={210}
-    label="Page explorer"
-    name="push"
-  >
-    <div
-      className="c-transition-group"
-      key="1"
-    >
-      <ExplorerHeader
-        depth={1}
-        onClick={[Function]}
-        page={
-          Object {
-            "children": Object {
-              "items": Array [],
-            },
-            "isFetching": true,
-            "meta": Object {
-              "parent": null,
-            },
-          }
-        }
-      />
-      <div
-        className="c-explorer__drawer"
-      >
-        <div
-          key="children"
-        />
-        <div
-          className="c-explorer__placeholder"
-          key="fetching"
-        >
-          <LoadingSpinner />
-        </div>
-      </div>
-    </div>
-  </Transition>
-</FocusTrap>
-`;
-
-exports[`ExplorerPanel general rendering #items 1`] = `
-<FocusTrap
-  _createFocusTrap={[Function]}
-  active={true}
-  className="explorer"
-  focusTrapOptions={
-    Object {
-      "initialFocus": ".c-explorer__header",
+      "initialFocus": ".c-explorer__header__title",
       "onDeactivate": [MockFunction],
     }
   }
@@ -195,6 +125,73 @@ exports[`ExplorerPanel general rendering #items 1`] = `
     >
       <ExplorerHeader
         depth={1}
+        gotoPage={[MockFunction]}
+        onClick={[Function]}
+        page={
+          Object {
+            "children": Object {
+              "items": Array [],
+            },
+            "isFetching": true,
+            "meta": Object {
+              "parent": null,
+            },
+          }
+        }
+      />
+      <div
+        className="c-explorer__drawer"
+      >
+        <div
+          key="children"
+        />
+      </div>
+    </div>
+  </Transition>
+</FocusTrap>
+`;
+
+exports[`ExplorerPanel general rendering #items 1`] = `
+<FocusTrap
+  _createFocusTrap={[Function]}
+  active={true}
+  className="explorer"
+  focusTrapOptions={
+    Object {
+      "initialFocus": ".c-explorer__header__title",
+      "onDeactivate": [MockFunction],
+    }
+  }
+  paused={false}
+  role="dialog"
+  tag="div"
+>
+  <Button
+    accessibleLabel={null}
+    className="c-explorer__close"
+    dialogTrigger={false}
+    href="#"
+    isLoading={false}
+    onClick={null}
+    preventDefault={true}
+    target={null}
+  >
+    Close explorer
+  </Button>
+  <Transition
+    className="c-explorer"
+    component="nav"
+    duration={210}
+    label="Page explorer"
+    name="push"
+  >
+    <div
+      className="c-transition-group"
+      key="1"
+    >
+      <ExplorerHeader
+        depth={1}
+        gotoPage={[MockFunction]}
         onClick={[Function]}
         page={
           Object {
@@ -255,7 +252,7 @@ exports[`ExplorerPanel general rendering no children 1`] = `
   className="explorer"
   focusTrapOptions={
     Object {
-      "initialFocus": ".c-explorer__header",
+      "initialFocus": ".c-explorer__header__title",
       "onDeactivate": [MockFunction],
     }
   }
@@ -288,6 +285,7 @@ exports[`ExplorerPanel general rendering no children 1`] = `
     >
       <ExplorerHeader
         depth={1}
+        gotoPage={[MockFunction]}
         onClick={[Function]}
         page={
           Object {
@@ -317,7 +315,7 @@ exports[`ExplorerPanel general rendering renders 1`] = `
   className="explorer"
   focusTrapOptions={
     Object {
-      "initialFocus": ".c-explorer__header",
+      "initialFocus": ".c-explorer__header__title",
       "onDeactivate": [MockFunction],
     }
   }
@@ -350,6 +348,7 @@ exports[`ExplorerPanel general rendering renders 1`] = `
     >
       <ExplorerHeader
         depth={1}
+        gotoPage={[MockFunction]}
         onClick={[Function]}
         page={
           Object {
