@@ -18,6 +18,12 @@ interface ExplorerItemProps {
   onClick(): void;
 }
 
+const LOCALE_NAMES: Map<string, string> = new Map();
+
+wagtailConfig.LOCALES.forEach(({code, display_name}) => {
+  LOCALE_NAMES.set(code, display_name)
+});
+
 /**
  * One menu item in the page explorer, with different available actions
  * and information depending on the metadata of the page.
@@ -26,6 +32,7 @@ const ExplorerItem: React.FunctionComponent<ExplorerItemProps> = ({ item, onClic
   const { id, admin_display_title: title, meta } = item;
   const hasChildren = meta.children.count > 0;
   const isPublished = meta.status.live && !meta.status.has_unpublished_changes;
+  const localeName = meta.parent?.id == 1 && meta.locale && (LOCALE_NAMES.get(meta.locale) || meta.locale);
 
   return (
     <div className="c-explorer__item">
@@ -36,11 +43,12 @@ const ExplorerItem: React.FunctionComponent<ExplorerItemProps> = ({ item, onClic
           {title}
         </h3>
 
-        {!isPublished ? (
+        {(!isPublished || localeName) &&
           <span className="c-explorer__meta">
-            <PublicationStatus status={meta.status} />
+            {localeName && <span className="o-pill c-status">{localeName}</span>}
+            {!isPublished && <PublicationStatus status={meta.status} />}
           </span>
-        ) : null}
+        }
       </Button>
       <Button
         href={`${ADMIN_URLS.PAGES}${id}/edit/`}
