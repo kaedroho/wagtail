@@ -15,6 +15,7 @@ import { initSubmenus } from './includes/initSubmenus';
 import { initSkipLink } from './includes/initSkipLink';
 import { initIE11Warning } from './includes/initIE11Warning';
 import { initUpgradeNotification } from './components/UpgradeNotification';
+import { initShell } from './components/Shell/Shell';
 
 export {
   Button,
@@ -31,4 +32,5 @@ export {
   initSkipLink,
   initIE11Warning,
   initUpgradeNotification,
+  initShell,
 };

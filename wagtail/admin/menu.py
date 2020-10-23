@@ -49,6 +49,12 @@ class MenuItem(metaclass=MediaDefiningClass):
         context = self.get_context(request)
         return render_to_string(self.template, context, request=request)
 
+    def as_serializable(self, request):
+        return {
+            'type': 'item',
+            'data': self.get_context(request),
+        }
+
 
 class Menu:
     def __init__(self, register_hook_name, construct_hook_name=None):
@@ -92,6 +98,19 @@ class Menu:
             rendered_menu_items.append(item.render_html(request))
         return mark_safe(''.join(rendered_menu_items))
 
+    def as_serializable(self, request):
+        menu_items = self.menu_items_for_request(request)
+
+        # provide a hook for modifying the menu, if construct_hook_name has been set
+        if self.construct_hook_name:
+            for fn in hooks.get_hooks(self.construct_hook_name):
+                fn(request, menu_items)
+
+        return [
+            menu_item.as_serializable(request)
+            for menu_item in sorted(menu_items, key=lambda i: i.order)
+        ]
+
 
 class SubmenuMenuItem(MenuItem):
     template = 'wagtailadmin/shared/menu_submenu_item.html'
@@ -113,6 +132,13 @@ class SubmenuMenuItem(MenuItem):
         context['menu_html'] = self.menu.render_html(request)
         context['request'] = request
         return context
+
+    def as_serializable(self, request):
+        return {
+            'type': 'group',
+            'data': super().get_context(request),
+            'items': self.menu.as_serializable(request),
+        }
 
 
 class AdminOnlyMenuItem(MenuItem):

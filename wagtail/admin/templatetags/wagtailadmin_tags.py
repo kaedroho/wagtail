@@ -5,6 +5,7 @@ from urllib.parse import urljoin
 
 from django import template
 from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
 from django.contrib.admin.utils import quote
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django.contrib.messages.constants import DEFAULT_TAGS as MESSAGE_TAGS
@@ -62,6 +63,30 @@ def main_nav(context):
         'menu_html': admin_menu.render_html(request),
         'request': request,
     }
+
+
+@register.simple_tag(takes_context=True)
+def shell_props(context):
+    request = context['request']
+    search_areas = admin_search_areas.search_items_for_request(request)
+    if not search_areas:
+        return ''
+    search_area = search_areas[0]
+
+    explorer_start_page = get_explorable_root_page(request.user)
+
+    return json.dumps({
+        'logoImages': {
+            'mobileLogo': versioned_static('wagtailadmin/images/wagtail-logo.svg'),
+            'desktopLogoBody': versioned_static('wagtailadmin/images/logo-body.svg'),
+            'desktopLogoTail': versioned_static('wagtailadmin/images/logo-tail.svg'),
+            'desktopLogoEyeOpen': versioned_static('wagtailadmin/images/logo-eyeopen.svg'),
+            'desktopLogoEyeClosed': versioned_static('wagtailadmin/images/logo-eyeclosed.svg'),
+        },
+        'searchUrl': search_area.url,
+        'explorerStartPageId': explorer_start_page.id if explorer_start_page else None,
+        'menuItems': admin_menu.as_serializable(request),
+    }, cls=DjangoJSONEncoder)
 
 
 @register.inclusion_tag('wagtailadmin/shared/breadcrumb.html', takes_context=True)
