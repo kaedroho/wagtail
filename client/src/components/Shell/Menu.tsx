@@ -28,6 +28,7 @@ type MenuData = (MenuItem | MenuGroup)[];
 
 interface MenuItemProps {
     data: MenuItemCommon;
+    navigate(url: string): void;
 }
 
 const ExplorerMenuItem: React.FunctionComponent<MenuItemProps> = ({data}) => {
@@ -38,7 +39,6 @@ const ExplorerMenuItem: React.FunctionComponent<MenuItemProps> = ({data}) => {
     }
 
     const context = React.useContext(ExplorerContext);
-    console.log(context);
     const toggleRef = React.useRef<HTMLAnchorElement | null>(null);
     React.useEffect(() => {
         if (context?.wrapperRef?.current && toggleRef.current) {
@@ -57,7 +57,7 @@ const ExplorerMenuItem: React.FunctionComponent<MenuItemProps> = ({data}) => {
     );
 }
 
-const MenuItem: React.FunctionComponent<MenuItemProps> = ({data}) => {
+const MenuItem: React.FunctionComponent<MenuItemProps> = ({data, navigate}) => {
     const classNames = ['menu-item'];
 
     if (data.active) {
@@ -66,12 +66,18 @@ const MenuItem: React.FunctionComponent<MenuItemProps> = ({data}) => {
 
     // Special case: Page explorer
     if (data.name === 'explorer') {
-        return <ExplorerMenuItem data={data} />
+        return <ExplorerMenuItem data={data} navigate={navigate} />
+    }
+
+    const onClick = (e) => {
+        e.preventDefault();
+        navigate(data.url);
     }
 
     return (
         <li className={classNames.join(' ')}>
-            <a href={data.url}
+            <a href="#"
+               onClick={onClick}
                className={data.classnames}>
                 {data.icon_name && <Icon name={data.icon_name} className="icon--menuitem"/>}
                 {data.label}
@@ -84,9 +90,10 @@ const MenuItem: React.FunctionComponent<MenuItemProps> = ({data}) => {
 interface MenuGroupProps {
     data: MenuItemCommon;
     items: MenuData;
+    navigate(url: string): void;
 }
 
-const MenuGroup: React.FunctionComponent<MenuGroupProps> = ({data, items}) => {
+const MenuGroup: React.FunctionComponent<MenuGroupProps> = ({data, items, navigate}) => {
     const classNames = ['menu-item'];
 
     if (data.active) {
@@ -106,22 +113,22 @@ const MenuGroup: React.FunctionComponent<MenuGroupProps> = ({data, items}) => {
                     {data.label}
                 </h2>
                 <ul className="nav-submenu__list" aria-labelledby="nav-submenu-{{ name }}-title">
-                    {renderMenuItems(items)}
+                    {renderMenuItems(items, navigate)}
                 </ul>
             </div>
         </li>
     );
 }
 
-function renderMenuItems(menuItems: MenuData) {
+function renderMenuItems(menuItems: MenuData, navigate: (url: string) => void) {
     return (
         <>
             {menuItems.map(menuItem => {
                 switch (menuItem.type) {
                     case 'group':
-                        return <MenuGroup data={menuItem.data} items={menuItem.items} />;
+                        return <MenuGroup data={menuItem.data} items={menuItem.items} navigate={navigate} />;
                     case 'item':
-                        return <MenuItem data={menuItem.data} />;
+                        return <MenuItem data={menuItem.data} navigate={navigate} />;
                 }
             })}
         </>
@@ -130,13 +137,14 @@ function renderMenuItems(menuItems: MenuData) {
 
 interface MenuProps {
     menuItems: MenuData;
+    navigate(url: string): void;
 }
 
-export const Menu: React.FunctionComponent<MenuProps> = ({menuItems}) => {
+export const Menu: React.FunctionComponent<MenuProps> = ({menuItems, navigate}) => {
     return (
         <nav className="nav-main">
             <ul>
-                {renderMenuItems(menuItems)}
+                {renderMenuItems(menuItems, navigate)}
 
                 <li className="footer" id="footer">
                     <div className="account" id="account-settings" title={gettext('Edit your account')}>

@@ -2,6 +2,7 @@ import json
 
 from django import template
 from django.core.serializers.json import DjangoJSONEncoder
+from django.urls import reverse
 
 from wagtail.admin.menu import admin_menu
 from wagtail.admin.navigation import get_explorable_root_page
@@ -10,6 +11,13 @@ from wagtail.admin.staticfiles import versioned_static
 
 
 register = template.Library()
+
+
+@register.simple_tag(takes_context=True)
+def shell_template_rendered(context):
+    request = context['request']
+    request.shell_template_rendered = True
+    return ''
 
 
 @register.simple_tag(takes_context=True)
@@ -23,6 +31,7 @@ def shell_props(context):
     explorer_start_page = get_explorable_root_page(request.user)
 
     return json.dumps({
+        'homeUrl': reverse('wagtailadmin_home'),
         'logoImages': {
             'mobileLogo': versioned_static('wagtailadmin/images/wagtail-logo.svg'),
             'desktopLogoBody': versioned_static('wagtailadmin/images/logo-body.svg'),

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {gettext, url} from './Shell';
+import {gettext} from './Shell';
 
 export interface LogoImages {
     mobileLogo: string;
@@ -12,11 +12,18 @@ export interface LogoImages {
 
 interface LogoProps {
     images: LogoImages;
+    homeUrl: string;
+    navigate(url: string): void;
 }
 
-export const Logo: React.FunctionComponent<LogoProps> = ({images}) => {
+export const Logo: React.FunctionComponent<LogoProps> = ({images, homeUrl, navigate}) => {
+    const onClick = (e) => {
+        e.preventDefault();
+        navigate(homeUrl);
+    };
+
     return (
-        <a href={url('wagtailadmin_home')} className="logo" aria-label={gettext('Dashboard')}>
+        <a href="#" onClick={onClick} className="logo" aria-label={gettext('Dashboard')}>
             {/* Mobile */}
             <div className="wagtail-logo-container__mobile u-hidden@sm">
                 <img className="wagtail-logo wagtail-logo__full" src={images.mobileLogo} alt="" width="80" />
