@@ -1,3 +1,8 @@
+export interface Stylesheet {
+    type: 'text/css',
+    src: string,
+}
+
 interface ShellResponseLoadIt {
     status: 'load-it';
 }
@@ -6,6 +11,7 @@ interface ShellResponseRenderHtml {
     status: 'render-html';
     title: string;
     html: string;
+    stylesheets: Stylesheet[];
 }
 
 interface ShellResponseRenderClientSideView {

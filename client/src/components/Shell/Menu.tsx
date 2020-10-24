@@ -1,5 +1,5 @@
 import React from 'react';
-import { initExplorer } from '../Explorer';
+//import { initExplorer } from '../Explorer';
 import Icon from '../Icon/Icon';
 import { ExplorerContext, gettext, url } from './Shell';
 
@@ -42,7 +42,7 @@ const ExplorerMenuItem: React.FunctionComponent<MenuItemProps> = ({data}) => {
     const toggleRef = React.useRef<HTMLAnchorElement | null>(null);
     React.useEffect(() => {
         if (context?.wrapperRef?.current && toggleRef.current) {
-            initExplorer(context.wrapperRef.current, toggleRef.current);
+            //initExplorer(context.wrapperRef.current, toggleRef.current);
         }
     }, [context, context?.wrapperRef, toggleRef]);
 

@@ -27,10 +27,11 @@ class ShellResponseLoadIt(ShellResponse):
 class ShellResponseRenderHtml(ShellResponse):
     status = 'render-html'
 
-    def get_data(self, title, html):
+    def get_data(self, title, html, stylesheets):
         return {
             'title': title,
             'html': html,
+            'stylesheets': stylesheets,
         }
 
 
@@ -93,6 +94,17 @@ def shell(request):
 
     if shell_request.shell_template_rendered:
         soup = BeautifulSoup(response.content, 'html.parser')
-        return ShellResponseRenderHtml(soup.find('title').text, str(soup.find(id='wagtailshell-content')))
+
+        title = soup.find('title').text
+        html = soup.find(id='wagtailshell-content').encode_contents().decode('utf-8')
+        stylesheets = [
+            {
+                'type': 'stylesheet',
+                'src': link_tag.attrs['href'],
+            }
+            for link_tag in soup.find_all('link', rel='stylesheet')
+        ]
+
+        return ShellResponseRenderHtml(title, html, stylesheets)
 
     return ShellResponseLoadIt()

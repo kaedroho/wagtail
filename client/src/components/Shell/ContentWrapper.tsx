@@ -1,41 +1,39 @@
-import React, { MutableRefObject } from 'react';
+import React, { useEffect } from 'react';
+import root from 'react-shadow';
+import { Stylesheet } from './navigator';
 
 function ajaxifyLinks(element: HTMLElement, navigate: (url: string) => void) {
     element.querySelectorAll('a').forEach(aTag => {
         const href = aTag.getAttribute('href');
-        if (href && href.startsWith('/admin/')) {
+        if (href && href.startsWith('/admin/') && !aTag.dataset.ajaxified) {
             aTag.addEventListener('click', (e) => {
                 e.preventDefault();
                 navigate(href);
             });
+            aTag.dataset.ajaxified = 'true';
         }
     });
 }
 
 interface ContentWrapperProps {
-    contentElement: HTMLElement;
+    html: string;
+    stylesheets: Stylesheet[];
     navigate(url: string): void;
-    renderHtmlCallback: MutableRefObject<((html: string) => void) | null>;
 }
 
-export const ContentWrapper: React.FunctionComponent<ContentWrapperProps> = ({contentElement, navigate, renderHtmlCallback}) => {
+export const ContentWrapper: React.FunctionComponent<ContentWrapperProps> = ({html, stylesheets, navigate}) => {
     const nodeRef = React.useRef<HTMLDivElement | null>(null);
 
-    renderHtmlCallback.current = (html: string) => {
+    useEffect(() => {
         if (nodeRef.current) {
-            nodeRef.current.innerHTML = html;
             ajaxifyLinks(nodeRef.current, navigate);
         }
-    };
-
-    React.useEffect(() => {
-        if (nodeRef.current) {
-            nodeRef.current.appendChild(contentElement);
-            ajaxifyLinks(contentElement, navigate);
-        }
-    }, [nodeRef]);
+    }, [nodeRef, html]);
 
     return (
-        <div ref={nodeRef}></div>
+        <root.div>
+            <div ref={nodeRef} dangerouslySetInnerHTML={{__html: html}} />
+            {stylesheets.map(stylesheet => <link key={stylesheet.src} rel="stylesheet" type="text/css" href={stylesheet.src} />)}
+        </root.div>
     );
 }
