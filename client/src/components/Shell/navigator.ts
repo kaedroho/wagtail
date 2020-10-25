@@ -41,5 +41,5 @@ export function shellFetch(url: string): Promise<ShellResponse> {
         });
     }
 
-    return fetch(`/admin/shell/?url=${encodeURIComponent(url)}`).then(response => response.json());
+    return fetch(url, {headers: {'X-Requested-With': 'WagtailShell'}}).then(response => response.json());
 }

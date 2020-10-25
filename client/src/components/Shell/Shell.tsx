@@ -5,7 +5,7 @@ import {Logo, LogoImages} from './Logo';
 import {SearchInput} from './SearchInput';
 import {Menu} from './Menu';
 import {ContentWrapper} from './ContentWrapper';
-import {Stylesheet, shellFetch} from './navigator';
+import {shellFetch} from './navigator';
 
 // Just a dummy for now
 export const gettext = (text: string) => text;
@@ -31,22 +31,6 @@ interface ShellProps {
 const Shell: React.FunctionComponent<ShellProps> = ({homeUrl, logoImages, explorerStartPageId, searchUrl, menuItems, contentElement}) => {
     const explorerWrapperRef = React.useRef<HTMLDivElement | null>(null);
     const [html, setHtml] = React.useState(contentElement.innerHTML);
-    const [stylesheets, setStylesheets] = React.useState<Stylesheet[]>([]);
-
-    // Extract stylesheets from initial response
-    React.useEffect(() => {
-        const initialStylesheets: Stylesheet[] = [];
-
-        document.head.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
-            const src = link.getAttribute('href');
-
-            if (src) {
-                initialStylesheets.push({type: 'text/css', src});
-            }
-        });
-
-        setStylesheets(initialStylesheets);
-    }, []);
 
     // These two need to be globally mutable and not trigger UI refreshes on update
     // If two requests are fired off at around the same time, this makes sure the later
@@ -76,7 +60,6 @@ const Shell: React.FunctionComponent<ShellProps> = ({homeUrl, logoImages, explor
                 document.title = response.title;
 
                 setHtml(response.html);
-                setStylesheets(response.stylesheets);
             }
         });
     }
@@ -96,7 +79,7 @@ const Shell: React.FunctionComponent<ShellProps> = ({homeUrl, logoImages, explor
                 <div className="explorer__wrapper" ref={explorerWrapperRef}></div>
             </aside>
 
-            <ContentWrapper html={html} stylesheets={stylesheets} navigate={navigate} />
+            <ContentWrapper html={html} navigate={navigate} />
         </>
     );
 }
