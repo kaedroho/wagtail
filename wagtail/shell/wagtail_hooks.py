@@ -9,5 +9,4 @@ from . import views
 def register_admin_urls():
     return [
         path('shell/', views.shell),
-        path('shell/template/', views.template),
     ]

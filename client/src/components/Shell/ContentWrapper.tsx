@@ -1,10 +1,6 @@
 import React, { useEffect } from 'react';
 import Frame from 'react-frame-component';
-
-export function fetchTemplate(): Promise<string> {
-    return fetch('/admin/shell/template/').then(response => response.text());
-}
-
+import { Stylesheet } from './navigator';
 
 function ajaxifyLinks(element: HTMLElement, navigate: (url: string) => void) {
     element.querySelectorAll('a').forEach(aTag => {
@@ -20,32 +16,19 @@ function ajaxifyLinks(element: HTMLElement, navigate: (url: string) => void) {
 }
 
 interface ContentWrapperProps {
-    content: string;
-    css: string;
-    js: string;
+    html: string;
+    stylesheets: Stylesheet[];
     navigate(url: string): void;
 }
 
-export const ContentWrapper: React.FunctionComponent<ContentWrapperProps> = ({content, navigate}) => {
-    const contentNodeRef = React.useRef<HTMLDivElement | null>(null);
+export const ContentWrapper: React.FunctionComponent<ContentWrapperProps> = ({html, stylesheets, navigate}) => {
+    const nodeRef = React.useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
-        if (contentNodeRef.current) {
-            ajaxifyLinks(contentNodeRef.current, navigate);
+        if (nodeRef.current) {
+            ajaxifyLinks(nodeRef.current, navigate);
         }
-    }, [contentNodeRef, content]);
-
-    const [template, setTemplate] = React.useState<string | null>(null);
-
-    React.useEffect(() => {
-        fetchTemplate().then(setTemplate);
-    }, []);
-
-    if (template == null) {
-        return (
-            <h1>Loading</h1>
-        );
-    }
+    }, [nodeRef, html]);
 
     return (
         <Frame
@@ -59,8 +42,10 @@ export const ContentWrapper: React.FunctionComponent<ContentWrapperProps> = ({co
                 top: 0,
                 left: 200,
             }}
+            initialContent='<!DOCTYPE html><html><head><base target="_parent"></head><body><div></div></body></html>'
         >
-            <div ref={contentNodeRef} dangerouslySetInnerHTML={{__html: template}} />
+            <div ref={nodeRef} dangerouslySetInnerHTML={{__html: html}} />
+            {stylesheets.map(stylesheet => <link key={stylesheet.src} rel="stylesheet" type="text/css" href={stylesheet.src} />)}
         </Frame>
     );
 }

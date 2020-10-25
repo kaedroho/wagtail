@@ -5,7 +5,7 @@ import {Logo, LogoImages} from './Logo';
 import {SearchInput} from './SearchInput';
 import {Menu} from './Menu';
 import {ContentWrapper} from './ContentWrapper';
-import {shellFetch} from './navigator';
+import {Stylesheet, shellFetch} from './navigator';
 
 // Just a dummy for now
 export const gettext = (text: string) => text;
@@ -26,15 +26,27 @@ interface ShellProps {
     searchUrl: string;
     menuItems: any;
     contentElement: HTMLElement;
-    cssElement: HTMLElement;
-    jsElement: HTMLElement;
 }
 
-const Shell: React.FunctionComponent<ShellProps> = ({homeUrl, logoImages, explorerStartPageId, searchUrl, menuItems, contentElement, cssElement, jsElement}) => {
+const Shell: React.FunctionComponent<ShellProps> = ({homeUrl, logoImages, explorerStartPageId, searchUrl, menuItems, contentElement}) => {
     const explorerWrapperRef = React.useRef<HTMLDivElement | null>(null);
-    const [content, setContent] = React.useState(contentElement.innerHTML);
-    const [css, setCss] = React.useState(cssElement.innerHTML);
-    const [js, setJs] = React.useState(jsElement.innerHTML);
+    const [html, setHtml] = React.useState(contentElement.innerHTML);
+    const [stylesheets, setStylesheets] = React.useState<Stylesheet[]>([]);
+
+    // Extract stylesheets from initial response
+    React.useEffect(() => {
+        const initialStylesheets: Stylesheet[] = [];
+
+        document.head.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
+            const src = link.getAttribute('href');
+
+            if (src) {
+                initialStylesheets.push({type: 'text/css', src});
+            }
+        });
+
+        setStylesheets(initialStylesheets);
+    }, []);
 
     // These two need to be globally mutable and not trigger UI refreshes on update
     // If two requests are fired off at around the same time, this makes sure the later
@@ -63,9 +75,8 @@ const Shell: React.FunctionComponent<ShellProps> = ({homeUrl, logoImages, explor
                 history.pushState({}, response.title, url);
                 document.title = response.title;
 
-                setContent(response.content);
-                setCss(response.css);
-                setJs(response.js);
+                setHtml(response.html);
+                setStylesheets(response.stylesheets);
             }
         });
     }
@@ -85,7 +96,7 @@ const Shell: React.FunctionComponent<ShellProps> = ({homeUrl, logoImages, explor
                 <div className="explorer__wrapper" ref={explorerWrapperRef}></div>
             </aside>
 
-            <ContentWrapper content={content} css={css} js={js} navigate={navigate} />
+            <ContentWrapper html={html} stylesheets={stylesheets} navigate={navigate} />
         </>
     );
 }
@@ -93,12 +104,10 @@ const Shell: React.FunctionComponent<ShellProps> = ({homeUrl, logoImages, explor
 export function initShell() {
     const shellElement = document.getElementById('wagtailshell-root');
     const contentElement = document.getElementById('wagtailshell-content');
-    const cssElement = document.getElementById('wagtailshell-css');
-    const jsElement = document.getElementById('wagtailshell-js');
 
     if (shellElement instanceof HTMLElement && contentElement instanceof HTMLElement && shellElement.dataset.props) {
         ReactDOM.render(
-            <Shell {...JSON.parse(shellElement.dataset.props)} contentElement={contentElement} cssElement={cssElement} jsElement={jsElement} />,
+            <Shell {...JSON.parse(shellElement.dataset.props)} contentElement={contentElement} />,
             shellElement
         )
     }

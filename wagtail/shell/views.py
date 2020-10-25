@@ -4,7 +4,6 @@ from urllib.parse import urlparse
 
 from django.http import HttpRequest, JsonResponse, QueryDict
 from django.urls import resolve
-from django.shortcuts import render
 
 
 class ShellResponse(JsonResponse):
@@ -28,12 +27,11 @@ class ShellResponseLoadIt(ShellResponse):
 class ShellResponseRenderHtml(ShellResponse):
     status = 'render-html'
 
-    def get_data(self, title, content, css, js):
+    def get_data(self, title, html, stylesheets):
         return {
             'title': title,
-            'content': content,
-            'css': css,
-            'js': js,
+            'html': html,
+            'stylesheets': stylesheets,
         }
 
 
@@ -98,13 +96,15 @@ def shell(request):
         soup = BeautifulSoup(response.content, 'html.parser')
 
         title = soup.find('title').text
-        content = soup.find(id='wagtailshell-content').encode_contents().decode('utf-8')
-        css = soup.find(id='wagtailshell-css').encode_contents().decode('utf-8')
-        js = soup.find(id='wagtailshell-js').encode_contents().decode('utf-8')
-        return ShellResponseRenderHtml(title, content, css, js)
+        html = soup.find(id='wagtailshell-content').encode_contents().decode('utf-8')
+        stylesheets = [
+            {
+                'type': 'stylesheet',
+                'src': link_tag.attrs['href'],
+            }
+            for link_tag in soup.find_all('link', rel='stylesheet')
+        ]
+
+        return ShellResponseRenderHtml(title, html, stylesheets)
 
     return ShellResponseLoadIt()
-
-
-def template(request):
-    return render(request, 'wagtailshell/template.html')
