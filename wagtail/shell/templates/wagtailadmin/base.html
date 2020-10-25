@@ -22,7 +22,6 @@
         </div>
     </aside>
 
-
     <template id="wagtailshell-content">
     <main class="content-wrapper" role="main" id="main">
         <div class="content">
@@ -56,5 +55,14 @@
     </main>
     </template>
 
+    <template id="wagtailshell-css">
+        {% hook_output 'insert_global_admin_css' %}
+        {% block extra_css %}{% endblock %}
+    </template>
+
+    <template id="wagtailshell-js">
+        {% hook_output 'insert_global_admin_js' %}
+        {% block extra_js %}{% endblock %}
+    </template>
     </div>
 {% endblock %}
