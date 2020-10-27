@@ -88,6 +88,19 @@ export function initShell() {
     const shellElement = document.getElementById('wagtailshell-root');
     const contentElement = document.getElementById('wagtailshell-content');
 
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/admin/shell-service-worker.js', {scope: '/admin/'}).then(function(registration) {
+            // Registration was successful
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            registration.update().then(console.log);
+          }, function(err) {
+            // registration failed :(
+            console.log('ServiceWorker registration failed: ', err);
+          });
+        });
+      }
+
     if (shellElement instanceof HTMLElement && contentElement instanceof HTMLElement && shellElement.dataset.props) {
         ReactDOM.render(
             <Shell {...JSON.parse(shellElement.dataset.props)} contentElement={contentElement} />,

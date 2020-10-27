@@ -55,6 +55,7 @@ class WagtailShellMiddleware:
         response = self.get_response(request)
 
         # If the request was made by Wagtail shell, return the content
+        print(request.META.get('HTTP_X_REQUESTED_WITH'))
         if request.META.get('HTTP_X_REQUESTED_WITH') == 'WagtailShell':
             return ShellResponseRenderHtml(response.content.decode('utf-8'))
 
