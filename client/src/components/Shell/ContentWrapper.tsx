@@ -2,12 +2,13 @@ import React from 'react';
 
 
 interface ContentWrapperProps {
+    url: string;
     html: string;
     navigate(url: string): void;
     setTitle(title: string): void;
 }
 
-export const ContentWrapper: React.FunctionComponent<ContentWrapperProps> = ({html, navigate, setTitle}) => {
+export const ContentWrapper: React.FunctionComponent<ContentWrapperProps> = ({url, html, navigate, setTitle}) => {
     const onIframeLoad = (e: React.SyntheticEvent<HTMLIFrameElement>) => {
         if (e.target instanceof HTMLIFrameElement && e.target.contentDocument) {
             // Insert a <base target="_parent"> tag into the <head> of the iframe
@@ -33,6 +34,20 @@ export const ContentWrapper: React.FunctionComponent<ContentWrapperProps> = ({ht
                     e.preventDefault();
                     navigate(href);
                 });
+            });
+
+            // Ajaxify 'get' forms
+            Array.from(e.target.contentDocument.forms).forEach(form => {
+                // Don't ajaxify POST forms
+                if (form.method.toLowerCase() == 'post') {
+                    return;
+                }
+
+                // Make sure action is set to something.
+                // If it's blank, the browser will try to post the data to 'about:srcdoc' which will result in an error.
+                // Note: Don't use form.action here as some forms have an action field!
+                const formAction = form.getAttribute('action');
+                form.action = formAction || url;
             });
 
             // Get document title

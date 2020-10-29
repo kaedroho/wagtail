@@ -36,6 +36,7 @@ function htmlDecode(input: string): string {
 
 const Shell: React.FunctionComponent<ShellProps> = ({homeUrl, logoImages, explorerStartPageId, searchUrl, menuItems, contentElement}) => {
     const explorerWrapperRef = React.useRef<HTMLDivElement | null>(null);
+    const [url, setUrl] = React.useState(window.location.pathname);
     const [html, setHtml] = React.useState(htmlDecode(contentElement.innerHTML));
 
     // These two need to be globally mutable and not trigger UI refreshes on update
@@ -67,6 +68,7 @@ const Shell: React.FunctionComponent<ShellProps> = ({homeUrl, logoImages, explor
                 }
 
                 setHtml(response.html);
+                setUrl(url);
             }
         });
     }
@@ -94,7 +96,7 @@ const Shell: React.FunctionComponent<ShellProps> = ({homeUrl, logoImages, explor
                 <div className="explorer__wrapper" ref={explorerWrapperRef}></div>
             </aside>
 
-            <ContentWrapper html={html} navigate={navigate} setTitle={(title: string) => document.title = title} />
+            <ContentWrapper url={url} html={html} navigate={navigate} setTitle={(title: string) => document.title = title} />
         </>
     );
 }
@@ -111,6 +113,8 @@ export function initShell() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    initShell();
-});
+if (!parent) {
+    document.addEventListener('DOMContentLoaded', () => {
+        initShell();
+    });
+}
