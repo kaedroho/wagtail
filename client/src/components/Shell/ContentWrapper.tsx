@@ -16,14 +16,20 @@ export const ContentWrapper: React.FunctionComponent<ContentWrapperProps> = ({ht
             e.target.contentDocument.head.appendChild(baseElement);
 
             Array.from(e.target.contentDocument.links).forEach(link => {
+                // Don't ajaxify download links
+                if (link.hasAttribute('download')) {
+                    return
+                }
+
+                // Get href
+                const href = link.getAttribute('href');
+                if (!href || href.startsWith('#')) {
+                    return;
+                }
+
                 link.addEventListener('click', (e: MouseEvent) => {
-                    if (e.target instanceof HTMLElement) {
-                        const href = e.target.getAttribute('href');
-                        if (href && !href.startsWith('#')) {
-                            e.preventDefault();
-                            navigate(href);
-                        }
-                    }
+                    e.preventDefault();
+                    navigate(href);
                 });
             });
         }
