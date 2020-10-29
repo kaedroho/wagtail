@@ -63,6 +63,10 @@ class WagtailShellMiddleware:
         if response['Content-Type'] != 'text/html; charset=utf-8':
             return response
 
+        # If the request wasn't for the admin, return the response as-is
+        if not getattr(request, 'shell_template_rendered', False):
+            return response
+
         return render(request, 'wagtailshell/template.html', {
             'content': response.content.decode('utf-8'),
         })
