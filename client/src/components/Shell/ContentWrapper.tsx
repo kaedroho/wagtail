@@ -4,17 +4,19 @@ import React from 'react';
 interface ContentWrapperProps {
     html: string;
     navigate(url: string): void;
+    setTitle(title: string): void;
 }
 
-export const ContentWrapper: React.FunctionComponent<ContentWrapperProps> = ({html, navigate}) => {
-    // Insert a <base target="_parent"> tag into the <head> of the iframe
-    // This makes it open all links in the main window
+export const ContentWrapper: React.FunctionComponent<ContentWrapperProps> = ({html, navigate, setTitle}) => {
     const onIframeLoad = (e: React.SyntheticEvent<HTMLIFrameElement>) => {
         if (e.target instanceof HTMLIFrameElement && e.target.contentDocument) {
+            // Insert a <base target="_parent"> tag into the <head> of the iframe
+            // This makes it open all links in the main window
             const baseElement = e.target.contentDocument.createElement('base');
             baseElement.target = '_parent';
             e.target.contentDocument.head.appendChild(baseElement);
 
+            // Ajaxify links
             Array.from(e.target.contentDocument.links).forEach(link => {
                 // Don't ajaxify download links
                 if (link.hasAttribute('download')) {
@@ -32,6 +34,9 @@ export const ContentWrapper: React.FunctionComponent<ContentWrapperProps> = ({ht
                     navigate(href);
                 });
             });
+
+            // Get document title
+            setTitle(e.target.contentDocument.title);
         }
     };
 

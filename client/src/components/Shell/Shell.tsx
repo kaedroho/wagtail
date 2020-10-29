@@ -63,10 +63,8 @@ const Shell: React.FunctionComponent<ShellProps> = ({homeUrl, logoImages, explor
                 window.location.href = url;
             } else if (response.status == 'render-html') {
                 if (pushState) {
-                    history.pushState({}, response.title, url);
+                    history.pushState({}, "", url);
                 }
-
-                document.title = response.title;
 
                 setHtml(response.html);
             }
@@ -96,7 +94,7 @@ const Shell: React.FunctionComponent<ShellProps> = ({homeUrl, logoImages, explor
                 <div className="explorer__wrapper" ref={explorerWrapperRef}></div>
             </aside>
 
-            <ContentWrapper html={html} navigate={navigate} />
+            <ContentWrapper html={html} navigate={navigate} setTitle={(title: string) => document.title = title} />
         </>
     );
 }
