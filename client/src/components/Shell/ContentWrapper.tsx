@@ -6,7 +6,7 @@ interface ContentWrapperProps {
     navigate(url: string): void;
 }
 
-export const ContentWrapper: React.FunctionComponent<ContentWrapperProps> = ({html}) => {
+export const ContentWrapper: React.FunctionComponent<ContentWrapperProps> = ({html, navigate}) => {
     // Insert a <base target="_parent"> tag into the <head> of the iframe
     // This makes it open all links in the main window
     const onIframeLoad = (e: React.SyntheticEvent<HTMLIFrameElement>) => {
@@ -14,6 +14,18 @@ export const ContentWrapper: React.FunctionComponent<ContentWrapperProps> = ({ht
             const baseElement = e.target.contentDocument.createElement('base');
             baseElement.target = '_parent';
             e.target.contentDocument.head.appendChild(baseElement);
+
+            Array.from(e.target.contentDocument.links).forEach(link => {
+                link.addEventListener('click', (e: MouseEvent) => {
+                    if (e.target instanceof HTMLElement) {
+                        const href = e.target.getAttribute('href');
+                        if (href && !href.startsWith('#')) {
+                            e.preventDefault();
+                            navigate(href);
+                        }
+                    }
+                });
+            });
         }
     };
 
