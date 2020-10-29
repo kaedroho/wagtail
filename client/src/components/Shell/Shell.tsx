@@ -38,7 +38,7 @@ const Shell: React.FunctionComponent<ShellProps> = ({homeUrl, logoImages, explor
     const nextFetchId = React.useRef(1);
     const lastReceivedFetchId = React.useRef(0);
 
-    const navigate = (url: string) => {
+    const navigate = (url: string, pushState: boolean = true) => {
         // Get a fetch ID
         // We do this so that if responses come back in a different order to
         // when the requests were sent, the older requests don't replace newer ones
@@ -56,13 +56,24 @@ const Shell: React.FunctionComponent<ShellProps> = ({homeUrl, logoImages, explor
             if (response.status == 'load-it') {
                 window.location.href = url;
             } else if (response.status == 'render-html') {
-                history.pushState({}, response.title, url);
+                if (pushState) {
+                    history.pushState({}, response.title, url);
+                }
+
                 document.title = response.title;
 
                 setHtml(response.html);
             }
         });
     }
+
+    // Add listener for popState
+    // This event is fired when the user hits the back/forward links in their browser
+    React.useEffect(() => {
+        window.addEventListener('popstate', () => {
+            navigate(document.location.pathname, false);
+        });
+    }, []);
 
     return (
         <>
