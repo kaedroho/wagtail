@@ -25,12 +25,18 @@ interface ShellProps {
     explorerStartPageId: number | null;
     searchUrl: string;
     menuItems: any;
-    contentElement: HTMLElement;
+    contentElement: HTMLScriptElement;
+}
+
+function htmlDecode(input: string): string {
+    var e = document.createElement('div');
+    e.innerHTML = input;
+    return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue || "";
 }
 
 const Shell: React.FunctionComponent<ShellProps> = ({homeUrl, logoImages, explorerStartPageId, searchUrl, menuItems, contentElement}) => {
     const explorerWrapperRef = React.useRef<HTMLDivElement | null>(null);
-    const [html, setHtml] = React.useState(contentElement.innerHTML);
+    const [html, setHtml] = React.useState(htmlDecode(contentElement.innerHTML));
 
     // These two need to be globally mutable and not trigger UI refreshes on update
     // If two requests are fired off at around the same time, this makes sure the later

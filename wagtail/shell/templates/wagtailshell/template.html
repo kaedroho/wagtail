@@ -20,8 +20,8 @@
             </div>
         </aside>
 
-        <template id="wagtailshell-content">
-            {{ content|safe }}
-        </template>
+        <script id="wagtailshell-content" type="text/html+escaped">
+            {{ content }}
+        </script>
     </div>
 {% endblock %}
