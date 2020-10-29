@@ -41,5 +41,15 @@ export function shellFetch(url: string): Promise<ShellResponse> {
         });
     }
 
-    return fetch(url, {headers: {'X-Requested-With': 'WagtailShell'}}).then(response => response.json());
+    return fetch(url, {headers: {'X-Requested-With': 'WagtailShell'}})
+    .then(response => {
+        if (!response.headers.get('X-WagtailShellStatus')) {
+            console.warn("WagtailShell Warning: A non-JSON response was returned from the server. Did you forget to add the 'download' attribute to an '<a>' tag?")
+            return {
+                status: 'load-it',
+            };
+        }
+
+        return response.json()
+    });
 }
