@@ -32,7 +32,12 @@ export const ContentWrapper: React.FunctionComponent<ContentWrapperProps> = ({ur
 
                 link.addEventListener('click', (e: MouseEvent) => {
                     e.preventDefault();
-                    navigate(href);
+
+                    if (href.startsWith('?')) {
+                        navigate(document.location.pathname + href);
+                    } else {
+                        navigate(href);
+                    }
                 });
             });
 
