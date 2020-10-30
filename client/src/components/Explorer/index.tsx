@@ -2,18 +2,19 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 import { createStore, combineReducers, applyMiddleware, compose } from 'redux';
-import thunkMiddleware from 'redux-thunk';
+import thunkMiddleware, {ThunkDispatch} from 'redux-thunk';
 
 // import { perfMiddleware } from '../../utils/performance';
 import Explorer from './Explorer';
-import ExplorerToggle from './ExplorerToggle';
 import explorer from './reducers/explorer';
 import nodes from './reducers/nodes';
+import * as actions from './actions';
+import { Action, State } from './reducers';
 
 /**
  * Initialises the explorer component on the given nodes.
  */
-const initExplorer = (explorerNode, toggleNode) => {
+const initExplorer = (explorerNode, navigate) => {
   const rootReducer = combineReducers({
     explorer,
     nodes,
@@ -34,24 +35,18 @@ const initExplorer = (explorerNode, toggleNode) => {
     window.__REDUX_DEVTOOLS_EXTENSION__ ? window.__REDUX_DEVTOOLS_EXTENSION__() : func => func
   ));
 
-  const startPage = parseInt(toggleNode.getAttribute('data-explorer-start-page'), 10);
-
   ReactDOM.render((
     <Provider store={store}>
-      <ExplorerToggle startPage={startPage}>{toggleNode.textContent}</ExplorerToggle>
-    </Provider>
-  ), toggleNode.parentNode);
-
-  ReactDOM.render((
-    <Provider store={store}>
-      <Explorer />
+      <Explorer navigate={navigate} />
     </Provider>
   ), explorerNode);
+
+  const dispatch = store.dispatch as ThunkDispatch<State, unknown, Action>;
+  return (page: number) => { dispatch(actions.toggleExplorer(page)); }
 };
 
 export default Explorer;
 
 export {
-  ExplorerToggle,
   initExplorer,
 };

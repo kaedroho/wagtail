@@ -1,5 +1,6 @@
 import React from 'react';
-//import { initExplorer } from '../Explorer';
+import { Button } from '../..';
+import { initExplorer } from '../Explorer';
 import Icon from '../Icon/Icon';
 import { ExplorerContext, gettext, url } from './Shell';
 
@@ -31,7 +32,9 @@ interface MenuItemProps {
     navigate(url: string): void;
 }
 
-const ExplorerMenuItem: React.FunctionComponent<MenuItemProps> = ({data}) => {
+const ExplorerMenuItem: React.FunctionComponent<MenuItemProps> = ({data, navigate}) => {
+    const explorerToggle = React.useRef<((page: number) => void) | null>(null);
+
     const classNames = ['menu-item'];
 
     if (data.active) {
@@ -39,20 +42,30 @@ const ExplorerMenuItem: React.FunctionComponent<MenuItemProps> = ({data}) => {
     }
 
     const context = React.useContext(ExplorerContext);
-    const toggleRef = React.useRef<HTMLAnchorElement | null>(null);
     React.useEffect(() => {
-        if (context?.wrapperRef?.current && toggleRef.current) {
-            //initExplorer(context.wrapperRef.current, toggleRef.current);
+        if (context?.wrapperRef?.current) {
+            explorerToggle.current = initExplorer(context.wrapperRef.current, navigate);
         }
-    }, [context, context?.wrapperRef, toggleRef]);
+    }, [context, context?.wrapperRef]);
+
+    const onClickExplorer = e => {
+        e.preventDefault();
+
+        if (explorerToggle.current) {
+            explorerToggle.current(context.startPageId || 1);
+        }
+    }
 
     return (
         <li className={classNames.join(' ')}>
-            <a href={data.url}
-               className={data.classnames} ref={toggleRef} data-explorer-start-page={context.startPageId}>
-                {data.icon_name && <Icon name={data.icon_name} className="icon--menuitem"/>}
-                {data.label}
-            </a>
+              <Button
+                dialogTrigger={true}
+                onClick={onClickExplorer}
+            >
+                <Icon name="folder-open-inverse" className="icon--menuitem" />
+                    {data.label}
+                <Icon name="arrow-right" className="icon--submenu-trigger" />
+            </Button>
         </li>
     );
 }

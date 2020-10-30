@@ -4,7 +4,7 @@
  */
 
 import Button from './components/Button/Button';
-import Explorer, { ExplorerToggle, initExplorer } from './components/Explorer';
+import Explorer, { initExplorer } from './components/Explorer';
 import Icon from './components/Icon/Icon';
 import LoadingSpinner from './components/LoadingSpinner/LoadingSpinner';
 import Portal from './components/Portal/Portal';
@@ -20,7 +20,6 @@ import { initShell } from './components/Shell/Shell';
 export {
   Button,
   Explorer,
-  ExplorerToggle,
   Icon,
   LoadingSpinner,
   Portal,
