@@ -34,22 +34,19 @@ export type ShellResponse = ShellResponseLoadIt
                           | ShellResponseNotFound
                           | ShellResponsePermissionDenied;
 
-export function shellFetch(url: string): Promise<ShellResponse> {
+export async function shellFetch(url: string): Promise<ShellResponse> {
     if (!url.startsWith('/admin/')) {
         return Promise.resolve({
             status: 'load-it',
         });
     }
 
-    return fetch(url, {headers: {'X-Requested-With': 'WagtailShell'}})
-    .then(response => {
-        if (!response.headers.get('X-WagtailShellStatus')) {
-            console.warn("WagtailShell Warning: A non-JSON response was returned from the server. Did you forget to add the 'download' attribute to an '<a>' tag?")
-            return {
-                status: 'load-it',
-            };
-        }
-
-        return response.json()
-    });
+    const response = await fetch(url, { headers: { 'X-Requested-With': 'WagtailShell' } });
+    if (!response.headers.get('X-WagtailShellStatus')) {
+        console.warn("WagtailShell Warning: A non-JSON response was returned from the server. Did you forget to add the 'download' attribute to an '<a>' tag?");
+        return {
+            status: 'load-it',
+        };
+    }
+    return response.json();
 }
