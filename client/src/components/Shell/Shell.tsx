@@ -38,10 +38,32 @@ function htmlDecode(input: string): string {
     return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue || "";
 }
 
-const Shell: React.FunctionComponent<ShellProps> = ({homeUrl, logoImages, explorerStartPageId, searchUrl, menuItems, user, accountUrl, logoutUrl, contentElement}) => {
+interface SidebarProps extends ShellProps {
+    navigate(url: string): void;
+}
+
+const Sidebar: React.FunctionComponent<SidebarProps> =  ({homeUrl, logoImages, explorerStartPageId, searchUrl, menuItems, user, accountUrl, logoutUrl, navigate}) => {
     const explorerWrapperRef = React.useRef<HTMLDivElement | null>(null);
+
+    return (
+        <aside className="nav-wrapper" data-nav-primary={true}>
+            <div className="inner">
+                <Logo images={logoImages} homeUrl={homeUrl} navigate={navigate} />
+
+                <SearchInput searchUrl={searchUrl} navigate={navigate} />
+
+                <ExplorerContext.Provider value={{startPageId: explorerStartPageId, wrapperRef: explorerWrapperRef}}>
+                    <Menu user={user} accountUrl={accountUrl} logoutUrl={logoutUrl} menuItems={menuItems} navigate={navigate} />
+                </ExplorerContext.Provider>
+            </div>
+            <div className="explorer__wrapper" ref={explorerWrapperRef}></div>
+        </aside>
+    );
+};
+
+const Shell: React.FunctionComponent<ShellProps> = (props) => {
     const [url, setUrl] = React.useState(window.location.pathname);
-    const [html, setHtml] = React.useState(htmlDecode(contentElement.innerHTML));
+    const [html, setHtml] = React.useState(htmlDecode(props.contentElement.innerHTML));
 
     // These two need to be globally mutable and not trigger UI refreshes on update
     // If two requests are fired off at around the same time, this makes sure the later
@@ -87,19 +109,7 @@ const Shell: React.FunctionComponent<ShellProps> = ({homeUrl, logoImages, explor
 
     return (
         <>
-            <aside className="nav-wrapper" data-nav-primary={true}>
-                <div className="inner">
-                    <Logo images={logoImages} homeUrl={homeUrl} navigate={navigate} />
-
-                    <SearchInput searchUrl={searchUrl} navigate={navigate} />
-
-                    <ExplorerContext.Provider value={{startPageId: explorerStartPageId, wrapperRef: explorerWrapperRef}}>
-                        <Menu user={user} accountUrl={accountUrl} logoutUrl={logoutUrl} menuItems={menuItems} navigate={navigate} />
-                    </ExplorerContext.Provider>
-                </div>
-                <div className="explorer__wrapper" ref={explorerWrapperRef}></div>
-            </aside>
-
+            <Sidebar {...props} navigate={navigate} />
             <ContentWrapper url={url} html={html} navigate={navigate} setTitle={(title: string) => document.title = title} />
         </>
     );
@@ -107,13 +117,26 @@ const Shell: React.FunctionComponent<ShellProps> = ({homeUrl, logoImages, explor
 
 export function initShell() {
     const shellElement = document.getElementById('wagtailshell-root');
+    const sidebarElement = document.getElementById('wagtailshell-sidebar');
     const contentElement = document.getElementById('wagtailshell-content');
 
-    if (shellElement instanceof HTMLElement && contentElement instanceof HTMLElement && shellElement.dataset.props) {
-        ReactDOM.render(
-            <Shell {...JSON.parse(shellElement.dataset.props)} contentElement={contentElement} />,
-            shellElement
-        )
+    if (shellElement instanceof HTMLElement && sidebarElement instanceof HTMLElement && sidebarElement.dataset.props) {
+        if (contentElement instanceof HTMLElement) {
+            ReactDOM.render(
+                <Shell {...JSON.parse(sidebarElement.dataset.props)} contentElement={contentElement} />,
+                shellElement
+            );
+        } else {
+            // Legacy mode
+            const navigate = (url: string) => {
+                window.location.href = url;
+            };
+
+            ReactDOM.render(
+                <Sidebar {...JSON.parse(sidebarElement.dataset.props)} navigate={navigate} />,
+                sidebarElement
+            );
+        }
     }
 }
 
