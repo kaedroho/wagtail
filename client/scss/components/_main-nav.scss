@@ -283,6 +283,10 @@ body.nav-open {
 
 // Explorer open condition, widens navigation area
 body.explorer-open {
+    .wrapper {
+        transform: translate3d($menu-width-max, 0, 0);
+    }
+
     .nav-wrapper {
         margin-left: -$menu-width-max;
         width: $menu-width-max;
@@ -297,6 +301,7 @@ body.explorer-open {
     .wrapper,
     body.nav-open .wrapper {
         transform: none;
+        padding-left: $menu-width;
     }
 
     .nav-wrapper {

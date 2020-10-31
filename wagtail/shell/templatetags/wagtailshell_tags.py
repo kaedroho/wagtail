@@ -21,6 +21,11 @@ def shell_template_rendered(context):
 
 
 @register.simple_tag(takes_context=True)
+def shell_iframe_safe(context):
+    return context['request'].shell_iframe_safe
+
+
+@register.simple_tag(takes_context=True)
 def shell_props(context):
     request = context['request']
     search_areas = admin_search_areas.search_items_for_request(request)
