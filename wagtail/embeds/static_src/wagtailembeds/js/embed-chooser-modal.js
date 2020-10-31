@@ -10,6 +10,7 @@ EMBED_CHOOSER_MODAL_ONLOAD_HANDLERS = {
                 contentType: false,
                 type: 'POST',
                 dataType: 'text',
+                headers: {'X-Requested-With': 'XMLHttpRequest'},
                 success: modal.loadResponseText
             });
 

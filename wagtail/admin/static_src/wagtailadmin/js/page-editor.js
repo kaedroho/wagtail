@@ -294,6 +294,7 @@ $(function() {
         return $.ajax({
             url: previewUrl,
             method: 'POST',
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
             data: new FormData($form[0]),
             processData: false,
             contentType: false

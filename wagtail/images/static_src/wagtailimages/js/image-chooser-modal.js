@@ -24,6 +24,7 @@ IMAGE_CHOOSER_MODAL_ONLOAD_HANDLERS = {
             request = $.ajax({
                 url: searchUrl,
                 data: requestData,
+                headers: {'X-Requested-With': 'XMLHttpRequest'},
                 success: function(data, status) {
                     request = null;
                     $('#image-results').html(data);
@@ -79,6 +80,7 @@ IMAGE_CHOOSER_MODAL_ONLOAD_HANDLERS = {
                     contentType: false,
                     type: 'POST',
                     dataType: 'text',
+                    headers: {'X-Requested-With': 'XMLHttpRequest'},
                     success: modal.loadResponseText,
                     error: function(response, textStatus, errorThrown) {
                         var message = jsonData['error_message'] + '<br />' + errorThrown + ' - ' + response.status;

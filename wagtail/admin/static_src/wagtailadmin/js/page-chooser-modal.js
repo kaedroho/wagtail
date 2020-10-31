@@ -36,6 +36,7 @@ PAGE_CHOOSER_MODAL_ONLOAD_HANDLERS = {
                         q: query,
                         results_only: true
                     },
+                    headers: {'X-Requested-With': 'XMLHttpRequest'},
                     success: function(data, status) {
                         request = null;
                         $('.page-results', modal.body).html(data);

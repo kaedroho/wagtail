@@ -20,6 +20,7 @@ SNIPPET_CHOOSER_MODAL_ONLOAD_HANDLERS = {
             request = $.ajax({
                 url: searchUrl,
                 data: {q: $('#id_q').val(), results: 'true'},
+                headers: {'X-Requested-With': 'XMLHttpRequest'},
                 success: function(data, status) {
                     request = null;
                     $('#search-results').html(data);
@@ -42,6 +43,7 @@ SNIPPET_CHOOSER_MODAL_ONLOAD_HANDLERS = {
             request = $.ajax({
                 url: searchUrl,
                 data: dataObj,
+                headers: {'X-Requested-With': 'XMLHttpRequest'},
                 success: function(data, status) {
                     request = null;
                     $('#search-results').html(data);

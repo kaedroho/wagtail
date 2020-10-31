@@ -28,6 +28,7 @@ TASK_CHOOSER_MODAL_ONLOAD_HANDLERS = {
                     q: $('#id_q').val(),
                     task_type: $('#id_task_type').val(),
                 },
+                headers: {'X-Requested-With': 'XMLHttpRequest'},
                 success: function(data, status) {
                     request = null;
                     $('#search-results').html(data);
@@ -51,6 +52,7 @@ TASK_CHOOSER_MODAL_ONLOAD_HANDLERS = {
             request = $.ajax({
                 url: searchUrl,
                 data: dataObj,
+                headers: {'X-Requested-With': 'XMLHttpRequest'},
                 success: function(data, status) {
                     request = null;
                     $('#search-results').html(data);
@@ -75,6 +77,7 @@ TASK_CHOOSER_MODAL_ONLOAD_HANDLERS = {
                 contentType: false,
                 type: 'POST',
                 dataType: 'text',
+                headers: {'X-Requested-With': 'XMLHttpRequest'},
                 success: modal.loadResponseText,
                 error: function(response, textStatus, errorThrown) {
                     var message = jsonData['error_message'] + '<br />' + errorThrown + ' - ' + response.status;

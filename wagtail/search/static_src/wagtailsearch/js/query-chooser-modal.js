@@ -18,6 +18,7 @@ QUERY_CHOOSER_MODAL_ONLOAD_HANDLERS = {
             request = $.ajax({
                 url: searchUrl,
                 data: {q: $('#id_q').val()},
+                headers: {'X-Requested-With': 'XMLHttpRequest'},
                 success: function(data, status) {
                     request = null;
                     $('#query-results').html(data);
@@ -41,6 +42,7 @@ QUERY_CHOOSER_MODAL_ONLOAD_HANDLERS = {
             request = $.ajax({
                 url: searchUrl,
                 data: dataObj,
+                headers: {'X-Requested-With': 'XMLHttpRequest'},
                 success: function(data, status) {
                     request = null;
                     $('#query-results').html(data);
