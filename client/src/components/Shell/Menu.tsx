@@ -139,9 +139,9 @@ function renderMenuItems(menuItems: MenuData, navigate: (url: string) => void) {
             {menuItems.map(menuItem => {
                 switch (menuItem.type) {
                     case 'group':
-                        return <MenuGroup data={menuItem.data} items={menuItem.items} navigate={navigate} />;
+                        return <MenuGroup key={menuItem.data.name} data={menuItem.data} items={menuItem.items} navigate={navigate} />;
                     case 'item':
-                        return <MenuItem data={menuItem.data} navigate={navigate} />;
+                        return <MenuItem key={menuItem.data.name} data={menuItem.data} navigate={navigate} />;
                 }
             })}
         </>
