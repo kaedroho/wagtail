@@ -81,6 +81,14 @@ IFRAME_SAFE_VIEWS = [
     ('wagtail.contrib.redirects.views', 'index'),
     ('wagtail.contrib.search_promotions.views', 'index'),
     ('wagtail.contrib.styleguide.views', 'index'),
+    ('wagtail.admin.views.account', 'account'),
+    ('wagtail.admin.views.account', 'change_avatar'),
+    ('wagtail.admin.views.account', 'change_email'),
+    ('wagtail.admin.views.account', 'change_password'),
+    ('wagtail.admin.views.account', 'notification_preferences'),
+    ('wagtail.admin.views.account', 'language_preferences'),
+    ('wagtail.admin.views.account', 'current_time_zone'),
+    ('wagtail.admin.views.account', 'change_name'),
 ]
 
 

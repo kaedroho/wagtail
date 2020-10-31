@@ -8,6 +8,7 @@ from wagtail.admin.menu import admin_menu
 from wagtail.admin.navigation import get_explorable_root_page
 from wagtail.admin.search import admin_search_areas
 from wagtail.admin.staticfiles import versioned_static
+from wagtail.admin.templatetags.wagtailadmin_tags import avatar_url
 
 
 register = template.Library()
@@ -47,4 +48,10 @@ def shell_props(context):
         'searchUrl': search_area.url,
         'explorerStartPageId': explorer_start_page.id if explorer_start_page else None,
         'menuItems': admin_menu.as_serializable(request),
+        'user': {
+            'name': request.user.first_name or request.user.get_username(),
+            'avatarUrl': avatar_url(request.user, size=50),
+        },
+        'accountUrl': reverse('wagtailadmin_account'),
+        'logoutUrl': reverse('wagtailadmin_logout'),
     }, cls=DjangoJSONEncoder)

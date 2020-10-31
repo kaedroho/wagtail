@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '../..';
 import { initExplorer } from '../Explorer';
 import Icon from '../Icon/Icon';
-import { ExplorerContext, gettext, url } from './Shell';
+import { ExplorerContext, gettext, ShellProps } from './Shell';
 
 interface MenuItemCommon {
     name: string;
@@ -150,10 +150,23 @@ function renderMenuItems(menuItems: MenuData, navigate: (url: string) => void) {
 
 interface MenuProps {
     menuItems: MenuData;
+    user: ShellProps['user'];
+    accountUrl: string;
+    logoutUrl: string;
     navigate(url: string): void;
 }
 
-export const Menu: React.FunctionComponent<MenuProps> = ({menuItems, navigate}) => {
+export const Menu: React.FunctionComponent<MenuProps> = ({menuItems, user, accountUrl, logoutUrl, navigate}) => {
+    const onClickLink = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        if (e.target instanceof HTMLAnchorElement) {
+            const href = e.target.getAttribute('href');
+            if (href && href.startsWith('/')) {
+                e.preventDefault();
+                navigate(href);
+            }
+        }
+    };
+
     return (
         <nav className="nav-main">
             <ul>
@@ -162,14 +175,14 @@ export const Menu: React.FunctionComponent<MenuProps> = ({menuItems, navigate}) 
                 <li className="footer" id="footer">
                     <div className="account" id="account-settings" title={gettext('Edit your account')}>
                         <span className="avatar square avatar-on-dark">
-                            <img src={url('avatar_url')} alt="" />
+                            <img src={user.avatarUrl} alt="" />
                         </span>
-                        <em className="icon icon-arrow-up-after">Karl</em>
+                        <em className="icon icon-arrow-up-after">{user.name}</em>
                     </div>
 
                     <ul className="footer-submenu">
-                        <li><a href="{% url 'wagtailadmin_account' %}" className="icon icon-user">{gettext('Account settings')}</a></li>
-                        <li><a href="{% url 'wagtailadmin_logout' %}" className="icon icon-logout">{gettext('Log out')}</a></li>
+                        <li><a href={accountUrl} onClick={onClickLink} className="icon icon-user">{gettext('Account settings')}</a></li>
+                        <li><a href={logoutUrl} onClick={onClickLink} className="icon icon-logout">{gettext('Log out')}</a></li>
                     </ul>
                 </li>
             </ul>

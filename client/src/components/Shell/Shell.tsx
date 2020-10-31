@@ -10,8 +10,6 @@ import {shellFetch} from './navigator';
 // Just a dummy for now
 export const gettext = (text: string) => text;
 
-export const url = (_name: string) => '/';
-
 // A React context to pass some data down to the ExplorerMenuItem component
 interface ExplorerContext {
     startPageId: number | null;
@@ -19,12 +17,18 @@ interface ExplorerContext {
 }
 export const ExplorerContext = React.createContext<ExplorerContext>({startPageId: null, wrapperRef: null});
 
-interface ShellProps {
+export interface ShellProps {
     homeUrl: string;
     logoImages: LogoImages
     explorerStartPageId: number | null;
     searchUrl: string;
     menuItems: any;
+    user: {
+        name: string;
+        avatarUrl: string;
+    };
+    accountUrl: string;
+    logoutUrl: string;
     contentElement: HTMLScriptElement;
 }
 
@@ -34,7 +38,7 @@ function htmlDecode(input: string): string {
     return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue || "";
 }
 
-const Shell: React.FunctionComponent<ShellProps> = ({homeUrl, logoImages, explorerStartPageId, searchUrl, menuItems, contentElement}) => {
+const Shell: React.FunctionComponent<ShellProps> = ({homeUrl, logoImages, explorerStartPageId, searchUrl, menuItems, user, accountUrl, logoutUrl, contentElement}) => {
     const explorerWrapperRef = React.useRef<HTMLDivElement | null>(null);
     const [url, setUrl] = React.useState(window.location.pathname);
     const [html, setHtml] = React.useState(htmlDecode(contentElement.innerHTML));
@@ -90,7 +94,7 @@ const Shell: React.FunctionComponent<ShellProps> = ({homeUrl, logoImages, explor
                     <SearchInput searchUrl={searchUrl} navigate={navigate} />
 
                     <ExplorerContext.Provider value={{startPageId: explorerStartPageId, wrapperRef: explorerWrapperRef}}>
-                        <Menu menuItems={menuItems} navigate={navigate} />
+                        <Menu user={user} accountUrl={accountUrl} logoutUrl={logoutUrl} menuItems={menuItems} navigate={navigate} />
                     </ExplorerContext.Provider>
                 </div>
                 <div className="explorer__wrapper" ref={explorerWrapperRef}></div>
