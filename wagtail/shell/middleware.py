@@ -110,24 +110,49 @@ class WagtailShellMiddleware:
     def process_view(self, request, view_func, view_args, view_kwargs):
         request.shell_iframe_safe = self.is_iframe_safe(request, view_func)
 
-    def __call__(self, request):
-        response = self.get_response(request)
-
-        # If the response is already a shell response, return it
-        if isinstance(response, ShellResponse):
-            return response
+    def convert_to_shell_response(self, request, response):
+        """
+        Converts a non-shell response into a shell one.
+        """
+        # If the response is HTML, was rendered by a view that is 'iframe safe', and used
+        # our base template that excludes the menu. Return a "render HTML" response that
+        # wraps the response in an iframe on the frontend
 
         # FIXME: Find a proper mime type parser
         is_html = response['Content-Type'] == 'text/html; charset=utf-8'
+        if is_html and request.shell_iframe_safe and getattr(request, 'shell_template_rendered', False):
+            return ShellResponseRenderHtml(response.content.decode('utf-8'))
 
-        # If the request was made by Wagtail shell, convert the Django
-        # response into a shell response
+        # Can't convert the response
+        return response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+
+        # Attempt to convert non-shell response into a shell response
+        if not isinstance(response, ShellResponse):
+            response = self.convert_to_shell_response(request, response)
+
+        # If the request was made by the shell (using `fetch()`, rather than a regular browser request)
         if request.META.get('HTTP_X_REQUESTED_WITH') == 'WagtailShell':
-            # If the response is not HTML, or can't be rendered in an iframe, return a load-it response
-            if not is_html or not request.shell_iframe_safe:
+            if isinstance(response, ShellResponse):
+                return response
+            else:
+                # Response couldn't be converted into a shell response. Reload the page
                 return ShellResponseLoadIt()
 
-            return ShellResponseRenderHtml(response.content.decode('utf-8'))
+        else:
+            # Regular browser request
+            if isinstance(response, ShellResponse):
+                # Wrap the response with our shell bootstrap template
+                return render(request, 'wagtailshell/bootstrap.html', {
+                    'data': response.content.decode('utf-8'),
+                })
+            else:
+                return response
+
+        # FIXME: Find a proper mime type parser
+        is_html = response['Content-Type'] == 'text/html; charset=utf-8'
 
         # The request wasn't made by the shell
         # If the response is HTML, and rendered using Wagtail's base admin template,

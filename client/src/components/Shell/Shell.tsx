@@ -5,7 +5,7 @@ import {Logo, LogoImages} from './Logo';
 import {SearchInput} from './SearchInput';
 import {Menu} from './Menu';
 import {ContentWrapper} from './ContentWrapper';
-import {shellFetch} from './navigator';
+import {shellFetch, ShellResponse} from './navigator';
 
 // Just a dummy for now
 export const gettext = (text: string) => text;
@@ -29,13 +29,7 @@ export interface ShellProps {
     };
     accountUrl: string;
     logoutUrl: string;
-    contentElement: HTMLScriptElement;
-}
-
-function htmlDecode(input: string): string {
-    var e = document.createElement('div');
-    e.innerHTML = input;
-    return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue || "";
+    initialResponse: string;
 }
 
 interface SidebarProps extends ShellProps {
@@ -63,7 +57,7 @@ const Sidebar: React.FunctionComponent<SidebarProps> =  ({homeUrl, logoImages, e
 
 const Shell: React.FunctionComponent<ShellProps> = (props) => {
     const [url, setUrl] = React.useState(window.location.pathname);
-    const [html, setHtml] = React.useState(htmlDecode(props.contentElement.innerHTML));
+    const [data, setData] = React.useState<ShellResponse>(JSON.parse(props.initialResponse));
 
     // These two need to be globally mutable and not trigger UI refreshes on update
     // If two requests are fired off at around the same time, this makes sure the later
@@ -93,7 +87,7 @@ const Shell: React.FunctionComponent<ShellProps> = (props) => {
                     history.pushState({}, "", url);
                 }
 
-                setHtml(response.html);
+                setData(response);
                 setUrl(url);
             }
         });
@@ -110,7 +104,7 @@ const Shell: React.FunctionComponent<ShellProps> = (props) => {
     return (
         <>
             <Sidebar {...props} navigate={navigate} />
-            <ContentWrapper url={url} html={html} navigate={navigate} setTitle={(title: string) => document.title = title} />
+            {data.status == 'render-html' && <ContentWrapper url={url} html={data.html} navigate={navigate} setTitle={(title: string) => document.title = title} />}
         </>
     );
 }
@@ -118,12 +112,11 @@ const Shell: React.FunctionComponent<ShellProps> = (props) => {
 export function initShell() {
     const shellElement = document.getElementById('wagtailshell-root');
     const sidebarElement = document.getElementById('wagtailshell-sidebar');
-    const contentElement = document.getElementById('wagtailshell-content');
 
     if (shellElement instanceof HTMLElement && sidebarElement instanceof HTMLElement && sidebarElement.dataset.props) {
-        if (contentElement instanceof HTMLElement) {
+        if (shellElement.dataset.initialResponse) {
             ReactDOM.render(
-                <Shell {...JSON.parse(sidebarElement.dataset.props)} contentElement={contentElement} />,
+                <Shell {...JSON.parse(sidebarElement.dataset.props)} initialResponse={shellElement.dataset.initialResponse} />,
                 shellElement
             );
         } else {
