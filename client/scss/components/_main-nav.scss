@@ -297,6 +297,11 @@ body.explorer-open {
     }
 }
 
+body.legacy-nav .wrapper {
+    transform: none;
+    padding-left: $menu-width;
+}
+
 @include media-breakpoint-up(sm) {
     .nav-wrapper {
         // height and position necessary to force it to 100% height of screen (with some JS help)
