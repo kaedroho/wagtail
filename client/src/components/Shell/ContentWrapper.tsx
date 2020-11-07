@@ -2,13 +2,14 @@ import React from 'react';
 
 
 interface ContentWrapperProps {
+    visible: boolean;
     url: string;
     html: string;
     navigate(url: string): void;
-    setTitle(title: string): void;
+    onLoad(title: string): void;
 }
 
-export const ContentWrapper: React.FunctionComponent<ContentWrapperProps> = ({url, html, navigate, setTitle}) => {
+export const ContentWrapper: React.FunctionComponent<ContentWrapperProps> = ({visible, url, html, navigate, onLoad}) => {
     const onIframeLoad = (e: React.SyntheticEvent<HTMLIFrameElement>) => {
         if (e.target instanceof HTMLIFrameElement && e.target.contentDocument) {
             // Insert a <base target="_parent"> tag into the <head> of the iframe
@@ -55,14 +56,13 @@ export const ContentWrapper: React.FunctionComponent<ContentWrapperProps> = ({ur
                 form.action = formAction || url;
             });
 
-            // Get document title
-            setTitle(e.target.contentDocument.title);
+            onLoad(e.target.contentDocument.title);
         }
     };
 
     return (
         <iframe onLoad={onIframeLoad} style={{
-            display: 'block',
+            display: visible ? 'block' : 'none',
             overflow: 'scroll',
             border: 0,
             width: 'calc(100% - 200px)',

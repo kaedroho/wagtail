@@ -56,8 +56,15 @@ const Sidebar: React.FunctionComponent<SidebarProps> =  ({homeUrl, logoImages, e
 };
 
 const Shell: React.FunctionComponent<ShellProps> = (props) => {
-    const [url, setUrl] = React.useState(window.location.pathname);
-    const [data, setData] = React.useState<ShellResponse>(JSON.parse(props.initialResponse));
+    // Need to useRef for these so the values don't get locked in navigate()'s closure
+    // TODO: Use a store instead
+    const greenUrl = React.useRef(window.location.pathname);
+    const blueUrl = React.useRef(window.location.pathname);
+
+    const [greenData, setGreenData] = React.useState<ShellResponse>(JSON.parse(props.initialResponse));
+    const [blueData, setBlueData] = React.useState<ShellResponse>({status: 'render-html', html: ''});
+
+    const [currentScreen, setCurrentScreen] = React.useState<'green' | 'blue'>('green');
 
     // These two need to be globally mutable and not trigger UI refreshes on update
     // If two requests are fired off at around the same time, this makes sure the later
@@ -71,26 +78,47 @@ const Shell: React.FunctionComponent<ShellProps> = (props) => {
         // when the requests were sent, the older requests don't replace newer ones
         let thisFetchId = nextFetchId.current++;
 
-        shellFetch(url).then(response => {
-            if (thisFetchId < lastReceivedFetchId.current) {
-                // A subsequent fetch was made but its response came in before this one
-                // So ignore this response
-                return;
+        if (url === greenUrl.current) {
+            // TODO: Update document title
+            // TODO: Trigger reload?
+            setCurrentScreen('green');
+            if (pushState) {
+                history.pushState({}, "", url);
             }
-
-            lastReceivedFetchId.current = thisFetchId;
-
-            if (response.status == 'load-it') {
-                window.location.href = url;
-            } else if (response.status == 'render-html') {
-                if (pushState) {
-                    history.pushState({}, "", url);
+        } else if (url === blueUrl.current) {
+            // TODO: Update document title
+            // TODO: Trigger reload?
+            setCurrentScreen('blue');
+            if (pushState) {
+                history.pushState({}, "", url);
+            }
+        } else {
+            shellFetch(url).then(response => {
+                if (thisFetchId < lastReceivedFetchId.current) {
+                    // A subsequent fetch was made but its response came in before this one
+                    // So ignore this response
+                    return;
                 }
 
-                setData(response);
-                setUrl(url);
-            }
-        });
+                lastReceivedFetchId.current = thisFetchId;
+
+                if (response.status == 'load-it') {
+                    window.location.href = url;
+                } else if (response.status == 'render-html') {
+                    if (pushState) {
+                        history.pushState({}, "", url);
+                    }
+
+                    if (currentScreen === 'green') {
+                        setBlueData(response);
+                        blueUrl.current = url;
+                    } else {
+                        setGreenData(response);
+                        greenUrl.current = url;
+                    }
+                }
+            });
+        }
     }
 
     // Add listener for popState
@@ -101,10 +129,18 @@ const Shell: React.FunctionComponent<ShellProps> = (props) => {
         });
     }, []);
 
+    const onContentLoadHandler = (screen: 'green' | 'blue') => {
+        return (title: string) => {
+            setCurrentScreen(screen);
+            document.title = title;
+        };
+    };
+
     return (
         <>
             <Sidebar {...props} navigate={navigate} />
-            {data.status == 'render-html' && <ContentWrapper url={url} html={data.html} navigate={navigate} setTitle={(title: string) => document.title = title} />}
+            {greenData.status == 'render-html' && <ContentWrapper visible={currentScreen === 'green'} url={greenUrl.current} html={greenData.html} navigate={navigate} onLoad={onContentLoadHandler('green')} />}
+            {blueData.status == 'render-html' && <ContentWrapper visible={currentScreen === 'blue'} url={blueUrl.current} html={blueData.html} navigate={navigate} onLoad={onContentLoadHandler('blue')} />}
         </>
     );
 }
