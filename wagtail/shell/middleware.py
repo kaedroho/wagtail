@@ -119,7 +119,7 @@ class WagtailShellMiddleware:
         # wraps the response in an iframe on the frontend
 
         # FIXME: Find a proper mime type parser
-        is_html = response['Content-Type'] == 'text/html; charset=utf-8'
+        is_html = response.get('Content-Type') == 'text/html; charset=utf-8'
         if is_html and request.shell_iframe_safe and getattr(request, 'shell_template_rendered', False):
             return ShellResponseRenderHtml(response.content.decode('utf-8'))
 
@@ -152,7 +152,7 @@ class WagtailShellMiddleware:
                 return response
 
         # FIXME: Find a proper mime type parser
-        is_html = response['Content-Type'] == 'text/html; charset=utf-8'
+        is_html = response.get('Content-Type') == 'text/html; charset=utf-8'
 
         # The request wasn't made by the shell
         # If the response is HTML, and rendered using Wagtail's base admin template,
