@@ -47,7 +47,7 @@ const Sidebar: React.FunctionComponent<SidebarProps> =  ({homeUrl, logoImages, e
                 <SearchInput searchUrl={searchUrl} navigate={navigate} />
 
                 <ExplorerContext.Provider value={{startPageId: explorerStartPageId, wrapperRef: explorerWrapperRef}}>
-                    <Menu user={user} accountUrl={accountUrl} logoutUrl={logoutUrl} menuItems={menuItems} navigate={navigate} />
+                    <Menu user={user} accountUrl={accountUrl} logoutUrl={logoutUrl} initialState={menuItems} navigate={navigate} />
                 </ExplorerContext.Provider>
             </div>
             <div className="explorer__wrapper" ref={explorerWrapperRef}></div>

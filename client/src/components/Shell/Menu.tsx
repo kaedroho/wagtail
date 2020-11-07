@@ -12,6 +12,7 @@ interface MenuItemCommon {
     attr_string: string;
     label: string;
     active: boolean;
+    open?: boolean;
 }
 
 interface MenuItem {
@@ -29,10 +30,11 @@ type MenuData = (MenuItem | MenuGroup)[];
 
 interface MenuItemProps {
     data: MenuItemCommon;
+    dispatch(action: MenuAction): void;
     navigate(url: string): void;
 }
 
-const ExplorerMenuItem: React.FunctionComponent<MenuItemProps> = ({data, navigate}) => {
+const ExplorerMenuItem: React.FunctionComponent<MenuItemProps> = ({data, dispatch, navigate}) => {
     const explorerToggle = React.useRef<((page: number) => void) | null>(null);
 
     const classNames = ['menu-item'];
@@ -50,6 +52,12 @@ const ExplorerMenuItem: React.FunctionComponent<MenuItemProps> = ({data, navigat
 
     const onClickExplorer = e => {
         e.preventDefault();
+
+        // Set active menu item
+        dispatch({
+            type: 'set-active-menu-item',
+            name: data.name,
+        });
 
         if (explorerToggle.current) {
             explorerToggle.current(context.startPageId || 1);
@@ -70,7 +78,7 @@ const ExplorerMenuItem: React.FunctionComponent<MenuItemProps> = ({data, navigat
     );
 }
 
-const MenuItem: React.FunctionComponent<MenuItemProps> = ({data, navigate}) => {
+const MenuItem: React.FunctionComponent<MenuItemProps> = ({data, dispatch, navigate}) => {
     const classNames = ['menu-item'];
 
     if (data.active) {
@@ -79,11 +87,18 @@ const MenuItem: React.FunctionComponent<MenuItemProps> = ({data, navigate}) => {
 
     // Special case: Page explorer
     if (data.name === 'explorer') {
-        return <ExplorerMenuItem data={data} navigate={navigate} />
+        return <ExplorerMenuItem data={data} dispatch={dispatch} navigate={navigate} />
     }
 
     const onClick = (e) => {
         e.preventDefault();
+
+        // Set active menu item
+        dispatch({
+            type: 'set-active-menu-item',
+            name: data.name,
+        });
+
         navigate(data.url);
     }
 
@@ -103,19 +118,71 @@ const MenuItem: React.FunctionComponent<MenuItemProps> = ({data, navigate}) => {
 interface MenuGroupProps {
     data: MenuItemCommon;
     items: MenuData;
+    dispatch(action: MenuAction): void;
     navigate(url: string): void;
 }
 
-const MenuGroup: React.FunctionComponent<MenuGroupProps> = ({data, items, navigate}) => {
-    const classNames = ['menu-item'];
+const MenuGroup: React.FunctionComponent<MenuGroupProps> = ({data, items, dispatch, navigate}) => {
+    const classNames = ['menu-item', 'submenu'];
 
     if (data.active) {
         classNames.push('menu-active');
     }
 
+    if (data.open) {
+        classNames.push('submenu-open');
+    }
+
+    // const activeClass = 'submenu-active';
+    const submenuContainerRef = React.useRef<HTMLLIElement | null>(null);
+    React.useEffect(() => {
+        // Close submenu when user clicks outside of it
+        // FIXME: Doesn't actually work because outside click events are usually in an iframe.
+        const onMousedown = (e: MouseEvent) => {
+            if (e.target instanceof HTMLElement && submenuContainerRef.current && !submenuContainerRef.current.contains(e.target)) {
+                //dispatch({
+                //    type: 'close-submenu',
+                //});
+            }
+        };
+
+        // Close submenu when user presses escape
+        const onKeydown = (e: KeyboardEvent) => {
+            // IE11 uses "Esc" instead of "Escape"
+            if (e.key === 'Escape' || e.key === 'Esc') {
+                dispatch({
+                    type: 'close-submenu',
+                });
+            }
+        };
+
+        document.addEventListener('mousedown', onMousedown);
+        document.addEventListener('keydown', onKeydown);
+
+        return () => {
+            document.removeEventListener('mousedown', onMousedown);
+            document.removeEventListener('keydown', onKeydown);
+        };
+    }, [submenuContainerRef]);
+
+    const onClick = (e: React.MouseEvent) => {
+        if (data.open) {
+            dispatch({
+                type: 'close-submenu',
+            });
+        } else {
+            dispatch({
+                type: 'open-submenu',
+                name: data.name,
+            });
+        }
+
+        e.preventDefault();
+    };
+
     return (
-        <li className={classNames.join(' ')}>
-            <a href="#" data-nav-primary-submenu-trigger className={data.classnames}>
+        <li className={classNames.join(' ')} ref={submenuContainerRef}>
+            <a href="#" onClick={onClick} className={data.classnames}>
                 {data.icon_name && <Icon name={data.icon_name} className="icon--menuitem"/>}
                 {data.label}
                 <Icon name="arrow-right" className="icon--submenu-trigger"/>
@@ -126,37 +193,94 @@ const MenuGroup: React.FunctionComponent<MenuGroupProps> = ({data, items, naviga
                     {data.label}
                 </h2>
                 <ul className="nav-submenu__list" aria-labelledby="nav-submenu-{{ name }}-title">
-                    {renderMenuItems(items, navigate)}
+                    {renderMenuItems(items, dispatch, navigate)}
                 </ul>
             </div>
         </li>
     );
 }
 
-function renderMenuItems(menuItems: MenuData, navigate: (url: string) => void) {
+function renderMenuItems(menuItems: MenuData, dispatch: (action: MenuAction) => void, navigate: (url: string) => void) {
     return (
         <>
             {menuItems.map(menuItem => {
                 switch (menuItem.type) {
                     case 'group':
-                        return <MenuGroup key={menuItem.data.name} data={menuItem.data} items={menuItem.items} navigate={navigate} />;
+                        return <MenuGroup key={menuItem.data.name} data={menuItem.data} dispatch={dispatch} items={menuItem.items} navigate={navigate} />;
                     case 'item':
-                        return <MenuItem key={menuItem.data.name} data={menuItem.data} navigate={navigate} />;
+                        return <MenuItem key={menuItem.data.name} data={menuItem.data} dispatch={dispatch} navigate={navigate} />;
                 }
             })}
         </>
     )
 }
 
+interface SetActiveMenuItemAction {
+    type: 'set-active-menu-item',
+    name: string,
+}
+
+interface OpenSubmenuAction {
+    type: 'open-submenu',
+    name: string,
+}
+
+interface CloseSubmenuAction {
+    type: 'close-submenu',
+}
+
+type MenuAction = SetActiveMenuItemAction | OpenSubmenuAction | CloseSubmenuAction;
+
+function menuReducer(state: MenuData, action: MenuAction) {
+    let newState = state.slice();
+
+    if (action.type === 'set-active-menu-item') {
+        const findAndActivateMenuItem: (menuItems: MenuData) => boolean = (menuItems) => {
+            let containsActiveMenuItem = false;
+
+            menuItems.forEach(menuItem => {
+                menuItem.data.active = action.name == menuItem.data.name;
+                menuItem.data.open = false;
+
+                if (menuItem.type === 'group') {
+                    if (findAndActivateMenuItem(menuItem.items)) {
+                        menuItem.data.active = true;
+                    }
+                }
+
+                if (menuItem.data.active) {
+                    containsActiveMenuItem = true;
+                }
+            });
+
+            return containsActiveMenuItem;
+        };
+
+        findAndActivateMenuItem(newState);
+    } else if (action.type == 'open-submenu') {
+        newState.forEach(menuItem => {
+            menuItem.data.open = action.name == menuItem.data.name;
+        });
+    } else if (action.type == 'close-submenu') {
+        newState.forEach(menuItem => {
+            menuItem.data.open = false;
+        });
+    }
+
+    return newState;
+}
+
 interface MenuProps {
-    menuItems: MenuData;
+    initialState: MenuData;
     user: ShellProps['user'];
     accountUrl: string;
     logoutUrl: string;
     navigate(url: string): void;
 }
 
-export const Menu: React.FunctionComponent<MenuProps> = ({menuItems, user, accountUrl, logoutUrl, navigate}) => {
+export const Menu: React.FunctionComponent<MenuProps> = ({initialState, user, accountUrl, logoutUrl, navigate}) => {
+    const [state, dispatch] = React.useReducer(menuReducer, initialState);
+
     const onClickLink = (e: React.MouseEvent<HTMLAnchorElement>) => {
         if (e.target instanceof HTMLAnchorElement) {
             const href = e.target.getAttribute('href');
@@ -170,7 +294,7 @@ export const Menu: React.FunctionComponent<MenuProps> = ({menuItems, user, accou
     return (
         <nav className="nav-main">
             <ul>
-                {renderMenuItems(menuItems, navigate)}
+                {renderMenuItems(state, dispatch, navigate)}
 
                 <li className="footer" id="footer">
                     <div className="account" id="account-settings" title={gettext('Edit your account')}>

@@ -144,7 +144,7 @@
         right: 0.5em;
         @include transition(transform 0.3s ease);
 
-        .menu-item.submenu-active & {
+        .menu-item.submenu-open & {
             transform-origin: 50% 50%;
             transform: rotate(180deg);
         }
@@ -441,21 +441,28 @@ body.explorer-open {
 
     }
 
-    li.submenu-active {
-        background: $nav-submenu-bg;
+    li {
+        &.submenu-active {
+            background: $nav-submenu-bg;
 
-        > a {
-            text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.3);
+            > a {
+                text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.3);
 
-            &:hover {
-                background-color: transparent;
+                &:hover {
+                    background-color: transparent;
+                }
+            }
+        }
+
+        &.submenu-open {
+            .nav-submenu {
+                width: $menu-width;
             }
         }
 
         .nav-submenu {
             @include transition(width 0.2s ease);
             box-shadow: 2px 0 2px rgba(0, 0, 0, 0.35);
-            width: $menu-width;
 
             a {
                 padding-left: 3.5em;
@@ -538,7 +545,7 @@ footer,
     }
 
     // footer is z-index: 100, so ensure the navigation sits on top of it.
-    .nav-wrapper.submenu-active {
+    .nav-wrapper.submenu-open {
         z-index: 200;
     }
 }
