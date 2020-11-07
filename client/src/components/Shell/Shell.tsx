@@ -5,7 +5,7 @@ import {LogoImages} from './components/Logo';
 import {ContentWrapper} from './components/ContentWrapper';
 import {Sidebar} from './components/Sidebar';
 
-import {shellFetch, ShellResponse} from './navigator';
+import {shellFetch, ShellResponse} from './fetch';
 
 // Just a dummy for now
 export const gettext = (text: string) => text;
