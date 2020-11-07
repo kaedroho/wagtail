@@ -1,5 +1,5 @@
 import React from 'react';
-import { gettext } from './Shell';
+import { gettext } from '../Shell';
 
 interface SearchInputProps {
     searchUrl: string;

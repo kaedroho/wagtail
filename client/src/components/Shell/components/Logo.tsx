@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {gettext} from './Shell';
+import {gettext} from '../Shell';
 
 export interface LogoImages {
     mobileLogo: string;

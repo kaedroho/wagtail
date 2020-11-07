@@ -1,10 +1,10 @@
 import React, { MutableRefObject } from 'react';
 import ReactDOM from 'react-dom';
 
-import {Logo, LogoImages} from './Logo';
-import {SearchInput} from './SearchInput';
-import {Menu} from './Menu';
-import {ContentWrapper} from './ContentWrapper';
+import {LogoImages} from './components/Logo';
+import {ContentWrapper} from './components/ContentWrapper';
+import {Sidebar} from './components/Sidebar';
+
 import {shellFetch, ShellResponse} from './navigator';
 
 // Just a dummy for now
@@ -31,29 +31,6 @@ export interface ShellProps {
     logoutUrl: string;
     initialResponse: string;
 }
-
-interface SidebarProps extends ShellProps {
-    navigate(url: string): void;
-}
-
-const Sidebar: React.FunctionComponent<SidebarProps> =  ({homeUrl, logoImages, explorerStartPageId, searchUrl, menuItems, user, accountUrl, logoutUrl, navigate}) => {
-    const explorerWrapperRef = React.useRef<HTMLDivElement | null>(null);
-
-    return (
-        <aside className="nav-wrapper" data-nav-primary={true}>
-            <div className="inner">
-                <Logo images={logoImages} homeUrl={homeUrl} navigate={navigate} />
-
-                <SearchInput searchUrl={searchUrl} navigate={navigate} />
-
-                <ExplorerContext.Provider value={{startPageId: explorerStartPageId, wrapperRef: explorerWrapperRef}}>
-                    <Menu user={user} accountUrl={accountUrl} logoutUrl={logoutUrl} initialState={menuItems} navigate={navigate} />
-                </ExplorerContext.Provider>
-            </div>
-            <div className="explorer__wrapper" ref={explorerWrapperRef}></div>
-        </aside>
-    );
-};
 
 const Shell: React.FunctionComponent<ShellProps> = (props) => {
     // Need to useRef for these so the values don't get locked in navigate()'s closure

@@ -1,8 +1,8 @@
 import React from 'react';
-import { Button } from '../..';
-import { initExplorer } from '../Explorer';
-import Icon from '../Icon/Icon';
-import { ExplorerContext, gettext, ShellProps } from './Shell';
+import { Button } from '../../..';
+import { initExplorer } from '../../Explorer';
+import Icon from '../../Icon/Icon';
+import { ExplorerContext, gettext, ShellProps } from '../Shell';
 
 interface MenuItemCommon {
     name: string;
