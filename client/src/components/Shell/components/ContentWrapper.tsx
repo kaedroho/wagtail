@@ -86,16 +86,16 @@ export const ContentWrapper: React.FunctionComponent<ContentWrapperProps> = ({vi
             onLoad('React app!');
         }
         if (viewFunc) {
-            return <>{viewFunc(frame.context, window['csrfToken'])}</>;
+            return <main className="content-wrapper"><div className="wrapper">{viewFunc(frame.context, window['csrfToken'])}</div></main>;
         } else {
-            return <p style={{marginLeft: '200px'}}>Unable to render content</p>;
+            return <main className="content-wrapper"><div className="wrapper"><p>Unable to render content</p></div></main>;
         }
     } else {
         if (onLoad) {
             onLoad('Unable to render content');
         }
         return (
-            <p style={{marginLeft: '200px'}}>Unable to render content</p>
+            <main className="content-wrapper"><div className="wrapper"><p>Unable to render content</p></div></main>
         );
     }
 }
