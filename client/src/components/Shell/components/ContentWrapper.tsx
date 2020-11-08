@@ -1,5 +1,5 @@
 import React from 'react';
-import { Frame } from '../Shell';
+import { Frame } from '../navigation';
 
 
 interface ContentWrapperProps {
