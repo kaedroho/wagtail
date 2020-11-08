@@ -2,7 +2,7 @@ import React, { MutableRefObject } from 'react';
 import ReactDOM from 'react-dom';
 
 import {LogoImages} from './components/Logo';
-import {ContentWrapper} from './components/ContentWrapper';
+import {Browser} from './components/Browser';
 import {Sidebar} from './components/Sidebar';
 
 import {NavigationController} from './navigation';
@@ -33,39 +33,10 @@ export interface ShellProps {
 }
 
 const Shell: React.FunctionComponent<ShellProps> = (props) => {
-    const {currentFrame, nextFrame, navigate} = props.navigationController;
-
-    const onLoadNextFrame = (title: string) => {
-        props.navigationController.onLoadNextFrame();
-        document.title = title;
-    };
-
-    let frames: React.ReactNode[] = [];
-    frames.push(
-        <ContentWrapper
-            key={currentFrame.id}
-            visible={true}
-            frame={currentFrame}
-            navigate={navigate}
-        />
-    );
-
-    if (nextFrame) {
-        frames.push(
-            <ContentWrapper
-                key={nextFrame.id}
-                visible={false}
-                frame={nextFrame}
-                navigate={navigate}
-                onLoad={onLoadNextFrame}
-            />
-        );
-    }
-
     return (
         <>
             <Sidebar {...props} navigate={props.navigationController.navigate} />
-            {frames}
+            <Browser navigationController={props.navigationController} />
         </>
     );
 }
