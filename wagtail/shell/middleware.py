@@ -45,6 +45,7 @@ class ShellResponsePermissionDenied(ShellResponse):
 
 
 IFRAME_SAFE_VIEWS = [
+    ('wagtail.admin.views.pages.listing', 'index'),
     ('wagtail.images.views.images', 'edit'),
     ('wagtail.images.views.images', 'delete'),
     ('wagtail.documents.views.documents', 'edit'),
