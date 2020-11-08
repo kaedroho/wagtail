@@ -3,7 +3,8 @@ import {shellFetch, ShellResponse} from './fetch';
 export interface Frame {
     id: number;
     url: string;
-    data: ShellResponse;
+    view: string;
+    context: any;
 }
 
 export class NavigationController {
@@ -17,11 +18,12 @@ export class NavigationController {
     navigationListeners: (() => void)[] = [];
 
     constructor(initialResponse: ShellResponse) {
-        if (initialResponse.status == 'render-html') {
+        if (initialResponse.status == 'render') {
             this.currentFrame = {
                 id: this.nextFrameId++,
                 url: window.location.pathname,
-                data: initialResponse,
+                view: initialResponse.view,
+                context: initialResponse.context,
             };
         }
     }
@@ -53,7 +55,7 @@ export class NavigationController {
 
             if (response.status == 'load-it') {
                 window.location.href = url;
-            } else if (response.status == 'render-html') {
+            } else if (response.status == 'render') {
                 if (pushState) {
                     history.pushState({}, "", url);
                 }
@@ -61,7 +63,8 @@ export class NavigationController {
                 this.nextFrame = {
                     id: this.nextFrameId++,
                     url,
-                    data: response,
+                    view: response.view,
+                    context: response.context,
                 };
 
                 this.navigationListeners.forEach(func => func());

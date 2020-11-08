@@ -21,23 +21,19 @@ class ShellResponseLoadIt(ShellResponse):
     status = 'load-it'
 
 
-class ShellResponseRenderHtml(ShellResponse):
-    status = 'render-html'
-
-    def get_data(self, html):
-        return {
-            'html': html,
-        }
-
-
-class ShellResponseRenderClientSideView(ShellResponse):
-    status = 'render-client-side-view'
+class ShellResponseRender(ShellResponse):
+    status = 'render'
 
     def get_data(self, view, context):
         return {
             'view': view,
             'context': context,
         }
+
+
+class ShellResponseRenderHtml(ShellResponseRender):
+    def get_data(self, html):
+        return super().get_data('iframe', {'html': html})
 
 
 class ShellResponseNotFound(ShellResponse):

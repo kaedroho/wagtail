@@ -1,7 +1,6 @@
 import React from 'react';
 import { Frame } from '../navigation';
 
-
 interface ContentWrapperProps {
     visible: boolean;
     frame: Frame;
@@ -10,7 +9,7 @@ interface ContentWrapperProps {
 }
 
 export const ContentWrapper: React.FunctionComponent<ContentWrapperProps> = ({visible, frame, navigate, onLoad}) => {
-    if (frame.data.status === 'render-html') {
+    if (frame.view === 'iframe') {
         const onIframeLoad = (e: React.SyntheticEvent<HTMLIFrameElement>) => {
             if (e.target instanceof HTMLIFrameElement && e.target.contentDocument) {
                 // Insert a <base target="_parent"> tag into the <head> of the iframe
@@ -73,7 +72,7 @@ export const ContentWrapper: React.FunctionComponent<ContentWrapperProps> = ({vi
                 position: 'absolute',
                 top: 0,
                 left: 0,
-            }} srcDoc={frame.data.html} />
+            }} srcDoc={frame.context.html} />
         );
     } else {
         return (

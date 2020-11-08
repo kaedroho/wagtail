@@ -2,13 +2,8 @@ interface ShellResponseLoadIt {
     status: 'load-it';
 }
 
-interface ShellResponseRenderHtml {
-    status: 'render-html';
-    html: string;
-}
-
-interface ShellResponseRenderClientSideView {
-    status: 'render-client-side-view';
+interface ShellResponseRender {
+    status: 'render';
     view: string;
     context: any;
 }
@@ -22,8 +17,7 @@ interface ShellResponsePermissionDenied {
 }
 
 export type ShellResponse = ShellResponseLoadIt
-                          | ShellResponseRenderHtml
-                          | ShellResponseRenderClientSideView
+                          | ShellResponseRender
                           | ShellResponseNotFound
                           | ShellResponsePermissionDenied;
 
