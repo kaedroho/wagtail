@@ -17,12 +17,21 @@ export const Browser: React.FunctionComponent<BrowserProps> = ({navigationContro
 
     let frames: React.ReactNode[] = [];
     frames.push(
-        <ContentWrapper
-            key={currentFrame.id}
-            visible={true}
-            frame={currentFrame}
-            navigate={navigate}
-        />
+        <div style={{
+            overflow: 'scroll',
+            width: '100%',
+            height: '100%',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+        }}>
+            <ContentWrapper
+                key={currentFrame.id}
+                visible={true}
+                frame={currentFrame}
+                navigate={navigate}
+            />
+        </div>
     );
 
     if (nextFrame) {

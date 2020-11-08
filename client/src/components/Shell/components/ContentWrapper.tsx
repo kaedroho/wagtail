@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { Frame } from '../navigation';
 
 interface ContentWrapperProps {
@@ -7,6 +7,12 @@ interface ContentWrapperProps {
     navigate(url: string): void;
     onLoad?(title: string): void;
 }
+
+const shellViews: Map<string, (data: any, csrfToken: string) => ReactNode> = new Map();
+
+window['registerShellView'] = (name: string, render: (data: any, csrfToken: string) => ReactNode) => {
+    shellViews.set(name, render);
+};
 
 export const ContentWrapper: React.FunctionComponent<ContentWrapperProps> = ({visible, frame, navigate, onLoad}) => {
     if (frame.view === 'iframe') {
@@ -74,9 +80,22 @@ export const ContentWrapper: React.FunctionComponent<ContentWrapperProps> = ({vi
                 left: 0,
             }} srcDoc={frame.context.html} />
         );
+    } else if (shellViews.has(frame.view)) {
+        const viewFunc = shellViews.get(frame.view);
+        if (onLoad) {
+            onLoad('React app!');
+        }
+        if (viewFunc) {
+            return <>{viewFunc(frame.context, window['csrfToken'])}</>;
+        } else {
+            return <p style={{marginLeft: '200px'}}>Unable to render content</p>;
+        }
     } else {
+        if (onLoad) {
+            onLoad('Unable to render content');
+        }
         return (
-            <p>Unable to render content</p>
+            <p style={{marginLeft: '200px'}}>Unable to render content</p>
         );
     }
 }

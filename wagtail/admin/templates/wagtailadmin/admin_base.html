@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="{% versioned_static 'wagtailadmin/css/core.css' %}" type="text/css" />
     {% hook_output 'insert_global_admin_css' %}
 
+    {# FIXME #}
+    {% include "wagtailadmin/pages/_editor_css.html" %}
+
     {% block extra_css %}{% endblock %}
 {% endblock %}
 
@@ -52,6 +55,10 @@
     <script src="{% versioned_static 'wagtailadmin/js/wagtailadmin.js' %}"></script>
     {% hook_output 'insert_global_admin_js' %}
 
+    {# FIXME #}
+    {% include "wagtailadmin/pages/_editor_js.html" %}
+    <script type="text/javascript" src="{% url 'wagtail_localize:javascript_catalog' %}"></script>
+    <script type="text/javascript" src="{% versioned_static 'wagtail_localize/js/wagtail-localize.js' %}"></script>
 
 
     {% main_nav_js %}

@@ -5,4 +5,7 @@
     <div id="wagtailshell-root" data-initial-response="{{ data }}">
         {% include 'wagtailshell/sidebar.html' %}
     </div>
+    <script>
+        window.csrfToken = '{{ csrf_token|escapejs }}';
+    </script>
 {% endblock %}
