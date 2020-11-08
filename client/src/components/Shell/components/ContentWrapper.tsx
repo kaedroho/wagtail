@@ -68,11 +68,11 @@ export const ContentWrapper: React.FunctionComponent<ContentWrapperProps> = ({vi
                 display: visible ? 'block' : 'none',
                 overflow: 'scroll',
                 border: 0,
-                width: 'calc(100% - 200px)',
+                width: '100%',
                 height: '100%',
                 position: 'absolute',
                 top: 0,
-                left: 200,
+                left: 0,
             }} srcDoc={frame.data.html} />
         );
     } else {

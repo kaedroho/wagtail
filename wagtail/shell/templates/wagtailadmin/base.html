@@ -1,8 +1,6 @@
 {% extends "wagtailadmin/admin_base.html" %}
 {% load wagtailadmin_tags wagtailcore_tags i18n wagtailshell_tags %}
 
-{% block bodyclass %}{% shell_iframe_safe as iframe_safe %}{% if not iframe_safe %}legacy-nav {% endif %}{{ block.super }}{% endblock %}
-
 {% block extra_css %}
     {{ block.super }}
 
