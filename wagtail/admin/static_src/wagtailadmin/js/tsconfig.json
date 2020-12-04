@@ -10,7 +10,7 @@
         "allowJs": true
     },
     "files": [
-        "client/src/index.ts",
-        "client/src/custom.d.ts"
+        "src/index.ts",
+        "src/custom.d.ts"
     ]
 }

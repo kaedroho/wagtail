@@ -44,8 +44,8 @@ module.exports = function exports() {
   const entry = {};
   entrypoints.forEach(moduleName => {
     entry[getOutputPath('admin', moduleName)] = [
-      './client/src/utils/polyfills.js',
-      `./client/src/entrypoints/${moduleName}.js`,
+      './src/utils/polyfills.js',
+      `./src/entrypoints/${moduleName}.js`,
     ];
   });
 
