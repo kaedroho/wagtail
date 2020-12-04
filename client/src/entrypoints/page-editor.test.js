@@ -1,3 +1,4 @@
+/* eslint-disable */
 window.$ = require('./vendor/jquery-3.5.1.min');
 require('./vendor/urlify').default;
 
