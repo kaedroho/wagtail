@@ -1,6 +1,6 @@
 /* eslint-disable */
-window.$ = require('./vendor/jquery-3.5.1.min');
-require('./vendor/urlify').default;
+window.$ = require('../../../wagtail/admin/static_src/wagtailadmin/js/vendor/jquery-3.5.1.min');
+require('../../../wagtail/admin/static_src/wagtailadmin/js/vendor/urlify').default;
 
 const cleanForSlug = require('./page-editor').cleanForSlug;
 
