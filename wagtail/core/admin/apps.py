@@ -8,7 +8,3 @@ class WagtailAdminAppConfig(AppConfig):
     name = 'wagtail.core.admin'
     label = 'wagtailadmin'
     verbose_name = _("Wagtail admin")
-
-    def ready(self):
-        from wagtail.core.admin.signal_handlers import register_signal_handlers
-        register_signal_handlers()
