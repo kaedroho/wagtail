@@ -87,7 +87,7 @@ TEMPLATES = [
         'OPTIONS': {
             'extensions': [
                 'wagtail.core.jinja2tags.core',
-                'wagtail.core.admin.jinja2tags.userbar',
+                'wagtail.core.jinja2tags.userbar',
                 'wagtail.images.jinja2tags.images',
                 'wagtail.contrib.settings.jinja2tags.settings',
             ],
