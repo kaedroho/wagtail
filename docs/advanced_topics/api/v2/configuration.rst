@@ -17,7 +17,7 @@ Enable the app
 --------------
 
 Firstly, you need to enable Wagtail's API app so Django can see it.
-Add ``wagtail.api.v2`` to ``INSTALLED_APPS`` in your Django project settings:
+Add ``wagtail.core.api.v2`` to ``INSTALLED_APPS`` in your Django project settings:
 
 .. code-block:: python
 
@@ -26,7 +26,7 @@ Add ``wagtail.api.v2`` to ``INSTALLED_APPS`` in your Django project settings:
     INSTALLED_APPS = [
         ...
 
-        'wagtail.api.v2',
+        'wagtail.core.api.v2',
 
         ...
     ]
@@ -45,13 +45,13 @@ can hook into the rest of your project.
 
 Wagtail provides three endpoint classes you can use:
 
- - Pages :class:`wagtail.api.v2.views.PagesAPIViewSet`
+ - Pages :class:`wagtail.core.api.v2.views.PagesAPIViewSet`
  - Images :class:`wagtail.images.api.v2.views.ImagesAPIViewSet`
  - Documents :class:`wagtail.documents.api.v2.views.DocumentsAPIViewSet`
 
 You can subclass any of these endpoint classes to customise their functionality.
 Additionally, there is a base endpoint class you can use for adding different
-content types to the API: :class:`wagtail.api.v2.views.BaseAPIViewSet`
+content types to the API: :class:`wagtail.core.api.v2.views.BaseAPIViewSet`
 
 For this example, we will create an API that includes all three builtin content
 types in their default configuration:
@@ -60,8 +60,8 @@ types in their default configuration:
 
     # api.py
 
-    from wagtail.api.v2.views import PagesAPIViewSet
-    from wagtail.api.v2.router import WagtailAPIRouter
+    from wagtail.core.api.v2.views import PagesAPIViewSet
+    from wagtail.core.api.v2.router import WagtailAPIRouter
     from wagtail.images.api.v2.views import ImagesAPIViewSet
     from wagtail.documents.api.v2.views import DocumentsAPIViewSet
 
@@ -113,7 +113,7 @@ For example:
 
     # blog/models.py
 
-    from wagtail.api import APIField
+    from wagtail.core.api import APIField
 
     class BlogPageAuthor(Orderable):
         page = models.ForeignKey('blog.BlogPage', on_delete=models.CASCADE, related_name='authors')

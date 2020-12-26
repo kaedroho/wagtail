@@ -1,6 +1,6 @@
 from django.urls import path
 
-from wagtail.api.v2.router import WagtailAPIRouter
+from wagtail.core.api.v2.router import WagtailAPIRouter
 from wagtail.core import hooks
 
 from .views import PagesAdminAPIViewSet

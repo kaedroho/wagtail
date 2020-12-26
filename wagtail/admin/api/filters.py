@@ -1,6 +1,6 @@
 from rest_framework.filters import BaseFilterBackend
 
-from wagtail.api.v2.utils import BadRequestError, parse_boolean
+from wagtail.core.api.v2.utils import BadRequestError, parse_boolean
 from wagtail.core import hooks
 from wagtail.core.models import UserPagePermissionsProxy
 

@@ -137,7 +137,7 @@ INSTALLED_APPS = [
     'wagtail.snippets',
     'wagtail.documents',
     'wagtail.admin',
-    'wagtail.api.v2',
+    'wagtail.core.api.v2',
     'wagtail.core',
 
     'taggit',

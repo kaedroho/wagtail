@@ -1,7 +1,7 @@
 from rest_framework.fields import Field
 
-from wagtail.api.v2.serializers import BaseSerializer
-from wagtail.api.v2.utils import get_full_url
+from wagtail.core.api.v2.serializers import BaseSerializer
+from wagtail.core.api.v2.utils import get_full_url
 
 
 class DocumentDownloadUrlField(Field):

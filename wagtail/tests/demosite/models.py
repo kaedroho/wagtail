@@ -8,7 +8,7 @@ from modelcluster.fields import ParentalKey
 from taggit.models import TaggedItemBase
 
 from wagtail.admin.edit_handlers import FieldPanel, InlinePanel, MultiFieldPanel, PageChooserPanel
-from wagtail.api import APIField
+from wagtail.core.api import APIField
 from wagtail.core.fields import RichTextField
 from wagtail.core.models import Orderable, Page
 from wagtail.documents.edit_handlers import DocumentChooserPanel

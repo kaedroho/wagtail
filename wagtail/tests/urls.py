@@ -2,8 +2,8 @@ from django.http import HttpResponse
 from django.urls import include, path
 
 from wagtail.admin import urls as wagtailadmin_urls
-from wagtail.api.v2.router import WagtailAPIRouter
-from wagtail.api.v2.views import PagesAPIViewSet
+from wagtail.core.api.v2.router import WagtailAPIRouter
+from wagtail.core.api.v2.views import PagesAPIViewSet
 from wagtail.contrib.sitemaps import Sitemap
 from wagtail.contrib.sitemaps import views as sitemaps_views
 from wagtail.core import urls as wagtail_urls

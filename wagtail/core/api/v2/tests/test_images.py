@@ -6,7 +6,7 @@ from django.test import TestCase
 from django.test.utils import override_settings
 from django.urls import reverse
 
-from wagtail.api.v2 import signal_handlers
+from wagtail.core.api.v2 import signal_handlers
 from wagtail.images import get_image_model
 
 

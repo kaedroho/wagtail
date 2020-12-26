@@ -11,7 +11,7 @@ from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from wagtail.api import APIField
+from wagtail.core.api import APIField
 from wagtail.core.models import Page, Site
 
 from .filters import (

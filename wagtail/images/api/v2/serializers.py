@@ -1,6 +1,6 @@
 from rest_framework.fields import Field
 
-from wagtail.api.v2.serializers import BaseSerializer
+from wagtail.core.api.v2.serializers import BaseSerializer
 
 
 class ImageDownloadUrlField(Field):

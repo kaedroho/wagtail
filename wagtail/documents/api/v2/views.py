@@ -1,5 +1,5 @@
-from wagtail.api.v2.filters import FieldsFilter, OrderingFilter, SearchFilter
-from wagtail.api.v2.views import BaseAPIViewSet
+from wagtail.core.api.v2.filters import FieldsFilter, OrderingFilter, SearchFilter
+from wagtail.core.api.v2.views import BaseAPIViewSet
 
 from ... import get_document_model
 from .serializers import DocumentSerializer
