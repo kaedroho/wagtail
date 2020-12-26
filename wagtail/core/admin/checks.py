@@ -92,7 +92,7 @@ def inline_panel_model_panels_check(app_configs, **kwargs):
 
 def check_panels_in_model(cls, context='model'):
     """Check panels configuration uses `panels` when `edit_handler` not in use."""
-    from wagtail.core.admin.edit_handlers import BaseCompositeEditHandler, InlinePanel
+    from wagtail.core.edit_handlers import BaseCompositeEditHandler, InlinePanel
     from wagtail.core.models import Page
 
     errors = []

@@ -5,7 +5,7 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as __
 
 from wagtail.core.admin import widgets
-from wagtail.core.admin.edit_handlers import FieldPanel, InlinePanel, ObjectList
+from wagtail.core.edit_handlers import FieldPanel, InlinePanel, ObjectList
 from wagtail.core.admin.forms import WagtailAdminModelForm
 from wagtail.core.admin.widgets.workflows import AdminTaskChooser
 from wagtail.core.models import Page, Task, Workflow, WorkflowPage

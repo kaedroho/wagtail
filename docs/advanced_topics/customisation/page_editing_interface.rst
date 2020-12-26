@@ -10,7 +10,7 @@ As standard, Wagtail organises panels for pages into three tabs: 'Content', 'Pro
 
 .. code-block:: python
 
-    from wagtail.core.admin.edit_handlers import TabbedInterface, ObjectList
+    from wagtail.core.edit_handlers import TabbedInterface, ObjectList
 
     class BlogPage(Page):
         # field definitions omitted
@@ -43,7 +43,7 @@ Wagtail provides a general-purpose WYSIWYG editor for creating rich text content
 .. code-block:: python
 
     from wagtail.core.fields import RichTextField
-    from wagtail.core.admin.edit_handlers import FieldPanel
+    from wagtail.core.edit_handlers import FieldPanel
 
 
     class BookPage(Page):
@@ -161,7 +161,7 @@ or to add custom validation logic for your models:
     from django import forms
     from django.db import models
     import geocoder  # not in Wagtail, for example only - https://geocoder.readthedocs.io/
-    from wagtail.core.admin.edit_handlers import FieldPanel
+    from wagtail.core.edit_handlers import FieldPanel
     from wagtail.core.admin.forms import WagtailAdminPageForm
     from wagtail.core.models import Page
 

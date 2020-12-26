@@ -3,7 +3,7 @@ import json
 from django.forms import Media, widgets
 from django.utils.functional import cached_property
 
-from wagtail.core.admin.edit_handlers import RichTextFieldPanel
+from wagtail.core.edit_handlers import RichTextFieldPanel
 from wagtail.core.admin.rich_text.converters.contentstate import ContentstateConverter
 from wagtail.core.admin.staticfiles import versioned_static
 from wagtail.core.rich_text import features as feature_registry

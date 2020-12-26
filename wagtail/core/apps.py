@@ -8,5 +8,11 @@ class WagtailCoreAppConfig(AppConfig):
     verbose_name = _("Wagtail core")
 
     def ready(self):
+        # The edit_handlers module extends Page with some additional attributes required by
+        # wagtail admin (namely, base_form_class and get_edit_handler). Importing this within
+        # wagtail.core.admin.models ensures that this happens in advance of running wagtail.core.admin's
+        # system checks.
+        from wagtail.core import edit_handlers  # NOQA
+
         from wagtail.core.signal_handlers import register_signal_handlers
         register_signal_handlers()

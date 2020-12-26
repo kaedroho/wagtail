@@ -2,7 +2,7 @@ from django.db import models
 from modelcluster.fields import ParentalKey
 from modelcluster.models import ClusterableModel
 
-from wagtail.core.admin.edit_handlers import FieldPanel, InlinePanel
+from wagtail.core.edit_handlers import FieldPanel, InlinePanel
 from wagtail.core.fields import RichTextField
 from wagtail.core.models import TranslatableMixin
 from wagtail.search import index
