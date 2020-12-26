@@ -161,4 +161,15 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(on_delete=models.CASCADE, to='wagtailcore.Page', related_name='group_permissions'),
             preserve_default=True,
         ),
+        migrations.CreateModel(
+            name='Admin',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+            ],
+            options={
+                'permissions': [('access_admin', 'Can access Wagtail admin')],
+                'managed': False,
+                'default_permissions': [],
+            },
+        ),
     ]

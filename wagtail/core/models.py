@@ -18,7 +18,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.handlers.base import BaseHandler
 from django.core.handlers.wsgi import WSGIRequest
 from django.db import migrations, models, transaction
-from django.db.models import Q, Value
+from django.db.models import Count, Model, Q, Value
 from django.db.models.expressions import OuterRef, Subquery
 from django.db.models.functions import Concat, Lower, Substr
 from django.db.models.signals import pre_save
@@ -38,6 +38,7 @@ from django.utils.text import capfirst, slugify
 from django.utils.translation import gettext_lazy as _
 from modelcluster.fields import ParentalKey, ParentalManyToManyField
 from modelcluster.models import ClusterableModel, get_all_child_relations
+from taggit.models import Tag
 from treebeard.mp_tree import MP_Node
 
 from wagtail.core.forms import TaskStateCommentForm
@@ -4695,3 +4696,58 @@ class PageLogEntry(BaseLogEntry):
     @cached_property
     def object_id(self):
         return self.page_id
+
+
+# A dummy model that exists purely to attach the access_admin permission type to, so that it
+# doesn't get identified as a stale content type and removed by the remove_stale_contenttypes
+# management command. managed = False ensures that this doesn't create a database table.
+class Admin(Model):
+    class Meta:
+        managed = False
+        default_permissions = []  # don't create the default add / change / delete / view perms
+        permissions = [
+            ('access_admin', "Can access Wagtail admin"),
+        ]
+
+
+def get_object_usage(obj):
+    """Returns a queryset of pages that link to a particular object"""
+
+    pages = Page.objects.none()
+
+    # get all the relation objects for obj
+    relations = [f for f in type(obj)._meta.get_fields(include_hidden=True)
+                 if (f.one_to_many or f.one_to_one) and f.auto_created]
+    for relation in relations:
+        related_model = relation.related_model
+
+        # if the relation is between obj and a page, get the page
+        if issubclass(related_model, Page):
+            pages |= Page.objects.filter(
+                id__in=related_model._base_manager.filter(**{
+                    relation.field.name: obj.id
+                }).values_list('id', flat=True)
+            )
+        else:
+            # if the relation is between obj and an object that has a page as a
+            # property, return the page
+            for f in related_model._meta.fields:
+                if isinstance(f, ParentalKey) and issubclass(f.remote_field.model, Page):
+                    pages |= Page.objects.filter(
+                        id__in=related_model._base_manager.filter(
+                            **{
+                                relation.field.name: obj.id
+                            }).values_list(f.attname, flat=True)
+                    )
+
+    return pages
+
+
+def popular_tags_for_model(model, count=10):
+    """Return a queryset of the most frequently used tags used on this model class"""
+    content_type = ContentType.objects.get_for_model(model)
+    return Tag.objects.filter(
+        taggit_taggeditem_items__content_type=content_type
+    ).annotate(
+        item_count=Count('taggit_taggeditem_items')
+    ).order_by('-item_count')[:count]
