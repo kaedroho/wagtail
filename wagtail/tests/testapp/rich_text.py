@@ -2,7 +2,7 @@ import json
 
 from django.forms import Media, widgets
 
-from wagtail.admin.edit_handlers import RichTextFieldPanel
+from wagtail.core.admin.edit_handlers import RichTextFieldPanel
 from wagtail.utils.widgets import WidgetWithScript
 
 

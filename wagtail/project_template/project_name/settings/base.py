@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     'wagtail.documents',
     'wagtail.images',
     'wagtail.search',
-    'wagtail.admin',
+    'wagtail.core.admin',
     'wagtail.core',
 
     'modelcluster',

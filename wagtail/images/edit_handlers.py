@@ -1,7 +1,7 @@
 from django.template.loader import render_to_string
 
-from wagtail.admin.compare import ForeignObjectComparison
-from wagtail.admin.edit_handlers import BaseChooserPanel
+from wagtail.core.admin.compare import ForeignObjectComparison
+from wagtail.core.admin.edit_handlers import BaseChooserPanel
 
 from .widgets import AdminImageChooser
 

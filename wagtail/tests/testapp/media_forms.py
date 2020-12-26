@@ -1,6 +1,6 @@
 from django import forms
 
-from wagtail.admin.widgets import AdminDateTimeInput
+from wagtail.core.admin.widgets import AdminDateTimeInput
 from wagtail.documents.forms import BaseDocumentForm
 from wagtail.images.forms import BaseImageForm
 

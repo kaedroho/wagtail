@@ -12,7 +12,7 @@ Extending the Hallo Editor
 
     WAGTAILADMIN_RICH_TEXT_EDITORS = {
         'default': {
-            'WIDGET': 'wagtail.admin.rich_text.HalloRichTextArea'
+            'WIDGET': 'wagtail.core.admin.rich_text.HalloRichTextArea'
         }
     }
 
@@ -24,7 +24,7 @@ A plugin ``halloblockquote``, implemented in ``myapp/js/hallo-blockquote.js``, t
 
 .. code-block:: python
 
-    from wagtail.admin.rich_text import HalloPlugin
+    from wagtail.core.admin.rich_text import HalloPlugin
     from wagtail.core import hooks
 
     @hooks.register('register_rich_text_features')
@@ -64,7 +64,7 @@ The following code will add the ``<blockquote>`` element to the whitelist whenev
 
 .. code-block:: python
 
-    from wagtail.admin.rich_text.converters.editor_html import WhitelistRule
+    from wagtail.core.admin.rich_text.converters.editor_html import WhitelistRule
     from wagtail.core.whitelist import allow_without_attributes
 
     @hooks.register('register_rich_text_features')

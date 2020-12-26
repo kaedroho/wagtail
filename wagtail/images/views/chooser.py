@@ -5,10 +5,10 @@ from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.translation import gettext as _
 
-from wagtail.admin.auth import PermissionPolicyChecker
-from wagtail.admin.forms.search import SearchForm
-from wagtail.admin.modal_workflow import render_modal_workflow
-from wagtail.admin.models import popular_tags_for_model
+from wagtail.core.admin.auth import PermissionPolicyChecker
+from wagtail.core.admin.forms.search import SearchForm
+from wagtail.core.admin.modal_workflow import render_modal_workflow
+from wagtail.core.admin.models import popular_tags_for_model
 from wagtail.core import hooks
 from wagtail.core.models import Collection
 from wagtail.images import get_image_model

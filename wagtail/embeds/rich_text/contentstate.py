@@ -1,7 +1,7 @@
 from draftjs_exporter.dom import DOM
 
-from wagtail.admin.rich_text.converters.contentstate_models import Entity
-from wagtail.admin.rich_text.converters.html_to_contentstate import AtomicBlockEntityElementHandler
+from wagtail.core.admin.rich_text.converters.contentstate_models import Entity
+from wagtail.core.admin.rich_text.converters.html_to_contentstate import AtomicBlockEntityElementHandler
 from wagtail.embeds import embeds
 from wagtail.embeds.exceptions import EmbedException
 

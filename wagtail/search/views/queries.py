@@ -1,8 +1,8 @@
 from django.core.paginator import Paginator
 from django.template.response import TemplateResponse
 
-from wagtail.admin.forms.search import SearchForm
-from wagtail.admin.modal_workflow import render_modal_workflow
+from wagtail.core.admin.forms.search import SearchForm
+from wagtail.core.admin.modal_workflow import render_modal_workflow
 from wagtail.search import models
 from wagtail.search.utils import normalise_query_string
 

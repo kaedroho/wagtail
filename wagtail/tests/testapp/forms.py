@@ -1,7 +1,7 @@
 from django import forms
 
-from wagtail.admin.forms import WagtailAdminPageForm
-from wagtail.admin.widgets import AdminDateInput
+from wagtail.core.admin.forms import WagtailAdminPageForm
+from wagtail.core.admin.widgets import AdminDateInput
 
 
 class ValidatedPageForm(WagtailAdminPageForm):

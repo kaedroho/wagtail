@@ -14,8 +14,8 @@ from django.test.utils import override_settings
 from django.urls import reverse
 from taggit.models import Tag
 
-from wagtail.admin.edit_handlers import FieldPanel
-from wagtail.admin.forms import WagtailAdminModelForm
+from wagtail.core.admin.edit_handlers import FieldPanel
+from wagtail.core.admin.forms import WagtailAdminModelForm
 from wagtail.core import hooks
 from wagtail.core.models import Locale, Page
 from wagtail.snippets.action_menu import ActionMenuItem, get_base_snippet_action_menu_items

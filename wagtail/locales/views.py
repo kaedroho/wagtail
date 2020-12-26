@@ -1,8 +1,8 @@
 from django.utils.translation import gettext_lazy
 
-from wagtail.admin import messages
-from wagtail.admin.views import generic
-from wagtail.admin.viewsets.model import ModelViewSet
+from wagtail.core.admin import messages
+from wagtail.core.admin.views import generic
+from wagtail.core.admin.viewsets.model import ModelViewSet
 from wagtail.core.models import Locale
 from wagtail.core.permissions import locale_permission_policy
 

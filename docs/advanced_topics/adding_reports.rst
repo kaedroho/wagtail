@@ -5,15 +5,15 @@ Reports are views with listings of pages matching a specific query. They can als
 They are found in the `Reports` submenu: by default, the `Locked Pages` report is provided, allowing an overview of locked pages on the site.
 
 It is possible to create your own custom reports in the Wagtail admin. Two base classes are provided:
-``wagtail.admin.views.reports.ReportView``, which provides basic listing and spreadsheet export functionality, and
-``wagtail.admin.views.reports.PageReportView``, which additionally provides a default set of fields suitable for page listings.
+``wagtail.core.admin.views.reports.ReportView``, which provides basic listing and spreadsheet export functionality, and
+``wagtail.core.admin.views.reports.PageReportView``, which additionally provides a default set of fields suitable for page listings.
 For this example, we'll add a report which shows any pages with unpublished changes.
 
 .. code-block:: python
 
     # <project>/views.py
 
-    from wagtail.admin.views.reports import PageReportView
+    from wagtail.core.admin.views.reports import PageReportView
 
 
     class UnpublishedChangesReportView(PageReportView):
@@ -33,7 +33,7 @@ This retrieves the queryset of pages for your report. For our example:
 
     # <project>/views.py
 
-    from wagtail.admin.views.reports import PageReportView
+    from wagtail.core.admin.views.reports import PageReportView
     from wagtail.core.models import Page
 
 
@@ -163,7 +163,7 @@ url for the report, you will need to use the ``register_admin_urls`` hook (see :
 
     from django.urls import path, reverse
 
-    from wagtail.admin.menu import AdminOnlyMenuItem
+    from wagtail.core.admin.menu import AdminOnlyMenuItem
     from wagtail.core import hooks
 
     from .views import UnpublishedChangesReportView
@@ -189,7 +189,7 @@ The full code
 
     # <project>/views.py
 
-    from wagtail.admin.views.reports import PageReportView
+    from wagtail.core.admin.views.reports import PageReportView
     from wagtail.core.models import Page
 
 
@@ -211,7 +211,7 @@ The full code
 
     from django.urls import path, reverse
 
-    from wagtail.admin.menu import AdminOnlyMenuItem
+    from wagtail.core.admin.menu import AdminOnlyMenuItem
     from wagtail.core import hooks
 
     from .views import UnpublishedChangesReportView

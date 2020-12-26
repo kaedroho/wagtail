@@ -2,8 +2,8 @@ from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 
-from wagtail.admin import messages
-from wagtail.admin.auth import user_passes_test
+from wagtail.core.admin import messages
+from wagtail.core.admin.auth import user_passes_test
 from wagtail.contrib.forms.views import SubmissionsListView
 
 

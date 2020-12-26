@@ -27,8 +27,8 @@ from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 
-from wagtail.admin import messages
-from wagtail.admin.views.mixins import SpreadsheetExportMixin
+from wagtail.core.admin import messages
+from wagtail.core.admin.views.mixins import SpreadsheetExportMixin
 
 from .forms import ParentChooserForm
 

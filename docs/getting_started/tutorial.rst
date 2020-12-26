@@ -137,7 +137,7 @@ Edit ``home/models.py`` as follows, to add a ``body`` field to the model:
 
     from wagtail.core.models import Page
     from wagtail.core.fields import RichTextField
-    from wagtail.admin.edit_handlers import FieldPanel
+    from wagtail.core.admin.edit_handlers import FieldPanel
 
 
     class HomePage(Page):
@@ -228,7 +228,7 @@ Lets start with a simple index page for our blog. In ``blog/models.py``:
 
     from wagtail.core.models import Page
     from wagtail.core.fields import RichTextField
-    from wagtail.admin.edit_handlers import FieldPanel
+    from wagtail.core.admin.edit_handlers import FieldPanel
 
 
     class BlogIndexPage(Page):
@@ -282,7 +282,7 @@ Now we need a model and template for our blog posts. In ``blog/models.py``:
 
     from wagtail.core.models import Page
     from wagtail.core.fields import RichTextField
-    from wagtail.admin.edit_handlers import FieldPanel
+    from wagtail.core.admin.edit_handlers import FieldPanel
     from wagtail.search import index
 
 
@@ -473,7 +473,7 @@ Add a new ``BlogPageGalleryImage`` model to ``models.py``:
 
     from wagtail.core.models import Page, Orderable
     from wagtail.core.fields import RichTextField
-    from wagtail.admin.edit_handlers import FieldPanel, InlinePanel
+    from wagtail.core.admin.edit_handlers import FieldPanel, InlinePanel
     from wagtail.images.edit_handlers import ImageChooserPanel
     from wagtail.search import index
 
@@ -636,7 +636,7 @@ First, alter ``models.py`` once more:
 
     from wagtail.core.models import Page, Orderable
     from wagtail.core.fields import RichTextField
-    from wagtail.admin.edit_handlers import FieldPanel, InlinePanel, MultiFieldPanel
+    from wagtail.core.admin.edit_handlers import FieldPanel, InlinePanel, MultiFieldPanel
     from wagtail.images.edit_handlers import ImageChooserPanel
     from wagtail.search import index
 

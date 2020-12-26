@@ -4,13 +4,13 @@ from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import ngettext
 
-import wagtail.admin.rich_text.editors.draftail.features as draftail_features
+import wagtail.core.admin.rich_text.editors.draftail.features as draftail_features
 
-from wagtail.admin.menu import MenuItem
-from wagtail.admin.navigation import get_site_for_user
-from wagtail.admin.rich_text import HalloPlugin
-from wagtail.admin.search import SearchArea
-from wagtail.admin.site_summary import SummaryItem
+from wagtail.core.admin.menu import MenuItem
+from wagtail.core.admin.navigation import get_site_for_user
+from wagtail.core.admin.rich_text import HalloPlugin
+from wagtail.core.admin.search import SearchArea
+from wagtail.core.admin.site_summary import SummaryItem
 from wagtail.core import hooks
 from wagtail.images import admin_urls, get_image_model, image_operations
 from wagtail.images.api.admin.views import ImagesAdminAPIViewSet

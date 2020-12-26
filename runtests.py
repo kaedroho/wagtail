@@ -73,7 +73,7 @@ def runtests():
 
     if args.bench:
         benchmarks = [
-            'wagtail.admin.tests.benches',
+            'wagtail.core.admin.tests.benches',
         ]
 
         argv = [sys.argv[0], 'test', '-v2'] + benchmarks + rest

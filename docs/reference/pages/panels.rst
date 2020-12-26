@@ -6,11 +6,11 @@ Panel types
 Built-in Fields and Choosers
 ----------------------------
 
-Django's field types are automatically recognised and provided with an appropriate widget for input. Just define that field the normal Django way and pass the field name into :class:`~wagtail.admin.edit_handlers.FieldPanel` when defining your panels. Wagtail will take care of the rest.
+Django's field types are automatically recognised and provided with an appropriate widget for input. Just define that field the normal Django way and pass the field name into :class:`~wagtail.core.admin.edit_handlers.FieldPanel` when defining your panels. Wagtail will take care of the rest.
 
 Here are some Wagtail-specific types that you might include as fields in your models.
 
-.. module:: wagtail.admin.edit_handlers
+.. module:: wagtail.core.admin.edit_handlers
 
 FieldPanel
 ~~~~~~~~~~
@@ -61,7 +61,7 @@ MultiFieldPanel
 
 .. class:: MultiFieldPanel(children, heading="", classname=None)
 
-    This panel condenses several :class:`~wagtail.admin.edit_handlers.FieldPanel` s or choosers, from a ``list`` or ``tuple``, under a single ``heading`` string.
+    This panel condenses several :class:`~wagtail.core.admin.edit_handlers.FieldPanel` s or choosers, from a ``list`` or ``tuple``, under a single ``heading`` string.
 
     .. attribute:: MultiFieldPanel.children
 
@@ -148,7 +148,7 @@ PageChooserPanel
     .. code-block:: python
 
         from wagtail.core.models import Page
-        from wagtail.admin.edit_handlers import PageChooserPanel
+        from wagtail.core.admin.edit_handlers import PageChooserPanel
 
 
         class BookPage(Page):
@@ -292,7 +292,7 @@ By adding CSS classes to your panel definitions or adding extra parameters to yo
 Full-Width Input
 ~~~~~~~~~~~~~~~~
 
-Use ``classname="full"`` to make a field (input element) stretch the full width of the Wagtail page editor. This will not work if the field is encapsulated in a :class:`~wagtail.admin.edit_handlers.MultiFieldPanel`, which places its child fields into a formset.
+Use ``classname="full"`` to make a field (input element) stretch the full width of the Wagtail page editor. This will not work if the field is encapsulated in a :class:`~wagtail.core.admin.edit_handlers.MultiFieldPanel`, which places its child fields into a formset.
 
 
 Titles
@@ -304,7 +304,7 @@ Use ``classname="title"`` to make Page's built-in title field stand out with mor
 Placeholder Text
 ~~~~~~~~~~~~~~~~
 
-By default, Wagtail uses the field's label as placeholder text. To change it, pass to the FieldPanel a widget with a placeholder attribute set to your desired text. You can select widgets from :doc:`Django's form widgets <django:ref/forms/widgets>`, or any of the Wagtail's widgets found in ``wagtail.admin.widgets``.
+By default, Wagtail uses the field's label as placeholder text. To change it, pass to the FieldPanel a widget with a placeholder attribute set to your desired text. You can select widgets from :doc:`Django's form widgets <django:ref/forms/widgets>`, or any of the Wagtail's widgets found in ``wagtail.core.admin.widgets``.
 
 For example, to customize placeholders for a Book model exposed via ModelAdmin:
 
@@ -312,7 +312,7 @@ For example, to customize placeholders for a Book model exposed via ModelAdmin:
 
     # models.py
     from django import forms            # the default Django widgets live here
-    from wagtail.admin import widgets   # to use Wagtail's special datetime widget
+    from wagtail.core.admin import widgets   # to use Wagtail's special datetime widget
 
     class Book(models.Model):
         title = models.CharField(max_length=256)
@@ -388,7 +388,7 @@ Let's look at the example of adding related links to a :class:`~wagtail.core.mod
       InlinePanel('related_links', label="Related Links"),
     ]
 
-The ``RelatedLink`` class is a vanilla Django abstract model. The ``BookPageRelatedLinks`` model extends it with capability for being ordered in the Wagtail interface via the ``Orderable`` class as well as adding a ``page`` property which links the model to the ``BookPage`` model we're adding the related links objects to. Finally, in the panel definitions for ``BookPage``, we'll add an :class:`~wagtail.admin.edit_handlers.InlinePanel` to provide an interface for it all. Let's look again at the parameters that :class:`~wagtail.admin.edit_handlers.InlinePanel` accepts:
+The ``RelatedLink`` class is a vanilla Django abstract model. The ``BookPageRelatedLinks`` model extends it with capability for being ordered in the Wagtail interface via the ``Orderable`` class as well as adding a ``page`` property which links the model to the ``BookPage`` model we're adding the related links objects to. Finally, in the panel definitions for ``BookPage``, we'll add an :class:`~wagtail.core.admin.edit_handlers.InlinePanel` to provide an interface for it all. Let's look again at the parameters that :class:`~wagtail.core.admin.edit_handlers.InlinePanel` accepts:
 
 .. code-block:: python
 

@@ -8,7 +8,7 @@ from django.utils.functional import cached_property
 from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
 
-from wagtail.admin.staticfiles import versioned_static
+from wagtail.core.admin.staticfiles import versioned_static
 
 from .base import Block, DeclarativeSubBlocksMetaclass
 from .utils import js_dict

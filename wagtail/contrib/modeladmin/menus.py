@@ -1,4 +1,4 @@
-from wagtail.admin.menu import Menu, MenuItem, SubmenuMenuItem
+from wagtail.core.admin.menu import Menu, MenuItem, SubmenuMenuItem
 
 
 class ModelAdminMenuItem(MenuItem):

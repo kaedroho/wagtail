@@ -115,7 +115,7 @@ Any add-on library that uses this feature and needs to preserve backward compati
 
     from django.utils.html import format_html
     from wagtail import VERSION as WAGTAIL_VERSION
-    from wagtail.admin.action_menu import ActionMenuItem
+    from wagtail.core.admin.action_menu import ActionMenuItem
 
     class CustomMenuItem(ActionMenuItem):
         template = 'myapp/my_menu_item.html'
@@ -128,47 +128,47 @@ Any add-on library that uses this feature and needs to preserve backward compati
 
 
 
-``wagtail.admin.utils`` and ``wagtail.admin.decorators`` modules deprecated
+``wagtail.core.admin.utils`` and ``wagtail.core.admin.decorators`` modules deprecated
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The modules ``wagtail.admin.utils`` and ``wagtail.admin.decorators`` have been deprecated. The helper functions defined here exist primarily for Wagtail's internal use; however, some of them (particularly ``send_mail`` and ``permission_required``) may be found in user code, and import lines will need to be updated. The new locations for these definitions are as follows:
+The modules ``wagtail.core.admin.utils`` and ``wagtail.core.admin.decorators`` have been deprecated. The helper functions defined here exist primarily for Wagtail's internal use; however, some of them (particularly ``send_mail`` and ``permission_required``) may be found in user code, and import lines will need to be updated. The new locations for these definitions are as follows:
 
 +---------------------------------+--------------------------+----------------------------+
 | Definition                      | Old location             | New location               |
 +=================================+==========================+============================+
-| any_permission_required         | wagtail.admin.utils      | wagtail.admin.auth         |
+| any_permission_required         | wagtail.core.admin.utils      | wagtail.core.admin.auth         |
 +---------------------------------+--------------------------+----------------------------+
-| permission_denied               | wagtail.admin.utils      | wagtail.admin.auth         |
+| permission_denied               | wagtail.core.admin.utils      | wagtail.core.admin.auth         |
 +---------------------------------+--------------------------+----------------------------+
-| permission_required             | wagtail.admin.utils      | wagtail.admin.auth         |
+| permission_required             | wagtail.core.admin.utils      | wagtail.core.admin.auth         |
 +---------------------------------+--------------------------+----------------------------+
-| PermissionPolicyChecker         | wagtail.admin.utils      | wagtail.admin.auth         |
+| PermissionPolicyChecker         | wagtail.core.admin.utils      | wagtail.core.admin.auth         |
 +---------------------------------+--------------------------+----------------------------+
-| user_has_any_page_permission    | wagtail.admin.utils      | wagtail.admin.auth         |
+| user_has_any_page_permission    | wagtail.core.admin.utils      | wagtail.core.admin.auth         |
 +---------------------------------+--------------------------+----------------------------+
-| user_passes_test                | wagtail.admin.utils      | wagtail.admin.auth         |
+| user_passes_test                | wagtail.core.admin.utils      | wagtail.core.admin.auth         |
 +---------------------------------+--------------------------+----------------------------+
-| users_with_page_permission      | wagtail.admin.utils      | wagtail.admin.auth         |
+| users_with_page_permission      | wagtail.core.admin.utils      | wagtail.core.admin.auth         |
 +---------------------------------+--------------------------+----------------------------+
-| reject_request                  | wagtail.admin.decorators | wagtail.admin.auth         |
+| reject_request                  | wagtail.core.admin.decorators | wagtail.core.admin.auth         |
 +---------------------------------+--------------------------+----------------------------+
-| require_admin_access            | wagtail.admin.decorators | wagtail.admin.auth         |
+| require_admin_access            | wagtail.core.admin.decorators | wagtail.core.admin.auth         |
 +---------------------------------+--------------------------+----------------------------+
-| get_available_admin_languages   | wagtail.admin.utils      | wagtail.admin.localization |
+| get_available_admin_languages   | wagtail.core.admin.utils      | wagtail.core.admin.localization |
 +---------------------------------+--------------------------+----------------------------+
-| get_available_admin_time_zones  | wagtail.admin.utils      | wagtail.admin.localization |
+| get_available_admin_time_zones  | wagtail.core.admin.utils      | wagtail.core.admin.localization |
 +---------------------------------+--------------------------+----------------------------+
-| get_js_translation_strings      | wagtail.admin.utils      | wagtail.admin.localization |
+| get_js_translation_strings      | wagtail.core.admin.utils      | wagtail.core.admin.localization |
 +---------------------------------+--------------------------+----------------------------+
-| WAGTAILADMIN_PROVIDED_LANGUAGES | wagtail.admin.utils      | wagtail.admin.localization |
+| WAGTAILADMIN_PROVIDED_LANGUAGES | wagtail.core.admin.utils      | wagtail.core.admin.localization |
 +---------------------------------+--------------------------+----------------------------+
-| send_mail                       | wagtail.admin.utils      | wagtail.admin.mail         |
+| send_mail                       | wagtail.core.admin.utils      | wagtail.core.admin.mail         |
 +---------------------------------+--------------------------+----------------------------+
-| send_notification               | wagtail.admin.utils      | wagtail.admin.mail         |
+| send_notification               | wagtail.core.admin.utils      | wagtail.core.admin.mail         |
 +---------------------------------+--------------------------+----------------------------+
-| get_object_usage                | wagtail.admin.utils      | wagtail.admin.models       |
+| get_object_usage                | wagtail.core.admin.utils      | wagtail.core.admin.models       |
 +---------------------------------+--------------------------+----------------------------+
-| popular_tags_for_model          | wagtail.admin.utils      | wagtail.admin.models       |
+| popular_tags_for_model          | wagtail.core.admin.utils      | wagtail.core.admin.models       |
 +---------------------------------+--------------------------+----------------------------+
-| get_site_for_user               | wagtail.admin.utils      | wagtail.admin.navigation   |
+| get_site_for_user               | wagtail.core.admin.utils      | wagtail.core.admin.navigation   |
 +---------------------------------+--------------------------+----------------------------+

@@ -1,8 +1,8 @@
 from django import forms
 from django.test import TestCase, override_settings
 
-from wagtail.admin import widgets
-from wagtail.admin.widgets import AdminDateTimeInput
+from wagtail.core.admin import widgets
+from wagtail.core.admin.widgets import AdminDateTimeInput
 from wagtail.images import models
 from wagtail.images.forms import BaseImageForm, get_image_base_form, get_image_form
 from wagtail.tests.testapp.media_forms import AlternateImageForm, OverriddenWidget

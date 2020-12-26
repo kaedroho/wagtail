@@ -2,14 +2,14 @@ from django import forms
 from django.http import HttpResponse
 from django.templatetags.static import static
 
-import wagtail.admin.rich_text.editors.draftail.features as draftail_features
+import wagtail.core.admin.rich_text.editors.draftail.features as draftail_features
 
-from wagtail.admin.action_menu import ActionMenuItem
-from wagtail.admin.menu import MenuItem
-from wagtail.admin.rich_text import HalloPlugin
-from wagtail.admin.rich_text.converters.html_to_contentstate import BlockElementHandler
-from wagtail.admin.search import SearchArea
-from wagtail.admin.widgets import Button
+from wagtail.core.admin.action_menu import ActionMenuItem
+from wagtail.core.admin.menu import MenuItem
+from wagtail.core.admin.rich_text import HalloPlugin
+from wagtail.core.admin.rich_text.converters.html_to_contentstate import BlockElementHandler
+from wagtail.core.admin.search import SearchArea
+from wagtail.core.admin.widgets import Button
 from wagtail.core import hooks
 
 

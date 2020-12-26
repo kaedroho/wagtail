@@ -64,7 +64,7 @@ Apps (``settings.py``)
     'wagtail.documents',
     'wagtail.images',
     'wagtail.search',
-    'wagtail.admin',
+    'wagtail.core.admin',
     'wagtail.core',
 
     'taggit',
@@ -86,7 +86,7 @@ Wagtail Apps
 ``wagtail.core``
   The core functionality of Wagtail, such as the ``Page`` class, the Wagtail tree, and model fields.
 
-``wagtail.admin``
+``wagtail.core.admin``
   The administration interface for Wagtail, including page edit handlers.
 
 ``wagtail.documents``
@@ -139,7 +139,7 @@ URL Patterns
   from django.contrib import admin
 
   from wagtail.core import urls as wagtail_urls
-  from wagtail.admin import urls as wagtailadmin_urls
+  from wagtail.core.admin import urls as wagtailadmin_urls
   from wagtail.documents import urls as wagtaildocs_urls
 
   urlpatterns = [
@@ -200,7 +200,7 @@ These two files should reside in your project directory (``myproject/myproject/`
       'wagtail.documents',
       'wagtail.images',
       'wagtail.search',
-      'wagtail.admin',
+      'wagtail.core.admin',
       'wagtail.core',
 
       'taggit',
@@ -379,7 +379,7 @@ These two files should reside in your project directory (``myproject/myproject/`
   import os.path
 
   from wagtail.core import urls as wagtail_urls
-  from wagtail.admin import urls as wagtailadmin_urls
+  from wagtail.core.admin import urls as wagtailadmin_urls
   from wagtail.documents import urls as wagtaildocs_urls
 
 

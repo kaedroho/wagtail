@@ -234,7 +234,7 @@ For example:
 Adding notifications
 ~~~~~~~~~~~~~~~~~~~~
 
-Wagtail's notifications are sent by ``wagtail.admin.mail.Notifier`` subclasses: callables intended to be connected to a signal.
+Wagtail's notifications are sent by ``wagtail.core.admin.mail.Notifier`` subclasses: callables intended to be connected to a signal.
 
 By default, email notifications are sent upon workflow submission, approval and rejection, and upon submission to a group approval task.
 
@@ -244,7 +244,7 @@ As an example, we'll add email notifications for when our new task is started.
 
     # <project>/mail.py
 
-    from wagtail.admin.mail import EmailNotifier
+    from wagtail.core.admin.mail import EmailNotifier
     from wagtail.core.models import TaskState
 
     from .models import UserApprovalTaskState

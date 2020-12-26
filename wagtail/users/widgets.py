@@ -1,4 +1,4 @@
-from wagtail.admin.widgets import Button
+from wagtail.core.admin.widgets import Button
 
 
 class UserListingButton(Button):

@@ -8,8 +8,8 @@ from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import ngettext
 from django.views.generic import ListView, TemplateView
 
-from wagtail.admin import messages
-from wagtail.admin.views.mixins import SpreadsheetExportMixin
+from wagtail.core.admin import messages
+from wagtail.core.admin.views.mixins import SpreadsheetExportMixin
 from wagtail.contrib.forms.forms import SelectDateForm
 from wagtail.contrib.forms.utils import get_forms_for_user
 from wagtail.core.models import Page

@@ -1,8 +1,8 @@
 from django import forms
 from django.test import TestCase, override_settings
 
-from wagtail.admin import widgets
-from wagtail.admin.widgets import AdminDateTimeInput
+from wagtail.core.admin import widgets
+from wagtail.core.admin.widgets import AdminDateTimeInput
 from wagtail.documents import models
 from wagtail.documents.forms import (
     BaseDocumentForm, get_document_base_form, get_document_form, get_document_multi_form)

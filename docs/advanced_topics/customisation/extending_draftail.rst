@@ -13,8 +13,8 @@ All of these plugins are created with a similar baseline, which we can demonstra
 
 .. code-block:: python
 
-    import wagtail.admin.rich_text.editors.draftail.features as draftail_features
-    from wagtail.admin.rich_text.converters.html_to_contentstate import InlineStyleElementHandler
+    import wagtail.core.admin.rich_text.editors.draftail.features as draftail_features
+    from wagtail.core.admin.rich_text.converters.html_to_contentstate import InlineStyleElementHandler
     from wagtail.core import hooks
 
     # 1. Use the register_rich_text_features hook.
@@ -81,7 +81,7 @@ Blocks are nearly as simple as inline styles:
 
 .. code-block:: python
 
-    from wagtail.admin.rich_text.converters.html_to_contentstate import BlockElementHandler
+    from wagtail.core.admin.rich_text.converters.html_to_contentstate import BlockElementHandler
 
     @hooks.register('register_rich_text_features')
     def register_help_text_feature(features):
@@ -202,7 +202,7 @@ Since entities hold data, the conversion to/from database format is more complic
 .. code-block:: python
 
     from draftjs_exporter.dom import DOM
-    from wagtail.admin.rich_text.converters.html_to_contentstate import InlineEntityElementHandler
+    from wagtail.core.admin.rich_text.converters.html_to_contentstate import InlineEntityElementHandler
 
     def stock_entity_decorator(props):
         """

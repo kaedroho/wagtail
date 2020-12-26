@@ -1,7 +1,7 @@
 from django.urls import include, path, reverse
 from django.utils.translation import gettext_lazy as _
 
-from wagtail.admin.menu import MenuItem
+from wagtail.core.admin.menu import MenuItem
 from wagtail.contrib.forms import urls
 from wagtail.contrib.forms.utils import get_forms_for_user
 from wagtail.core import hooks

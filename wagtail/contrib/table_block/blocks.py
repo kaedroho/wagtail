@@ -5,7 +5,7 @@ from django.template.loader import render_to_string
 from django.utils import translation
 from django.utils.functional import cached_property
 
-from wagtail.admin.staticfiles import versioned_static
+from wagtail.core.admin.staticfiles import versioned_static
 from wagtail.core.blocks import FieldBlock
 
 

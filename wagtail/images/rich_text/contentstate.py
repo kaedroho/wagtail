@@ -1,7 +1,7 @@
 from draftjs_exporter.dom import DOM
 
-from wagtail.admin.rich_text.converters.contentstate_models import Entity
-from wagtail.admin.rich_text.converters.html_to_contentstate import AtomicBlockEntityElementHandler
+from wagtail.core.admin.rich_text.converters.contentstate_models import Entity
+from wagtail.core.admin.rich_text.converters.html_to_contentstate import AtomicBlockEntityElementHandler
 from wagtail.images import get_image_model
 from wagtail.images.formats import get_image_format
 from wagtail.images.shortcuts import get_rendition_or_not_found

@@ -12,9 +12,9 @@ from django.utils.translation import ngettext
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.vary import vary_on_headers
 
-from wagtail.admin import messages
-from wagtail.admin.auth import PermissionPolicyChecker
-from wagtail.admin.forms.search import SearchForm
+from wagtail.core.admin import messages
+from wagtail.core.admin.auth import PermissionPolicyChecker
+from wagtail.core.admin.forms.search import SearchForm
 from wagtail.contrib.redirects import models
 from wagtail.contrib.redirects.base_formats import DEFAULT_FORMATS
 from wagtail.contrib.redirects.forms import ConfirmImportForm, ImportForm, RedirectForm

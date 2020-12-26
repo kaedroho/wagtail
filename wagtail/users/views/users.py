@@ -10,9 +10,9 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.vary import vary_on_headers
 
-from wagtail.admin import messages
-from wagtail.admin.auth import any_permission_required, permission_required
-from wagtail.admin.forms.search import SearchForm
+from wagtail.core.admin import messages
+from wagtail.core.admin.auth import any_permission_required, permission_required
+from wagtail.core.admin.forms.search import SearchForm
 from wagtail.core import hooks
 from wagtail.core.compat import AUTH_USER_APP_LABEL, AUTH_USER_MODEL_NAME
 from wagtail.users.forms import UserCreationForm, UserEditForm

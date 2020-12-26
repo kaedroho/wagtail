@@ -188,14 +188,14 @@ Hooks for building new areas of the admin interface (alongside pages, images, do
 ``register_admin_menu_item``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  Add an item to the Wagtail admin menu. The callable passed to this hook must return an instance of ``wagtail.admin.menu.MenuItem``. New items can be constructed from the ``MenuItem`` class by passing in a ``label`` which will be the text in the menu item, and the URL of the admin page you want the menu item to link to (usually by calling ``reverse()`` on the admin view you've set up). Additionally, the following keyword arguments are accepted:
+  Add an item to the Wagtail admin menu. The callable passed to this hook must return an instance of ``wagtail.core.admin.menu.MenuItem``. New items can be constructed from the ``MenuItem`` class by passing in a ``label`` which will be the text in the menu item, and the URL of the admin page you want the menu item to link to (usually by calling ``reverse()`` on the admin view you've set up). Additionally, the following keyword arguments are accepted:
 
   :name: an internal name used to identify the menu item; defaults to the slugified form of the label.
   :classnames: additional classnames applied to the link, used to give it an icon
   :attrs: additional HTML attributes to apply to the link
   :order: an integer which determines the item's position in the menu
 
-  For menu items that are only available to superusers, the subclass ``wagtail.admin.menu.AdminOnlyMenuItem`` can be used in place of ``MenuItem``.
+  For menu items that are only available to superusers, the subclass ``wagtail.core.admin.menu.AdminOnlyMenuItem`` can be used in place of ``MenuItem``.
 
   ``MenuItem`` can be further subclassed to customise the HTML output, specify JavaScript files required by the menu item, or conditionally show or hide the item for specific requests (for example, to apply permission checks); see the source code (``wagtail/admin/menu.py``) for details.
 
@@ -204,7 +204,7 @@ Hooks for building new areas of the admin interface (alongside pages, images, do
     from django.urls import reverse
 
     from wagtail.core import hooks
-    from wagtail.admin.menu import MenuItem
+    from wagtail.core.admin.menu import MenuItem
 
     @hooks.register('register_admin_menu_item')
     def register_frank_menu_item():
@@ -282,7 +282,7 @@ Hooks for building new areas of the admin interface (alongside pages, images, do
 ``register_admin_search_area``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  Add an item to the Wagtail admin search "Other Searches". Behaviour of this hook is similar to ``register_admin_menu_item``. The callable passed to this hook must return an instance of ``wagtail.admin.search.SearchArea``. New items can be constructed from the ``SearchArea`` class by passing the following parameters:
+  Add an item to the Wagtail admin search "Other Searches". Behaviour of this hook is similar to ``register_admin_menu_item``. The callable passed to this hook must return an instance of ``wagtail.core.admin.search.SearchArea``. New items can be constructed from the ``SearchArea`` class by passing the following parameters:
 
   :label: text displayed in the "Other Searches" option box.
   :name: an internal name used to identify the search option; defaults to the slugified form of the label.
@@ -302,7 +302,7 @@ Hooks for building new areas of the admin interface (alongside pages, images, do
 
     from django.urls import reverse
     from wagtail.core import hooks
-    from wagtail.admin.search import SearchArea
+    from wagtail.core.admin.search import SearchArea
 
     @hooks.register('register_admin_search_area')
     def register_frank_search_area():
@@ -656,7 +656,7 @@ Hooks for customising the way users are directed through the process of creating
 ``register_page_action_menu_item``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  Add an item to the popup menu of actions on the page creation and edit views. The callable passed to this hook must return an instance of ``wagtail.admin.action_menu.ActionMenuItem``. The following attributes and methods are available to be overridden on subclasses of ``ActionMenuItem``:
+  Add an item to the popup menu of actions on the page creation and edit views. The callable passed to this hook must return an instance of ``wagtail.core.admin.action_menu.ActionMenuItem``. The following attributes and methods are available to be overridden on subclasses of ``ActionMenuItem``:
 
   :order: an integer (default 100) which determines the item's position in the menu. Can also be passed as a keyword argument to the object constructor. The lowest-numbered item in this sequence will be selected as the default menu item; as standard, this is "Save draft" (which has an ``order`` of 0).
   :label: the displayed text of the menu item
@@ -680,7 +680,7 @@ Hooks for customising the way users are directed through the process of creating
   .. code-block:: python
 
     from wagtail.core import hooks
-    from wagtail.admin.action_menu import ActionMenuItem
+    from wagtail.core.admin.action_menu import ActionMenuItem
 
     class GuacamoleMenuItem(ActionMenuItem):
         name = 'action-guacamole'
@@ -943,7 +943,7 @@ Page explorer
 
   .. code-block:: python
 
-    from wagtail.admin import widgets as wagtailadmin_widgets
+    from wagtail.core.admin import widgets as wagtailadmin_widgets
 
     @hooks.register('register_page_listing_buttons')
     def page_listing_buttons(page, page_perms, is_parent=False, next_url=None):
@@ -974,7 +974,7 @@ Page explorer
 
   .. code-block:: python
 
-    from wagtail.admin import widgets as wagtailadmin_widgets
+    from wagtail.core.admin import widgets as wagtailadmin_widgets
 
     @hooks.register('register_page_listing_more_buttons')
     def page_listing_more_buttons(page, page_perms, is_parent=False, next_url=None):
@@ -1006,7 +1006,7 @@ Buttons with dropdown lists
 
   .. code-block:: python
 
-    from wagtail.admin import widgets as wagtailadmin_widgets
+    from wagtail.core.admin import widgets as wagtailadmin_widgets
 
     @hooks.register('register_page_listing_buttons')
     def page_custom_listing_buttons(page, page_perms, is_parent=False, next_url=None):

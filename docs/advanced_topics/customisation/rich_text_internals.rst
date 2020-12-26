@@ -199,7 +199,7 @@ This method allows you to register a custom handler deriving from ``wagtail.core
 Editor widgets
 --------------
 
-The editor interface used on rich text fields can be configured with the :ref:`WAGTAILADMIN_RICH_TEXT_EDITORS <WAGTAILADMIN_RICH_TEXT_EDITORS>` setting. Wagtail provides two editor implementations: ``wagtail.admin.rich_text.DraftailRichTextArea`` (the `Draftail <https://www.draftail.org/>`_ editor based on `Draft.js <https://draftjs.org/>`_) and ``wagtail.admin.rich_text.HalloRichTextArea`` (deprecated, based on `Hallo.js <http://hallojs.org/>`_).
+The editor interface used on rich text fields can be configured with the :ref:`WAGTAILADMIN_RICH_TEXT_EDITORS <WAGTAILADMIN_RICH_TEXT_EDITORS>` setting. Wagtail provides two editor implementations: ``wagtail.core.admin.rich_text.DraftailRichTextArea`` (the `Draftail <https://www.draftail.org/>`_ editor based on `Draft.js <https://draftjs.org/>`_) and ``wagtail.core.admin.rich_text.HalloRichTextArea`` (deprecated, based on `Hallo.js <http://hallojs.org/>`_).
 
 It is possible to create your own rich text editor implementation. At minimum, a rich text editor is a Django :class:`~django.forms.Widget` subclass whose constructor accepts an ``options`` keyword argument (a dictionary of editor-specific configuration options sourced from the ``OPTIONS`` field in ``WAGTAILADMIN_RICH_TEXT_EDITORS``), and which consumes and produces string data in the HTML-like format described above.
 
@@ -261,7 +261,7 @@ Format converters
 
 Editor widgets will often be unable to work directly with Wagtail's rich text format, and require conversion to their own native format. For Draftail, this is a JSON-based format known as ContentState (see `How Draft.js Represents Rich Text Data <https://medium.com/@rajaraodv/how-draft-js-represents-rich-text-data-eeabb5f25cf2>`_). Hallo.js and other editors based on HTML's ``contentEditable`` mechanism require valid HTML, and so Wagtail uses a convention referred to as "editor HTML", where the additional data required on link and embed elements is stored in ``data-`` attributes, for example: ``<a href="/contact-us/" data-linktype="page" data-id="3">Contact us</a>``.
 
-Wagtail provides two utility classes, ``wagtail.admin.rich_text.converters.contentstate.ContentstateConverter`` and ``wagtail.admin.rich_text.converters.editor_html.EditorHTMLConverter``, to perform conversions between rich text format and the native editor formats. These classes are independent of any editor widget, and distinct from the rewriting process that happens when rendering rich text onto a template.
+Wagtail provides two utility classes, ``wagtail.core.admin.rich_text.converters.contentstate.ContentstateConverter`` and ``wagtail.core.admin.rich_text.converters.editor_html.EditorHTMLConverter``, to perform conversions between rich text format and the native editor formats. These classes are independent of any editor widget, and distinct from the rewriting process that happens when rendering rich text onto a template.
 
 Both classes accept a ``features`` list as an argument to their constructor, and implement two methods, ``from_database_format(data)`` which converts Wagtail rich text data to the editor's format, and ``to_database_format(data)`` which converts editor data to Wagtail rich text format.
 

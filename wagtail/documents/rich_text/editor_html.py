@@ -1,6 +1,6 @@
 from django.utils.html import escape
 
-from wagtail.admin.rich_text.converters import editor_html
+from wagtail.core.admin.rich_text.converters import editor_html
 from wagtail.documents import get_document_model
 
 

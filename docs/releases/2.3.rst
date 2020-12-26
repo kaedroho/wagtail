@@ -51,7 +51,7 @@ Bug fixes
  * Restored localisation in date/time pickers (David Moore, Thibaud Colas)
  * Tag input field no longer treats 'б' on Russian keyboards as a comma (Michael Borisov)
  * Disabled autocomplete dropdowns on date/time chooser fields (Janneke Janssen)
- * Split up ``wagtail.admin.forms`` to make it less prone to circular imports (Matt Westcott)
+ * Split up ``wagtail.core.admin.forms`` to make it less prone to circular imports (Matt Westcott)
  * Disable linking to root page in rich text, making the page non-functional (Matt Westcott)
  * Pages should be editable and save-able even if there are broken page or document links in rich text (Matt Westcott)
  * Avoid redundant round-trips of JSON StreamField data on save, improving performance and preventing consistency issues on fixture loading (Andy Chosak, Matt Westcott)
@@ -61,43 +61,43 @@ Bug fixes
 Upgrade considerations
 ======================
 
-``wagtail.admin.forms`` reorganised
+``wagtail.core.admin.forms`` reorganised
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``wagtail.admin.forms`` module has been split up into submodules to make it less prone to producing circular imports, particularly when a custom user model is in use. The following (undocumented) definitions have now been moved to new locations:
+The ``wagtail.core.admin.forms`` module has been split up into submodules to make it less prone to producing circular imports, particularly when a custom user model is in use. The following (undocumented) definitions have now been moved to new locations:
 
 +----------------------------------------------+---------------------------------------+
 | Definition                                   | New location                          |
 +==============================================+=======================================+
-| LoginForm                                    | wagtail.admin.forms.auth              |
+| LoginForm                                    | wagtail.core.admin.forms.auth              |
 +----------------------------------------------+---------------------------------------+
-| PasswordResetForm                            | wagtail.admin.forms.auth              |
+| PasswordResetForm                            | wagtail.core.admin.forms.auth              |
 +----------------------------------------------+---------------------------------------+
-| URLOrAbsolutePathValidator                   | wagtail.admin.forms.choosers          |
+| URLOrAbsolutePathValidator                   | wagtail.core.admin.forms.choosers          |
 +----------------------------------------------+---------------------------------------+
-| URLOrAbsolutePathField                       | wagtail.admin.forms.choosers          |
+| URLOrAbsolutePathField                       | wagtail.core.admin.forms.choosers          |
 +----------------------------------------------+---------------------------------------+
-| ExternalLinkChooserForm                      | wagtail.admin.forms.choosers          |
+| ExternalLinkChooserForm                      | wagtail.core.admin.forms.choosers          |
 +----------------------------------------------+---------------------------------------+
-| EmailLinkChooserForm                         | wagtail.admin.forms.choosers          |
+| EmailLinkChooserForm                         | wagtail.core.admin.forms.choosers          |
 +----------------------------------------------+---------------------------------------+
-| CollectionViewRestrictionForm                | wagtail.admin.forms.collections       |
+| CollectionViewRestrictionForm                | wagtail.core.admin.forms.collections       |
 +----------------------------------------------+---------------------------------------+
-| CollectionForm                               | wagtail.admin.forms.collections       |
+| CollectionForm                               | wagtail.core.admin.forms.collections       |
 +----------------------------------------------+---------------------------------------+
-| BaseCollectionMemberForm                     | wagtail.admin.forms.collections       |
+| BaseCollectionMemberForm                     | wagtail.core.admin.forms.collections       |
 +----------------------------------------------+---------------------------------------+
-| BaseGroupCollectionMemberPermissionFormSet   | wagtail.admin.forms.collections       |
+| BaseGroupCollectionMemberPermissionFormSet   | wagtail.core.admin.forms.collections       |
 +----------------------------------------------+---------------------------------------+
-| collection_member_permission_formset_factory | wagtail.admin.forms.collections       |
+| collection_member_permission_formset_factory | wagtail.core.admin.forms.collections       |
 +----------------------------------------------+---------------------------------------+
-| CopyForm                                     | wagtail.admin.forms.pages             |
+| CopyForm                                     | wagtail.core.admin.forms.pages             |
 +----------------------------------------------+---------------------------------------+
-| PageViewRestrictionForm                      | wagtail.admin.forms.pages             |
+| PageViewRestrictionForm                      | wagtail.core.admin.forms.pages             |
 +----------------------------------------------+---------------------------------------+
-| SearchForm                                   | wagtail.admin.forms.search            |
+| SearchForm                                   | wagtail.core.admin.forms.search            |
 +----------------------------------------------+---------------------------------------+
-| BaseViewRestrictionForm                      | wagtail.admin.forms.view_restrictions |
+| BaseViewRestrictionForm                      | wagtail.core.admin.forms.view_restrictions |
 +----------------------------------------------+---------------------------------------+
 
-The following definitions remain in ``wagtail.admin.forms``: ``FORM_FIELD_OVERRIDES``, ``DIRECT_FORM_FIELD_OVERRIDES``, ``formfield_for_dbfield``, ``WagtailAdminModelFormMetaclass``, ``WagtailAdminModelForm`` and ``WagtailAdminPageForm``.
+The following definitions remain in ``wagtail.core.admin.forms``: ``FORM_FIELD_OVERRIDES``, ``DIRECT_FORM_FIELD_OVERRIDES``, ``formfield_for_dbfield``, ``WagtailAdminModelFormMetaclass``, ``WagtailAdminModelForm`` and ``WagtailAdminPageForm``.

@@ -156,7 +156,7 @@ The full list of modules to be renamed is as follows:
 +=========================================+===================================+===================================+
 | wagtail.wagtailcore                     | wagtail.core                      |                                   |
 +-----------------------------------------+-----------------------------------+-----------------------------------+
-| wagtail.wagtailadmin                    | wagtail.admin                     |                                   |
+| wagtail.wagtailadmin                    | wagtail.core.admin                     |                                   |
 +-----------------------------------------+-----------------------------------+-----------------------------------+
 | wagtail.wagtaildocs                     | wagtail.documents                 | 'documents' no longer abbreviated |
 +-----------------------------------------+-----------------------------------+-----------------------------------+
@@ -212,7 +212,7 @@ The Draftail rich text editor has a substantially different API from Hallo.js, i
 
     WAGTAILADMIN_RICH_TEXT_EDITORS = {
         'default': {
-            'WIDGET': 'wagtail.admin.rich_text.HalloRichTextArea'
+            'WIDGET': 'wagtail.core.admin.rich_text.HalloRichTextArea'
         }
     }
 
@@ -284,7 +284,7 @@ can be rewritten as:
 
   .. code-block:: python
 
-    from wagtail.admin.rich_text.converters.editor_html import WhitelistRule
+    from wagtail.core.admin.rich_text.converters.editor_html import WhitelistRule
     from wagtail.core import hooks
     from wagtail.core.whitelist import allow_without_attributes
 
