@@ -86,16 +86,7 @@ module.exports = function exports() {
     },
 
     optimization: {
-      splitChunks: {
-        cacheGroups: {
-          vendor: {
-            name: getOutputPath('admin', 'vendor'),
-            chunks: 'initial',
-            minChunks: 2,
-            reuseExistingChunk: true,
-          },
-        },
-      },
+      splitChunks: {}
     },
 
     // See https://webpack.js.org/configuration/devtool/.
