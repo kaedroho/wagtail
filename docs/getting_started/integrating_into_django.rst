@@ -29,7 +29,6 @@ In your settings file, add the following apps to ``INSTALLED_APPS``:
     'wagtail.contrib.documents',
     'wagtail.contrib.images',
     'wagtail.search',
-    'wagtail.admin',
     'wagtail',
 
     'modelcluster',
