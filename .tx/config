@@ -38,12 +38,6 @@ source_file = wagtail/contrib/redirects/locale/en/LC_MESSAGES/django.po
 source_lang = en
 type = PO
 
-[wagtail.wagtailsearch]
-file_filter = wagtail/search/locale/<lang>/LC_MESSAGES/django.po
-source_file = wagtail/search/locale/en/LC_MESSAGES/django.po
-source_lang = en
-type = PO
-
 [wagtail.wagtailsnippets]
 file_filter = wagtail/snippets/locale/<lang>/LC_MESSAGES/django.po
 source_file = wagtail/snippets/locale/en/LC_MESSAGES/django.po
@@ -71,12 +65,6 @@ type = PO
 [wagtail.wagtaillocales]
 file_filter = wagtail/locales/locale/<lang>/LC_MESSAGES/django.po
 source_file = wagtail/locales/locale/en/LC_MESSAGES/django.po
-source_lang = en
-type = PO
-
-[wagtail.wagtailsearchpromotions]
-file_filter = wagtail/contrib/search_promotions/locale/<lang>/LC_MESSAGES/django.po
-source_file = wagtail/contrib/search_promotions/locale/en/LC_MESSAGES/django.po
 source_lang = en
 type = PO
 

@@ -413,11 +413,3 @@ And here's a template to go with it:
             Please type something into the search box
         {% endif %}
     {% endblock %}
-
-
-Promoted search results
-=======================
-
-"Promoted search results" allow editors to explicitly link relevant content to search terms, so results pages can contain curated content in addition to results from the search engine.
-
-This functionality is provided by the :mod:`~wagtail.contrib.search_promotions` contrib module.

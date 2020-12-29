@@ -14,7 +14,6 @@ Wagtail ships with a variety of extra optional modules.
     routablepage
     modeladmin/index
     postgres_search
-    searchpromotions
     table_block
     redirects
     legacy_richtext

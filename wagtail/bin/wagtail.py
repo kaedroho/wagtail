@@ -114,7 +114,6 @@ class UpdateModulePaths(Command):
         (re.compile(r'\bwagtail\.wagtailredirects\b'), 'wagtail.contrib.redirects'),
         (re.compile(r'\bwagtail\.contrib\.wagtailfrontendcache\b'), 'wagtail.contrib.frontend_cache'),
         (re.compile(r'\bwagtail\.contrib\.wagtailroutablepage\b'), 'wagtail.contrib.routable_page'),
-        (re.compile(r'\bwagtail\.contrib\.wagtailsearchpromotions\b'), 'wagtail.contrib.search_promotions'),
         (re.compile(r'\bwagtail\.contrib\.wagtailsitemaps\b'), 'wagtail.contrib.sitemaps'),
         (re.compile(r'\bwagtail\.contrib\.wagtailstyleguide\b'), 'wagtail.contrib.styleguide'),
     ]

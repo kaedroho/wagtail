@@ -123,7 +123,6 @@ INSTALLED_APPS = [
     'wagtail.contrib.styleguide',
     'wagtail.contrib.routable_page',
     'wagtail.contrib.frontend_cache',
-    'wagtail.contrib.search_promotions',
     'wagtail.contrib.settings',
     'wagtail.contrib.modeladmin',
     'wagtail.contrib.table_block',
