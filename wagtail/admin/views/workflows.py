@@ -22,7 +22,7 @@ from wagtail.admin.views.generic import CreateView, DeleteView, EditView, IndexV
 from wagtail.core.models import (
     Page, Task, TaskState, UserPagePermissionsProxy, Workflow, WorkflowState)
 from wagtail.core.permissions import task_permission_policy, workflow_permission_policy
-from wagtail.core.utils import resolve_model_string
+from wagtail.coreutils import resolve_model_string
 from wagtail.core.workflows import get_task_types
 
 

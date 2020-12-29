@@ -29,9 +29,9 @@ from wagtail.core import hooks
 from wagtail.core.models import (
     Collection, CollectionViewRestriction, Locale, Page, PageLogEntry, PageViewRestriction,
     UserPagePermissionsProxy)
-from wagtail.core.utils import camelcase_to_underscore
-from wagtail.core.utils import cautious_slugify as _cautious_slugify
-from wagtail.core.utils import escape_script
+from wagtail.coreutils import camelcase_to_underscore
+from wagtail.coreutils import cautious_slugify as _cautious_slugify
+from wagtail.coreutils import escape_script
 from wagtail.users.utils import get_gravatar_url
 
 

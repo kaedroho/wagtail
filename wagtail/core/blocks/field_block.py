@@ -11,7 +11,7 @@ from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
 from wagtail.core.rich_text import RichText, get_text_for_indexing
-from wagtail.core.utils import resolve_model_string
+from wagtail.coreutils import resolve_model_string
 
 from .base import Block
 

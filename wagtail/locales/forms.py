@@ -2,7 +2,7 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 
 from wagtail.core.models import Locale
-from wagtail.core.utils import get_content_languages
+from wagtail.coreutils import get_content_languages
 
 
 class LocaleForm(forms.ModelForm):

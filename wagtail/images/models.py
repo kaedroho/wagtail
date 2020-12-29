@@ -21,7 +21,7 @@ from willow.image import Image as WillowImage
 from wagtail.admin.models import get_object_usage
 from wagtail.core import hooks
 from wagtail.core.models import CollectionMember
-from wagtail.core.utils import string_to_ascii
+from wagtail.coreutils import string_to_ascii
 from wagtail.images.exceptions import InvalidFilterSpecError
 from wagtail.images.rect import Rect
 from wagtail.search import index

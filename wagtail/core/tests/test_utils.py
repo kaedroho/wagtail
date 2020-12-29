@@ -6,7 +6,7 @@ from django.utils.translation import _trans
 from django.utils.translation import gettext_lazy as _
 
 from wagtail.core.models import Page
-from wagtail.core.utils import (
+from wagtail.coreutils import (
     accepts_kwarg, camelcase_to_underscore, cautious_slugify, find_available_slug,
     get_content_languages, get_supported_content_language_variant, safe_snake_case, string_to_ascii)
 
