@@ -45,7 +45,7 @@ class TestSnippetIndexView(TestCase, WagtailTestUtils):
     def test_get_with_limited_permissions(self):
         self.user.is_superuser = False
         self.user.user_permissions.add(
-            Permission.objects.get(content_type__app_label='wagtailadmin', codename='access_admin')
+            Permission.objects.get(content_type__app_label='wagtailcore', codename='access_admin')
         )
         self.user.save()
 
@@ -80,7 +80,7 @@ class TestSnippetListView(TestCase, WagtailTestUtils):
     def get_with_limited_permissions(self):
         self.user.is_superuser = False
         self.user.user_permissions.add(
-            Permission.objects.get(content_type__app_label='wagtailadmin', codename='access_admin')
+            Permission.objects.get(content_type__app_label='wagtailcore', codename='access_admin')
         )
         self.user.save()
 
@@ -276,7 +276,7 @@ class TestSnippetCreateView(TestCase, WagtailTestUtils):
     def test_get_with_limited_permissions(self):
         self.user.is_superuser = False
         self.user.user_permissions.add(
-            Permission.objects.get(content_type__app_label='wagtailadmin', codename='access_admin')
+            Permission.objects.get(content_type__app_label='wagtailcore', codename='access_admin')
         )
         self.user.save()
 
@@ -304,7 +304,7 @@ class TestSnippetCreateView(TestCase, WagtailTestUtils):
     def test_create_with_limited_permissions(self):
         self.user.is_superuser = False
         self.user.user_permissions.add(
-            Permission.objects.get(content_type__app_label='wagtailadmin', codename='access_admin')
+            Permission.objects.get(content_type__app_label='wagtailcore', codename='access_admin')
         )
         self.user.save()
 
@@ -529,7 +529,7 @@ class TestSnippetEditView(BaseTestSnippetEditView):
     def test_get_with_limited_permissions(self):
         self.user.is_superuser = False
         self.user.user_permissions.add(
-            Permission.objects.get(content_type__app_label='wagtailadmin', codename='access_admin')
+            Permission.objects.get(content_type__app_label='wagtailcore', codename='access_admin')
         )
         self.user.save()
 
@@ -555,7 +555,7 @@ class TestSnippetEditView(BaseTestSnippetEditView):
     def test_edit_with_limited_permissions(self):
         self.user.is_superuser = False
         self.user.user_permissions.add(
-            Permission.objects.get(content_type__app_label='wagtailadmin', codename='access_admin')
+            Permission.objects.get(content_type__app_label='wagtailcore', codename='access_admin')
         )
         self.user.save()
 
@@ -783,7 +783,7 @@ class TestSnippetDelete(TestCase, WagtailTestUtils):
     def test_delete_get_with_limited_permissions(self):
         self.user.is_superuser = False
         self.user.user_permissions.add(
-            Permission.objects.get(content_type__app_label='wagtailadmin', codename='access_admin')
+            Permission.objects.get(content_type__app_label='wagtailcore', codename='access_admin')
         )
         self.user.save()
 
@@ -797,7 +797,7 @@ class TestSnippetDelete(TestCase, WagtailTestUtils):
     def test_delete_post_with_limited_permissions(self):
         self.user.is_superuser = False
         self.user.user_permissions.add(
-            Permission.objects.get(content_type__app_label='wagtailadmin', codename='access_admin')
+            Permission.objects.get(content_type__app_label='wagtailcore', codename='access_admin')
         )
         self.user.save()
 
@@ -1163,7 +1163,7 @@ class TestAddOnlyPermissions(TestCase, WagtailTestUtils):
             password='password'
         )
         add_permission = Permission.objects.get(content_type__app_label='tests', codename='add_advert')
-        admin_permission = Permission.objects.get(content_type__app_label='wagtailadmin', codename='access_admin')
+        admin_permission = Permission.objects.get(content_type__app_label='wagtailcore', codename='access_admin')
         user.user_permissions.add(add_permission, admin_permission)
         self.login(username='addonly', password='password')
 
@@ -1214,7 +1214,7 @@ class TestEditOnlyPermissions(TestCase, WagtailTestUtils):
             password='password'
         )
         change_permission = Permission.objects.get(content_type__app_label='tests', codename='change_advert')
-        admin_permission = Permission.objects.get(content_type__app_label='wagtailadmin', codename='access_admin')
+        admin_permission = Permission.objects.get(content_type__app_label='wagtailcore', codename='access_admin')
         user.user_permissions.add(change_permission, admin_permission)
         self.login(username='changeonly', password='password')
 
@@ -1264,7 +1264,7 @@ class TestDeleteOnlyPermissions(TestCase, WagtailTestUtils):
             password='password'
         )
         change_permission = Permission.objects.get(content_type__app_label='tests', codename='delete_advert')
-        admin_permission = Permission.objects.get(content_type__app_label='wagtailadmin', codename='access_admin')
+        admin_permission = Permission.objects.get(content_type__app_label='wagtailcore', codename='access_admin')
         user.user_permissions.add(change_permission, admin_permission)
         self.login(username='deleteonly', password='password')
 

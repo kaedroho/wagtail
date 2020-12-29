@@ -108,14 +108,14 @@ def create_admin_access_permissions(apps, schema_editor):
     Group = apps.get_model('auth.Group')
 
     # Add a content type to hang the 'can access Wagtail admin' permission off
-    wagtailadmin_content_type, created = ContentType.objects.get_or_create(
-        app_label='wagtailadmin',
+    wagtailcore_content_type, created = ContentType.objects.get_or_create(
+        app_label='wagtailcore',
         model='admin'
     )
 
     # Create admin permission
     admin_permission, created = Permission.objects.get_or_create(
-        content_type=wagtailadmin_content_type,
+        content_type=wagtailcore_content_type,
         codename='access_admin',
         name='Can access Wagtail admin'
     )
@@ -129,13 +129,13 @@ def remove_admin_access_permissions(apps, schema_editor):
     """Reverse the above additions of permissions."""
     ContentType = apps.get_model('contenttypes.ContentType')
     Permission = apps.get_model('auth.Permission')
-    wagtailadmin_content_type = ContentType.objects.get(
-        app_label='wagtailadmin',
+    wagtailcore_content_type = ContentType.objects.get(
+        app_label='wagtailcore',
         model='admin',
     )
     # This cascades to Group
     Permission.objects.filter(
-        content_type=wagtailadmin_content_type,
+        content_type=wagtailcore_content_type,
         codename='access_admin',
     ).delete()
 
