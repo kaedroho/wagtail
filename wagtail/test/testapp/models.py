@@ -34,11 +34,11 @@ from wagtail.contrib.table_block.blocks import TableBlock
 from wagtail.blocks import CharBlock, RawHTMLBlock, RichTextBlock, StreamBlock, StructBlock
 from wagtail.fields import RichTextField, StreamField
 from wagtail.models import Orderable, Page, PageManager, PageQuerySet, Task, TranslatableMixin
-from wagtail.documents.edit_handlers import DocumentChooserPanel
-from wagtail.documents.models import AbstractDocument, Document
-from wagtail.images.blocks import ImageChooserBlock
-from wagtail.images.edit_handlers import ImageChooserPanel
-from wagtail.images.models import AbstractImage, AbstractRendition, Image
+from wagtail.contrib.documents.edit_handlers import DocumentChooserPanel
+from wagtail.contrib.documents.models import AbstractDocument, Document
+from wagtail.contrib.images.blocks import ImageChooserBlock
+from wagtail.contrib.images.edit_handlers import ImageChooserPanel
+from wagtail.contrib.images.models import AbstractImage, AbstractRendition, Image
 from wagtail.search import index
 from wagtail.snippets.edit_handlers import SnippetChooserPanel
 from wagtail.snippets.models import register_snippet

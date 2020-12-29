@@ -176,16 +176,16 @@ PageChooserPanel
 ImageChooserPanel
 ~~~~~~~~~~~~~~~~~
 
-.. module:: wagtail.images.edit_handlers
+.. module:: wagtail.contrib.images.edit_handlers
 
 .. class:: ImageChooserPanel(field_name)
 
-    Wagtail includes a unified image library, which you can access in your models through the :class:`~wagtail.images.models.Image` model and the ``ImageChooserPanel`` chooser. Here's how:
+    Wagtail includes a unified image library, which you can access in your models through the :class:`~wagtail.contrib.images.models.Image` model and the ``ImageChooserPanel`` chooser. Here's how:
 
     .. code-block:: python
 
-      from wagtail.images.models import Image
-      from wagtail.images.edit_handlers import ImageChooserPanel
+      from wagtail.contrib.images.models import Image
+      from wagtail.contrib.images.edit_handlers import ImageChooserPanel
 
 
       class BookPage(Page):
@@ -228,16 +228,16 @@ FormSubmissionsPanel
 DocumentChooserPanel
 ~~~~~~~~~~~~~~~~~~~~
 
-.. module:: wagtail.documents.edit_handlers
+.. module:: wagtail.contrib.documents.edit_handlers
 
 .. class:: DocumentChooserPanel(field_name)
 
-    For files in other formats, Wagtail provides a generic file store through the :class:`~wagtail.documents.models.Document` model:
+    For files in other formats, Wagtail provides a generic file store through the :class:`~wagtail.contrib.documents.models.Document` model:
 
     .. code-block:: python
 
-      from wagtail.documents.models import Document
-      from wagtail.documents.edit_handlers import DocumentChooserPanel
+      from wagtail.contrib.documents.models import Document
+      from wagtail.contrib.documents.edit_handlers import DocumentChooserPanel
 
 
       class BookPage(Page):

@@ -474,7 +474,7 @@ Add a new ``BlogPageGalleryImage`` model to ``models.py``:
     from wagtail.models import Page, Orderable
     from wagtail.fields import RichTextField
     from wagtail.admin.edit_handlers import FieldPanel, InlinePanel
-    from wagtail.images.edit_handlers import ImageChooserPanel
+    from wagtail.contrib.images.edit_handlers import ImageChooserPanel
     from wagtail.search import index
 
 
@@ -637,7 +637,7 @@ First, alter ``models.py`` once more:
     from wagtail.models import Page, Orderable
     from wagtail.fields import RichTextField
     from wagtail.admin.edit_handlers import FieldPanel, InlinePanel, MultiFieldPanel
-    from wagtail.images.edit_handlers import ImageChooserPanel
+    from wagtail.contrib.images.edit_handlers import ImageChooserPanel
     from wagtail.search import index
 
 

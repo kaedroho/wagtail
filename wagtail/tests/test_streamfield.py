@@ -11,8 +11,8 @@ from wagtail import blocks
 from wagtail.blocks import StreamValue
 from wagtail.fields import StreamField
 from wagtail.rich_text import RichText
-from wagtail.images.models import Image
-from wagtail.images.tests.utils import get_test_image_file
+from wagtail.contrib.images.models import Image
+from wagtail.contrib.images.tests.utils import get_test_image_file
 from wagtail.test.testapp.models import StreamModel
 
 

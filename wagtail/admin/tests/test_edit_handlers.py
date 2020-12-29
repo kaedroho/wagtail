@@ -15,7 +15,7 @@ from wagtail.admin.forms import WagtailAdminModelForm, WagtailAdminPageForm
 from wagtail.admin.rich_text import DraftailRichTextArea
 from wagtail.admin.widgets import AdminAutoHeightTextInput, AdminDateInput, AdminPageChooser
 from wagtail.models import Page, Site
-from wagtail.images.edit_handlers import ImageChooserPanel
+from wagtail.contrib.images.edit_handlers import ImageChooserPanel
 from wagtail.test.testapp.forms import ValidatedPageForm
 from wagtail.test.testapp.models import (
     EventPage, EventPageChooserModel, EventPageSpeaker, PageChooserModel, RestaurantPage,

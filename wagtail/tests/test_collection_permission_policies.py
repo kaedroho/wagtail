@@ -6,7 +6,7 @@ from wagtail.models import Collection, GroupCollectionPermission
 from wagtail.permission_policies.collections import (
     CollectionOwnershipPermissionPolicy, CollectionPermissionPolicy)
 from wagtail.tests.test_permission_policies import PermissionPolicyTestUtils
-from wagtail.documents.models import Document
+from wagtail.contrib.documents.models import Document
 from wagtail.test.utils import WagtailTestUtils
 
 

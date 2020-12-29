@@ -22,12 +22,12 @@ In your settings file, add the following apps to ``INSTALLED_APPS``:
 
     'wagtail.contrib.forms',
     'wagtail.contrib.redirects',
-    'wagtail.embeds',
+    'wagtail.contrib.embeds',
     'wagtail.sites',
     'wagtail.users',
     'wagtail.snippets',
-    'wagtail.documents',
-    'wagtail.images',
+    'wagtail.contrib.documents',
+    'wagtail.contrib.images',
     'wagtail.search',
     'wagtail.admin',
     'wagtail',
@@ -73,7 +73,7 @@ Now make the following additions to your ``urls.py`` file:
 
     from wagtail.admin import urls as wagtailadmin_urls
     from wagtail import urls as wagtail_urls
-    from wagtail.documents import urls as wagtaildocs_urls
+    from wagtail.contrib.documents import urls as wagtaildocs_urls
 
     urlpatterns = [
         ...

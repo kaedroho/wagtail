@@ -11,9 +11,9 @@ from wagtail.admin.edit_handlers import FieldPanel, InlinePanel, MultiFieldPanel
 from wagtail.api import APIField
 from wagtail.fields import RichTextField
 from wagtail.models import Orderable, Page
-from wagtail.documents.edit_handlers import DocumentChooserPanel
-from wagtail.images.api.fields import ImageRenditionField
-from wagtail.images.edit_handlers import ImageChooserPanel
+from wagtail.contrib.documents.edit_handlers import DocumentChooserPanel
+from wagtail.contrib.images.api.fields import ImageRenditionField
+from wagtail.contrib.images.edit_handlers import ImageChooserPanel
 from wagtail.search import index
 
 

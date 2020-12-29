@@ -7,11 +7,11 @@ from wagtail.api.v2.views import PagesAPIViewSet
 from wagtail.contrib.sitemaps import Sitemap
 from wagtail.contrib.sitemaps import views as sitemaps_views
 from wagtail import urls as wagtail_urls
-from wagtail.documents import urls as wagtaildocs_urls
-from wagtail.documents.api.v2.views import DocumentsAPIViewSet
-from wagtail.images import urls as wagtailimages_urls
-from wagtail.images.api.v2.views import ImagesAPIViewSet
-from wagtail.images.tests import urls as wagtailimages_test_urls
+from wagtail.contrib.documents import urls as wagtaildocs_urls
+from wagtail.contrib.documents.api.v2.views import DocumentsAPIViewSet
+from wagtail.contrib.images import urls as wagtailimages_urls
+from wagtail.contrib.images.api.v2.views import ImagesAPIViewSet
+from wagtail.contrib.images.tests import urls as wagtailimages_test_urls
 from wagtail.test.testapp import urls as testapp_urls
 from wagtail.test.testapp.models import EventSitemap
 

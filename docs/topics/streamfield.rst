@@ -23,7 +23,7 @@ Using StreamField
     from wagtail.fields import StreamField
     from wagtail import blocks
     from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
-    from wagtail.images.blocks import ImageChooserBlock
+    from wagtail.contrib.images.blocks import ImageChooserBlock
 
     class BlogPage(Page):
         author = models.CharField(max_length=255)
@@ -326,14 +326,14 @@ A control for selecting a page object, using Wagtail's page browser. The followi
 DocumentChooserBlock
 ~~~~~~~~~~~~~~~~~~~~
 
-``wagtail.documents.blocks.DocumentChooserBlock``
+``wagtail.contrib.documents.blocks.DocumentChooserBlock``
 
 A control to allow the editor to select an existing document object, or upload a new one. The keyword argument ``required`` (default: True) is accepted.
 
 ImageChooserBlock
 ~~~~~~~~~~~~~~~~~
 
-``wagtail.images.blocks.ImageChooserBlock``
+``wagtail.contrib.images.blocks.ImageChooserBlock``
 
 A control to allow the editor to select an existing image, or upload a new one. The keyword argument ``required`` (default: True) is accepted.
 
@@ -347,7 +347,7 @@ A control to allow the editor to select a snippet object. Requires one positiona
 EmbedBlock
 ~~~~~~~~~~
 
-``wagtail.embeds.blocks.EmbedBlock``
+``wagtail.contrib.embeds.blocks.EmbedBlock``
 
 A field for the editor to enter a URL to a media item (such as a YouTube video) to appear as embedded media on the page. The keyword arguments ``required`` (default: True), ``max_length``, ``min_length`` and ``help_text`` are accepted.
 

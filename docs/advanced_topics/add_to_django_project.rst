@@ -57,12 +57,12 @@ Apps (``settings.py``)
 
     'wagtail.contrib.forms',
     'wagtail.contrib.redirects',
-    'wagtail.embeds',
+    'wagtail.contrib.embeds',
     'wagtail.sites',
     'wagtail.users',
     'wagtail.snippets',
-    'wagtail.documents',
-    'wagtail.images',
+    'wagtail.contrib.documents',
+    'wagtail.contrib.images',
     'wagtail.search',
     'wagtail.admin',
     'wagtail',
@@ -89,7 +89,7 @@ Wagtail Apps
 ``wagtail.admin``
   The administration interface for Wagtail, including page edit handlers.
 
-``wagtail.documents``
+``wagtail.contrib.documents``
   The Wagtail document content type.
 
 ``wagtail.snippets``
@@ -98,10 +98,10 @@ Wagtail Apps
 ``wagtail.users``
   User editing interface.
 
-``wagtail.images``
+``wagtail.contrib.images``
   The Wagtail image content type.
 
-``wagtail.embeds``
+``wagtail.contrib.embeds``
   Module governing oEmbed and Embedly content in Wagtail rich text fields. See :ref:`inserting_videos`.
 
 ``wagtail.search``
@@ -140,7 +140,7 @@ URL Patterns
 
   from wagtail import urls as wagtail_urls
   from wagtail.admin import urls as wagtailadmin_urls
-  from wagtail.documents import urls as wagtaildocs_urls
+  from wagtail.contrib.documents import urls as wagtaildocs_urls
 
   urlpatterns = [
       path('django-admin/', admin.site.urls),
@@ -193,12 +193,12 @@ These two files should reside in your project directory (``myproject/myproject/`
 
       'wagtail.contrib.forms',
       'wagtail.contrib.redirects',
-      'wagtail.embeds',
+      'wagtail.contrib.embeds',
       'wagtail.sites',
       'wagtail.users',
       'wagtail.snippets',
-      'wagtail.documents',
-      'wagtail.images',
+      'wagtail.contrib.documents',
+      'wagtail.contrib.images',
       'wagtail.search',
       'wagtail.admin',
       'wagtail',
@@ -380,7 +380,7 @@ These two files should reside in your project directory (``myproject/myproject/`
 
   from wagtail import urls as wagtail_urls
   from wagtail.admin import urls as wagtailadmin_urls
-  from wagtail.documents import urls as wagtaildocs_urls
+  from wagtail.contrib.documents import urls as wagtaildocs_urls
 
 
   urlpatterns = [

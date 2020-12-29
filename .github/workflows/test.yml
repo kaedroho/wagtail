@@ -187,7 +187,7 @@ jobs:
           pip install certifi
       - name: Test
         run: |
-          ./runtests.py wagtail.search wagtail.documents wagtail.images --elasticsearch5
+          ./runtests.py wagtail.search wagtail.contrib.documents wagtail.contrib.images --elasticsearch5
         env:
           DATABASE_ENGINE: django.db.backends.sqlite3
 
@@ -228,7 +228,7 @@ jobs:
           pip install certifi
       - name: Test
         run: |
-          ./runtests.py wagtail.search wagtail.documents wagtail.images --elasticsearch7
+          ./runtests.py wagtail.search wagtail.contrib.documents wagtail.contrib.images --elasticsearch7
         env:
           DATABASE_ENGINE: django.db.backends.sqlite3
           USE_EMAIL_USER_MODEL: ${{ matrix.emailuser }}
@@ -275,7 +275,7 @@ jobs:
           pip install certifi
       - name: Test
         run: |
-          ./runtests.py wagtail.search wagtail.documents wagtail.images --elasticsearch6
+          ./runtests.py wagtail.search wagtail.contrib.documents wagtail.contrib.images --elasticsearch6
         env:
           DATABASE_ENGINE: django.db.backends.postgresql
           DATABASE_HOST: localhost
@@ -323,7 +323,7 @@ jobs:
           pip install certifi
       - name: Test
         run: |
-          ./runtests.py wagtail.search wagtail.documents wagtail.images --elasticsearch7
+          ./runtests.py wagtail.search wagtail.contrib.documents wagtail.contrib.images --elasticsearch7
         env:
           DATABASE_ENGINE: django.db.backends.postgresql
           DATABASE_HOST: localhost

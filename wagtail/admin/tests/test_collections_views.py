@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from wagtail.models import Collection
-from wagtail.documents.models import Document
+from wagtail.contrib.documents.models import Document
 from wagtail.test.utils import WagtailTestUtils
 
 
