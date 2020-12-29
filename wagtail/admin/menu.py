@@ -4,7 +4,7 @@ from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 
-from wagtail.core import hooks
+from wagtail import hooks
 
 
 class MenuItem(metaclass=MediaDefiningClass):

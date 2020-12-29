@@ -5,8 +5,8 @@ from django.utils import translation
 from wagtail.admin.userbar import (
     AddPageItem, AdminItem, ApproveModerationEditPageItem, EditPageItem, ExplorePageItem,
     RejectModerationEditPageItem)
-from wagtail.core import hooks
-from wagtail.core.models import PAGE_TEMPLATE_VAR, Page, PageRevision
+from wagtail import hooks
+from wagtail.models import PAGE_TEMPLATE_VAR, Page, PageRevision
 from wagtail.users.models import UserProfile
 
 

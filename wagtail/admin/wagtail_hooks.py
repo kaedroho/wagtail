@@ -24,11 +24,11 @@ from wagtail.admin.site_summary import PagesSummaryItem
 from wagtail.admin.views.account import email_management_enabled, password_management_enabled
 from wagtail.admin.viewsets import viewsets
 from wagtail.admin.widgets import Button, ButtonWithDropdownFromHook, PageListingButton
-from wagtail.core import hooks
-from wagtail.core.models import UserPagePermissionsProxy
-from wagtail.core.permissions import (
+from wagtail import hooks
+from wagtail.models import UserPagePermissionsProxy
+from wagtail.permissions import (
     collection_permission_policy, task_permission_policy, workflow_permission_policy)
-from wagtail.core.whitelist import allow_without_attributes, attribute_rule, check_url
+from wagtail.whitelist import allow_without_attributes, attribute_rule, check_url
 
 
 class ExplorerMenuItem(MenuItem):

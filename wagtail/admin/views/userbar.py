@@ -3,8 +3,8 @@ from django.template.response import TemplateResponse
 
 from wagtail.admin.userbar import (
     AddPageItem, ApproveModerationEditPageItem, EditPageItem, RejectModerationEditPageItem)
-from wagtail.core import hooks
-from wagtail.core.models import Page, PageRevision
+from wagtail import hooks
+from wagtail.models import Page, PageRevision
 
 
 @permission_required('wagtailadmin.access_admin', raise_exception=True)

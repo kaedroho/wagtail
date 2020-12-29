@@ -8,7 +8,7 @@ from wagtail.admin import widgets
 from wagtail.admin.edit_handlers import FieldPanel, InlinePanel, ObjectList
 from wagtail.admin.forms import WagtailAdminModelForm
 from wagtail.admin.widgets.workflows import AdminTaskChooser
-from wagtail.core.models import Page, Task, Workflow, WorkflowPage
+from wagtail.models import Page, Task, Workflow, WorkflowPage
 from wagtail.coreutils import get_model_string
 
 

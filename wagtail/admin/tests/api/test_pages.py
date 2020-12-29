@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from wagtail.api.v2.tests.test_pages import TestPageDetail, TestPageListing
-from wagtail.core.models import Locale, Page
+from wagtail.models import Locale, Page
 from wagtail.test.demosite import models
 from wagtail.test.testapp.models import SimplePage, StreamPage
 from wagtail.users.models import UserProfile

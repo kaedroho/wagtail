@@ -2,8 +2,8 @@ from django.test import TestCase
 from django.urls import reverse
 
 from wagtail.admin import widgets as wagtailadmin_widgets
-from wagtail.core import hooks
-from wagtail.core.models import Page
+from wagtail import hooks
+from wagtail.models import Page
 from wagtail.test.utils import WagtailTestUtils
 
 

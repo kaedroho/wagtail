@@ -11,7 +11,7 @@ from wagtail.admin.filters import (
     LockedPagesReportFilterSet, SiteHistoryReportFilterSet, WorkflowReportFilterSet,
     WorkflowTasksReportFilterSet)
 from wagtail.admin.views.mixins import SpreadsheetExportMixin
-from wagtail.core.models import (
+from wagtail.models import (
     Page, PageLogEntry, TaskState, UserPagePermissionsProxy, WorkflowState)
 
 

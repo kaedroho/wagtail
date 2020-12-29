@@ -33,7 +33,7 @@ def css_install_check(app_configs, **kwargs):
 @register()
 def base_form_class_check(app_configs, **kwargs):
     from wagtail.admin.forms import WagtailAdminPageForm
-    from wagtail.core.models import get_page_models
+    from wagtail.models import get_page_models
 
     errors = []
 
@@ -54,7 +54,7 @@ def base_form_class_check(app_configs, **kwargs):
 @register()
 def get_form_class_check(app_configs, **kwargs):
     from wagtail.admin.forms import WagtailAdminPageForm
-    from wagtail.core.models import get_page_models
+    from wagtail.models import get_page_models
 
     errors = []
 
@@ -74,7 +74,7 @@ def get_form_class_check(app_configs, **kwargs):
 
 @register('panels')
 def inline_panel_model_panels_check(app_configs, **kwargs):
-    from wagtail.core.models import get_page_models
+    from wagtail.models import get_page_models
 
     errors = []
     page_models = get_page_models()
@@ -93,7 +93,7 @@ def inline_panel_model_panels_check(app_configs, **kwargs):
 def check_panels_in_model(cls, context='model'):
     """Check panels configuration uses `panels` when `edit_handler` not in use."""
     from wagtail.admin.edit_handlers import BaseCompositeEditHandler, InlinePanel
-    from wagtail.core.models import Page
+    from wagtail.models import Page
 
     errors = []
 

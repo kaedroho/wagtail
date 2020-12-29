@@ -12,7 +12,7 @@ from django.utils.translation import override
 from django.views.decorators.debug import sensitive_post_parameters
 
 from wagtail.admin.forms.auth import LoginForm, PasswordResetForm
-from wagtail.core import hooks
+from wagtail import hooks
 from wagtail.users.forms import (
     AvatarPreferencesForm, CurrentTimeZoneForm, EmailForm, NameForm, NotificationPreferencesForm,
     PreferredLanguageForm)

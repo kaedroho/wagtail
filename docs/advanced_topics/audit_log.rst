@@ -30,7 +30,7 @@ You can provide additional metadata by passing additional parameters:
 .. code-block:: python
 
     # mypackage/views.py
-    from wagtail.core.models import PageLogEntry
+    from wagtail.models import PageLogEntry
 
     def copy_for_translation(page):
         # ...

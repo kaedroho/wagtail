@@ -10,7 +10,7 @@ from django.utils.translation import gettext as _
 from wagtail.admin.auth import user_has_any_page_permission, user_passes_test
 from wagtail.admin.filters import PageHistoryReportFilterSet
 from wagtail.admin.views.reports import ReportView
-from wagtail.core.models import (
+from wagtail.models import (
     Page, PageLogEntry, PageRevision, TaskState, UserPagePermissionsProxy, WorkflowState)
 
 

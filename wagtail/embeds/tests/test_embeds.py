@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from wagtail.core import blocks
+from wagtail import blocks
 from wagtail.embeds import oembed_providers
 from wagtail.embeds.blocks import EmbedBlock, EmbedValue
 from wagtail.embeds.embeds import get_embed

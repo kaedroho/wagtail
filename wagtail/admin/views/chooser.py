@@ -7,8 +7,8 @@ from wagtail.admin.forms.choosers import (
     AnchorLinkChooserForm, EmailLinkChooserForm, ExternalLinkChooserForm, PhoneLinkChooserForm)
 from wagtail.admin.forms.search import SearchForm
 from wagtail.admin.modal_workflow import render_modal_workflow
-from wagtail.core import hooks
-from wagtail.core.models import Page, UserPagePermissionsProxy
+from wagtail import hooks
+from wagtail.models import Page, UserPagePermissionsProxy
 from wagtail.coreutils import resolve_model_string
 
 

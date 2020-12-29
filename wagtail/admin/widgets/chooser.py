@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from wagtail.admin.staticfiles import versioned_static
-from wagtail.core.models import Page
+from wagtail.models import Page
 from wagtail.utils.widgets import WidgetWithScript
 
 

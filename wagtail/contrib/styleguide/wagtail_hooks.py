@@ -2,7 +2,7 @@ from django.urls import path, reverse
 from django.utils.translation import gettext_lazy as _
 
 from wagtail.admin.menu import MenuItem
-from wagtail.core import hooks
+from wagtail import hooks
 
 from . import views
 

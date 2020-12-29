@@ -7,7 +7,7 @@ from django_filters.widgets import SuffixedMultiWidget
 
 from wagtail.admin.log_action_registry import registry as log_action_registry
 from wagtail.admin.widgets import AdminDateInput, BooleanButtonSelect, ButtonSelect, FilteredSelect
-from wagtail.core.models import Page, PageLogEntry, Task, TaskState, Workflow, WorkflowState
+from wagtail.models import Page, PageLogEntry, Task, TaskState, Workflow, WorkflowState
 
 
 class DateRangePickerWidget(SuffixedMultiWidget):

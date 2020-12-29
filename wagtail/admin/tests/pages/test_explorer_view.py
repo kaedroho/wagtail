@@ -5,7 +5,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from wagtail.admin.tests.pages.timestamps import local_datetime
-from wagtail.core.models import GroupPagePermission, Locale, Page
+from wagtail.models import GroupPagePermission, Locale, Page
 from wagtail.test.testapp.models import SimplePage, SingleEventPage, StandardIndex
 from wagtail.test.utils import WagtailTestUtils
 

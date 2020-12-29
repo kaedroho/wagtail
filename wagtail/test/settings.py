@@ -82,11 +82,11 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.jinja2.Jinja2',
         'APP_DIRS': False,
         'DIRS': [
-            os.path.join(WAGTAIL_ROOT, 'tests', 'testapp', 'jinja2_templates'),
+            os.path.join(WAGTAIL_ROOT, 'test', 'testapp', 'jinja2_templates'),
         ],
         'OPTIONS': {
             'extensions': [
-                'wagtail.core.jinja2tags.core',
+                'wagtail.jinja2tags.core',
                 'wagtail.admin.jinja2tags.userbar',
                 'wagtail.images.jinja2tags.images',
                 'wagtail.contrib.settings.jinja2tags.settings',
@@ -138,7 +138,7 @@ INSTALLED_APPS = [
     'wagtail.documents',
     'wagtail.admin',
     'wagtail.api.v2',
-    'wagtail.core',
+    'wagtail',
 
     'taggit',
     'rest_framework',

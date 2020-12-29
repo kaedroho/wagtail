@@ -8,9 +8,9 @@ from django.urls import reverse
 from django.views.decorators.cache import cache_control
 from django.views.decorators.http import etag
 
-from wagtail.core import hooks
-from wagtail.core.forms import PasswordViewRestrictionForm
-from wagtail.core.models import CollectionViewRestriction
+from wagtail import hooks
+from wagtail.forms import PasswordViewRestrictionForm
+from wagtail.models import CollectionViewRestriction
 from wagtail.documents import get_document_model
 from wagtail.documents.models import document_served
 from wagtail.utils import sendfile_streaming_backend

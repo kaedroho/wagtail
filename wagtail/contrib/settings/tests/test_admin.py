@@ -6,8 +6,8 @@ from django.utils.text import capfirst
 from wagtail.admin.edit_handlers import FieldPanel, ObjectList, TabbedInterface
 from wagtail.contrib.settings.registry import SettingMenuItem
 from wagtail.contrib.settings.views import get_setting_edit_handler
-from wagtail.core import hooks
-from wagtail.core.models import Page, Site
+from wagtail import hooks
+from wagtail.models import Page, Site
 from wagtail.test.testapp.models import (
     FileUploadSetting, IconSetting, PanelSettings, TabbedSettings, TestSetting)
 from wagtail.test.utils import WagtailTestUtils

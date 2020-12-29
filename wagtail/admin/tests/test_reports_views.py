@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.utils import timezone
 from openpyxl import load_workbook
 
-from wagtail.core.models import Page
+from wagtail.models import Page
 from wagtail.test.utils import WagtailTestUtils
 
 

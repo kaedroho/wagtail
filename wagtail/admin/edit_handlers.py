@@ -13,8 +13,8 @@ from django.utils.translation import gettext_lazy
 from taggit.managers import TaggableManager
 
 from wagtail.admin import compare, widgets
-from wagtail.core.fields import RichTextField
-from wagtail.core.models import Page
+from wagtail.fields import RichTextField
+from wagtail.models import Page
 from wagtail.coreutils import camelcase_to_underscore, resolve_model_string
 from wagtail.utils.decorators import cached_classmethod
 

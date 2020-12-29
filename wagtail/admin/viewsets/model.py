@@ -3,7 +3,7 @@ from django.forms.models import modelform_factory
 from django.urls import path
 
 from wagtail.admin.views import generic
-from wagtail.core.permissions import ModelPermissionPolicy
+from wagtail.permissions import ModelPermissionPolicy
 
 from .base import ViewSet
 

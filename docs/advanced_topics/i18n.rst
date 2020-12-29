@@ -305,7 +305,7 @@ this and you can write your own logic if you need to.
 
 All Wagtail needs is the language to be activated (using Django's
 ``django.utils.translation.activate`` function) before the
-``wagtail.core.views.serve`` view is called.
+``wagtail.views.serve`` view is called.
 
 Recipes for internationalised sites
 -----------------------------------
@@ -480,7 +480,7 @@ For more information, see :ref:`apiv2_i18n_filters`.
 Translatable snippets
 ^^^^^^^^^^^^^^^^^^^^^
 
-You can make a snippet translatable by making it inherit from ``wagtail.core.models.TranslatableMixin``.
+You can make a snippet translatable by making it inherit from ``wagtail.models.TranslatableMixin``.
 For example:
 
 .. code-block:: python
@@ -489,7 +489,7 @@ For example:
 
     from django.db import models
 
-    from wagtail.core.models import TranslatableMixin
+    from wagtail.models import TranslatableMixin
     from wagtail.snippets.models import register_snippet
 
 
@@ -525,7 +525,7 @@ This will add the two fields without any constraints:
 
     from django.db import models
 
-    from wagtail.core.models import BootstrapTranslatableMixin
+    from wagtail.models import BootstrapTranslatableMixin
     from wagtail.snippets.models import register_snippet
 
 
@@ -556,7 +556,7 @@ in that app:
 .. code-block:: python
 
     from django.db import migrations
-    from wagtail.core.models import BootstrapTranslatableModel
+    from wagtail.models import BootstrapTranslatableModel
 
     class Migration(migrations.Migration):
         dependencies = [
@@ -582,7 +582,7 @@ constraints:
 
     # myapp/models.py
 
-    from wagtail.core.models import TranslatableMixin  # Change this line
+    from wagtail.models import TranslatableMixin  # Change this line
 
     @register_snippet
     class Advert(TranslatableMixin, models.Model):  # Change this line

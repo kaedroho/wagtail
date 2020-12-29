@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
-from wagtail.core import hooks
+from wagtail import hooks
 from wagtail.snippets.permissions import get_permission_name
 
 

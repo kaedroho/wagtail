@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 
 from django.test import TestCase, override_settings
 
-from wagtail.core import hooks
+from wagtail import hooks
 from wagtail.images import image_operations
 from wagtail.images.exceptions import InvalidFilterSpecError
 from wagtail.images.models import Filter, Image

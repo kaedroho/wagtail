@@ -8,7 +8,7 @@ from django.template.loader import render_to_string
 from django.utils.translation import override
 
 from wagtail.admin.auth import users_with_page_permission
-from wagtail.core.models import GroupApprovalTask, PageRevision, TaskState, WorkflowState
+from wagtail.models import GroupApprovalTask, PageRevision, TaskState, WorkflowState
 from wagtail.coreutils import camelcase_to_underscore
 from wagtail.users.models import UserProfile
 

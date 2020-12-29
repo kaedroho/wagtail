@@ -2,7 +2,7 @@
 Page QuerySet reference
 =======================
 
-All models that inherit from :class:`~wagtail.core.models.Page` are given some extra QuerySet methods accessible from their ``.objects`` attribute.
+All models that inherit from :class:`~wagtail.models.Page` are given some extra QuerySet methods accessible from their ``.objects`` attribute.
 
 
 Examples
@@ -31,7 +31,7 @@ Examples
 Reference
 =========
 
-.. automodule:: wagtail.core.query
+.. automodule:: wagtail.query
 .. autoclass:: PageQuerySet
 
     .. automethod:: live
@@ -249,6 +249,6 @@ Reference
             # in a minimum number of database queries.
             homepage.get_children().specific()
 
-        See also: :py:attr:`Page.specific <wagtail.core.models.Page.specific>`
+        See also: :py:attr:`Page.specific <wagtail.models.Page.specific>`
 
     .. automethod:: first_common_ancestor

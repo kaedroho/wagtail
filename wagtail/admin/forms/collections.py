@@ -7,7 +7,7 @@ from django.db.models import Min
 from django.template.loader import render_to_string
 from django.utils.translation import gettext as _
 
-from wagtail.core.models import Collection, CollectionViewRestriction, GroupCollectionPermission
+from wagtail.models import Collection, CollectionViewRestriction, GroupCollectionPermission
 
 from .view_restrictions import BaseViewRestrictionForm
 

@@ -8,7 +8,7 @@ from openpyxl import load_workbook
 
 from wagtail.admin.edit_handlers import FieldPanel, TabbedInterface
 from wagtail.contrib.modeladmin.helpers.search import DjangoORMSearchHandler
-from wagtail.core.models import Page
+from wagtail.models import Page
 from wagtail.images.models import Image
 from wagtail.images.tests.utils import get_test_image_file
 from wagtail.test.modeladmintest.models import Author, Book, Publisher, RelatedLink, Token

@@ -6,7 +6,7 @@ from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 
 from wagtail.admin.forms.search import SearchForm
-from wagtail.core import hooks
+from wagtail import hooks
 
 
 @total_ordering

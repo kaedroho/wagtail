@@ -17,7 +17,7 @@ from wagtail.admin.urls import reports as wagtailadmin_reports_urls
 from wagtail.admin.urls import workflows as wagtailadmin_workflows_urls
 from wagtail.admin.views import account, chooser, home, tags, userbar
 from wagtail.admin.views.pages import listing
-from wagtail.core import hooks
+from wagtail import hooks
 from wagtail.utils.urlpatterns import decorate_urlpatterns
 
 

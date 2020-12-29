@@ -8,7 +8,7 @@ from django.utils.functional import cached_property
 from wagtail.admin.edit_handlers import RichTextFieldPanel
 from wagtail.admin.rich_text.converters.editor_html import EditorHTMLConverter
 from wagtail.admin.staticfiles import versioned_static
-from wagtail.core.rich_text import features
+from wagtail.rich_text import features
 
 
 class HalloPlugin:

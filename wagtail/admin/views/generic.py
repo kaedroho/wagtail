@@ -8,13 +8,13 @@ from django.views.generic.edit import BaseCreateView, BaseDeleteView, BaseUpdate
 from django.views.generic.list import BaseListView
 
 from wagtail.admin import messages
-from wagtail.core import hooks
+from wagtail import hooks
 
 
 class PermissionCheckedMixin:
     """
     Mixin for class-based views to enforce permission checks according to
-    a permission policy (see wagtail.core.permission_policies).
+    a permission policy (see wagtail.permission_policies).
 
     To take advantage of this, subclasses should set the class property:
     * permission_policy (a policy object)

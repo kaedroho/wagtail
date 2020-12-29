@@ -16,8 +16,8 @@ from wagtail.admin import messages
 from wagtail.admin.action_menu import PageActionMenu
 from wagtail.admin.views.generic import HookResponseMixin
 from wagtail.admin.views.pages.utils import get_valid_next_url_from_request
-from wagtail.core.exceptions import PageClassNotFoundError
-from wagtail.core.models import Page, UserPagePermissionsProxy, WorkflowState
+from wagtail.exceptions import PageClassNotFoundError
+from wagtail.models import Page, UserPagePermissionsProxy, WorkflowState
 
 
 class EditView(TemplateResponseMixin, ContextMixin, HookResponseMixin, View):

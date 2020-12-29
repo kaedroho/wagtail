@@ -11,8 +11,8 @@ from django.template.response import TemplateResponse
 
 from wagtail.admin.navigation import get_site_for_user
 from wagtail.admin.site_summary import SiteSummaryPanel
-from wagtail.core import hooks
-from wagtail.core.models import (
+from wagtail import hooks
+from wagtail.models import (
     Page, PageRevision, TaskState, UserPagePermissionsProxy, WorkflowState)
 
 

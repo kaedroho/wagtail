@@ -11,9 +11,9 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from freezegun import freeze_time
 
-from wagtail.core.models import (
+from wagtail.models import (
     GroupApprovalTask, Page, Task, TaskState, Workflow, WorkflowPage, WorkflowState, WorkflowTask)
-from wagtail.core.signals import page_published
+from wagtail.signals import page_published
 from wagtail.test.testapp.models import SimplePage, SimpleTask
 from wagtail.test.utils import WagtailTestUtils
 from wagtail.users.models import UserProfile

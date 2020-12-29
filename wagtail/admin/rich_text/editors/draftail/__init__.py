@@ -6,7 +6,7 @@ from django.utils.functional import cached_property
 from wagtail.admin.edit_handlers import RichTextFieldPanel
 from wagtail.admin.rich_text.converters.contentstate import ContentstateConverter
 from wagtail.admin.staticfiles import versioned_static
-from wagtail.core.rich_text import features as feature_registry
+from wagtail.rich_text import features as feature_registry
 
 
 class DraftailRichTextArea(widgets.HiddenInput):

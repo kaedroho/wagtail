@@ -10,7 +10,7 @@ from wagtail.admin.rich_text import HalloPlugin
 from wagtail.admin.rich_text.converters.html_to_contentstate import BlockElementHandler
 from wagtail.admin.search import SearchArea
 from wagtail.admin.widgets import Button
-from wagtail.core import hooks
+from wagtail import hooks
 
 
 # Register one hook using decorators...
