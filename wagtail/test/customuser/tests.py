@@ -5,7 +5,7 @@ from django.conf import settings
 from django.db import connections
 from django.test import TestCase
 
-from wagtail.tests.utils import WagtailTestUtils
+from wagtail.test.utils import WagtailTestUtils
 
 from .fields import ConvertedValue, ConvertedValueField
 

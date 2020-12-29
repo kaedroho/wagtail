@@ -17,7 +17,7 @@ from django.utils.translation import get_language
 from wagtail.admin.localization import (
     WAGTAILADMIN_PROVIDED_LANGUAGES, get_available_admin_languages, get_available_admin_time_zones)
 from wagtail.admin.views.account import change_password
-from wagtail.tests.utils import WagtailTestUtils
+from wagtail.test.utils import WagtailTestUtils
 from wagtail.users.models import UserProfile
 
 

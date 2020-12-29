@@ -3,7 +3,7 @@
 from django.db import migrations
 import wagtail.core.blocks
 import wagtail.core.fields
-import wagtail.tests.testapp.models
+import wagtail.test.testapp.models
 
 
 class Migration(migrations.Migration):
@@ -16,6 +16,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='streampage',
             name='body',
-            field=wagtail.core.fields.StreamField((('text', wagtail.core.blocks.CharBlock()), ('rich_text', wagtail.core.blocks.RichTextBlock()), ('image', wagtail.tests.testapp.models.ExtendedImageChooserBlock()), ('product', wagtail.core.blocks.StructBlock((('name', wagtail.core.blocks.CharBlock()), ('price', wagtail.core.blocks.CharBlock())))))),
+            field=wagtail.core.fields.StreamField((('text', wagtail.core.blocks.CharBlock()), ('rich_text', wagtail.core.blocks.RichTextBlock()), ('image', wagtail.test.testapp.models.ExtendedImageChooserBlock()), ('product', wagtail.core.blocks.StructBlock((('name', wagtail.core.blocks.CharBlock()), ('price', wagtail.core.blocks.CharBlock())))))),
         ),
     ]

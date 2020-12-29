@@ -1,6 +1,6 @@
 from django.urls import path
 
-from wagtail.tests.testapp.views import bob_only_zone, message_test
+from wagtail.test.testapp.views import bob_only_zone, message_test
 
 
 urlpatterns = [

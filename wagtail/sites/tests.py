@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from wagtail.core.models import Page, Site
-from wagtail.tests.utils import WagtailTestUtils
+from wagtail.test.utils import WagtailTestUtils
 
 
 class TestSiteIndexView(TestCase, WagtailTestUtils):

@@ -3,6 +3,6 @@ from django.utils.translation import gettext_lazy as _
 
 
 class WagtailTestsAppConfig(AppConfig):
-    name = 'wagtail.tests.testapp'
-    label = 'tests'
-    verbose_name = _("Wagtail tests")
+    name = 'wagtail.test.modeladmintest'
+    label = 'modeladmintest'
+    verbose_name = _("Test Wagtail Model Admin")

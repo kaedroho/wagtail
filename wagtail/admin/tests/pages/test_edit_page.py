@@ -16,12 +16,12 @@ from wagtail.admin.tests.pages.timestamps import submittable_timestamp
 from wagtail.core.exceptions import PageClassNotFoundError
 from wagtail.core.models import GroupPagePermission, Locale, Page, PageRevision, Site
 from wagtail.core.signals import page_published
-from wagtail.tests.testapp.models import (
+from wagtail.test.testapp.models import (
     EVENT_AUDIENCE_CHOICES, Advert, AdvertPlacement, EventCategory, EventPage,
     EventPageCarouselItem, FilePage, ManyToManyBlogPage, SimplePage, SingleEventPage, StandardIndex,
     TaggedPage)
-from wagtail.tests.utils import WagtailTestUtils
-from wagtail.tests.utils.form_data import inline_formset, nested_form_data
+from wagtail.test.utils import WagtailTestUtils
+from wagtail.test.utils.form_data import inline_formset, nested_form_data
 
 
 class TestPageEdit(TestCase, WagtailTestUtils):

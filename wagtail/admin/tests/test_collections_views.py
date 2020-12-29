@@ -3,7 +3,7 @@ from django.urls import reverse
 
 from wagtail.core.models import Collection
 from wagtail.documents.models import Document
-from wagtail.tests.utils import WagtailTestUtils
+from wagtail.test.utils import WagtailTestUtils
 
 
 class TestCollectionsIndexView(TestCase, WagtailTestUtils):

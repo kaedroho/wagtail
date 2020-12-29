@@ -6,7 +6,7 @@ from django.test import TestCase
 from wagtail import __version__
 from wagtail.core import blocks
 from wagtail.core.models import Page, Site
-from wagtail.tests.testapp.blocks import SectionBlock
+from wagtail.test.testapp.blocks import SectionBlock
 
 
 class TestCoreGlobalsAndFilters(TestCase):

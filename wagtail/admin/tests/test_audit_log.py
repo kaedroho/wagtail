@@ -9,8 +9,8 @@ from freezegun import freeze_time
 
 from wagtail.admin.log_action_registry import LogActionRegistry
 from wagtail.core.models import GroupPagePermission, Page, PageLogEntry, PageViewRestriction
-from wagtail.tests.testapp.models import SimplePage
-from wagtail.tests.utils import WagtailTestUtils
+from wagtail.test.testapp.models import SimplePage
+from wagtail.test.utils import WagtailTestUtils
 
 
 def test_hook(actions):

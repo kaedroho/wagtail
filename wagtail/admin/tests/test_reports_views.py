@@ -9,7 +9,7 @@ from django.utils import timezone
 from openpyxl import load_workbook
 
 from wagtail.core.models import Page
-from wagtail.tests.utils import WagtailTestUtils
+from wagtail.test.utils import WagtailTestUtils
 
 
 class TestLockedPagesView(TestCase, WagtailTestUtils):

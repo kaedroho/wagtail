@@ -2,7 +2,7 @@
 The ``assertCanCreate`` method requires page data to be passed in
 the same format that the page edit form would submit. For complex
 page types, it can be difficult to construct this data structure by hand;
-the ``wagtail.tests.utils.form_data`` module provides a set of helper
+the ``wagtail.test.utils.form_data`` module provides a set of helper
 functions to assist with this.
 """
 

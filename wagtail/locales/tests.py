@@ -3,7 +3,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from wagtail.core.models import Locale, Page
-from wagtail.tests.utils import WagtailTestUtils
+from wagtail.test.utils import WagtailTestUtils
 
 
 class TestLocaleIndexView(TestCase, WagtailTestUtils):

@@ -12,8 +12,8 @@ from wagtail.documents.api.v2.views import DocumentsAPIViewSet
 from wagtail.images import urls as wagtailimages_urls
 from wagtail.images.api.v2.views import ImagesAPIViewSet
 from wagtail.images.tests import urls as wagtailimages_test_urls
-from wagtail.tests.testapp import urls as testapp_urls
-from wagtail.tests.testapp.models import EventSitemap
+from wagtail.test.testapp import urls as testapp_urls
+from wagtail.test.testapp.models import EventSitemap
 
 
 api_router = WagtailAPIRouter('wagtailapi_v2')

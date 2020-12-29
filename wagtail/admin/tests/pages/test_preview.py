@@ -7,8 +7,8 @@ from freezegun import freeze_time
 
 from wagtail.admin.views.pages.preview import PreviewOnEdit
 from wagtail.core.models import Page
-from wagtail.tests.testapp.models import EventCategory, SimplePage, StreamPage
-from wagtail.tests.utils import WagtailTestUtils
+from wagtail.test.testapp.models import EventCategory, SimplePage, StreamPage
+from wagtail.test.utils import WagtailTestUtils
 
 
 class TestIssue2599(TestCase, WagtailTestUtils):

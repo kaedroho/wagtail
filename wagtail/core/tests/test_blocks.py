@@ -20,10 +20,10 @@ from django.utils.translation import gettext_lazy as __
 from wagtail.core import blocks
 from wagtail.core.models import Page
 from wagtail.core.rich_text import RichText
-from wagtail.tests.testapp.blocks import LinkBlock as CustomLinkBlock
-from wagtail.tests.testapp.blocks import SectionBlock
-from wagtail.tests.testapp.models import EventPage, SimplePage
-from wagtail.tests.utils import WagtailTestUtils
+from wagtail.test.testapp.blocks import LinkBlock as CustomLinkBlock
+from wagtail.test.testapp.blocks import SectionBlock
+from wagtail.test.testapp.models import EventPage, SimplePage
+from wagtail.test.utils import WagtailTestUtils
 
 
 class FooStreamBlock(blocks.StreamBlock):

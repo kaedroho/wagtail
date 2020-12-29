@@ -17,8 +17,8 @@ from wagtail.search.backends import (
 from wagtail.search.backends.base import FieldError, FilterFieldError
 from wagtail.search.backends.db import DatabaseSearchBackend
 from wagtail.search.query import MATCH_ALL, MATCH_NONE, And, Boost, Not, Or, Phrase, PlainText
-from wagtail.tests.search import models
-from wagtail.tests.utils import WagtailTestUtils
+from wagtail.test.search import models
+from wagtail.test.utils import WagtailTestUtils
 
 
 class BackendTests(WagtailTestUtils):

@@ -7,7 +7,7 @@ from wagtail.core.permission_policies.collections import (
     CollectionOwnershipPermissionPolicy, CollectionPermissionPolicy)
 from wagtail.core.tests.test_permission_policies import PermissionPolicyTestUtils
 from wagtail.documents.models import Document
-from wagtail.tests.utils import WagtailTestUtils
+from wagtail.test.utils import WagtailTestUtils
 
 
 class PermissionPolicyTestCase(PermissionPolicyTestUtils, TestCase, WagtailTestUtils):

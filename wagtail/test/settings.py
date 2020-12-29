@@ -46,7 +46,7 @@ if DATABASES['default']['ENGINE'] == 'django.db.backends.mysql':
 
 SECRET_KEY = 'not needed'
 
-ROOT_URLCONF = 'wagtail.tests.urls'
+ROOT_URLCONF = 'wagtail.test.urls'
 
 STATIC_URL = '/static/'
 
@@ -72,7 +72,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.request',
-                'wagtail.tests.context_processors.do_not_use_static_url',
+                'wagtail.test.context_processors.do_not_use_static_url',
                 'wagtail.contrib.settings.context_processors.settings',
             ],
             'debug': True,  # required in order to catch template errors
@@ -103,7 +103,7 @@ MIDDLEWARE = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'wagtail.tests.middleware.BlockDodgyUserAgentMiddleware',
+    'wagtail.test.middleware.BlockDodgyUserAgentMiddleware',
     'wagtail.contrib.redirects.middleware.RedirectMiddleware',
 )
 
@@ -113,13 +113,13 @@ INSTALLED_APPS = [
     # app which uses AppConfigs to test that hooks load properly
     'wagtail.contrib.redirects.apps.WagtailRedirectsAppConfig',
 
-    'wagtail.tests.testapp',
-    'wagtail.tests.demosite',
-    'wagtail.tests.snippets',
-    'wagtail.tests.routablepage',
-    'wagtail.tests.search',
-    'wagtail.tests.modeladmintest',
-    'wagtail.tests.i18n',
+    'wagtail.test.testapp',
+    'wagtail.test.demosite',
+    'wagtail.test.snippets',
+    'wagtail.test.routablepage',
+    'wagtail.test.search',
+    'wagtail.test.modeladmintest',
+    'wagtail.test.i18n',
     'wagtail.contrib.styleguide',
     'wagtail.contrib.routable_page',
     'wagtail.contrib.frontend_cache',
@@ -176,11 +176,11 @@ WAGTAILSEARCH_BACKENDS = {
 }
 
 if os.environ.get('USE_EMAIL_USER_MODEL'):
-    INSTALLED_APPS.append('wagtail.tests.emailuser')
+    INSTALLED_APPS.append('wagtail.test.emailuser')
     AUTH_USER_MODEL = 'emailuser.EmailUser'
     print("EmailUser (no username) user model active")
 else:
-    INSTALLED_APPS.append('wagtail.tests.customuser')
+    INSTALLED_APPS.append('wagtail.test.customuser')
     AUTH_USER_MODEL = 'customuser.CustomUser'
     # Extra user field for custom user edit and create form tests. This setting
     # needs to here because it is used at the module level of wagtailusers.forms
@@ -230,7 +230,7 @@ WAGTAILADMIN_RICH_TEXT_EDITORS = {
         'WIDGET': 'wagtail.admin.rich_text.HalloRichTextArea'
     },
     'custom': {
-        'WIDGET': 'wagtail.tests.testapp.rich_text.CustomRichTextArea'
+        'WIDGET': 'wagtail.test.testapp.rich_text.CustomRichTextArea'
     },
 }
 
