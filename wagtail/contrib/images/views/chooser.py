@@ -8,7 +8,7 @@ from django.utils.translation import gettext as _
 from wagtail.admin.auth import PermissionPolicyChecker
 from wagtail.admin.forms.search import SearchForm
 from wagtail.admin.modal_workflow import render_modal_workflow
-from wagtail.admin.models import popular_tags_for_model
+from wagtail.models import popular_tags_for_model
 from wagtail import hooks
 from wagtail.models import Collection
 from wagtail.contrib.images import get_image_model
