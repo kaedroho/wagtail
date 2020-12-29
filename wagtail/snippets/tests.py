@@ -14,7 +14,7 @@ from django.test.utils import override_settings
 from django.urls import reverse
 from taggit.models import Tag
 
-from wagtail.admin.edit_handlers import FieldPanel
+from wagtail.edit_handlers import FieldPanel
 from wagtail.admin.forms import WagtailAdminModelForm
 from wagtail import hooks
 from wagtail.models import Locale, Page

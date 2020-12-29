@@ -6,7 +6,7 @@ from django.core import checks
 from django.test import TestCase
 from openpyxl import load_workbook
 
-from wagtail.admin.edit_handlers import FieldPanel, TabbedInterface
+from wagtail.edit_handlers import FieldPanel, TabbedInterface
 from wagtail.contrib.modeladmin.helpers.search import DjangoORMSearchHandler
 from wagtail.models import Page
 from wagtail.contrib.images.models import Image

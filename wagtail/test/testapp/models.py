@@ -19,7 +19,7 @@ from modelcluster.models import ClusterableModel
 from taggit.managers import TaggableManager
 from taggit.models import ItemBase, TagBase, TaggedItemBase
 
-from wagtail.admin.edit_handlers import (
+from wagtail.edit_handlers import (
     FieldPanel, InlinePanel, MultiFieldPanel, ObjectList, PageChooserPanel, StreamFieldPanel,
     TabbedInterface)
 from wagtail.admin.forms import WagtailAdminPageForm

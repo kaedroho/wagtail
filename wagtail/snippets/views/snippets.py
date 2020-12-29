@@ -14,7 +14,7 @@ from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
 
 from wagtail.admin import messages
-from wagtail.admin.edit_handlers import ObjectList, extract_panel_definitions_from_model_class
+from wagtail.edit_handlers import ObjectList, extract_panel_definitions_from_model_class
 from wagtail.admin.forms.search import SearchForm
 from wagtail import hooks
 from wagtail.models import Locale, TranslatableMixin

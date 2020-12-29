@@ -137,7 +137,7 @@ Edit ``home/models.py`` as follows, to add a ``body`` field to the model:
 
     from wagtail.models import Page
     from wagtail.fields import RichTextField
-    from wagtail.admin.edit_handlers import FieldPanel
+    from wagtail.edit_handlers import FieldPanel
 
 
     class HomePage(Page):
@@ -228,7 +228,7 @@ Lets start with a simple index page for our blog. In ``blog/models.py``:
 
     from wagtail.models import Page
     from wagtail.fields import RichTextField
-    from wagtail.admin.edit_handlers import FieldPanel
+    from wagtail.edit_handlers import FieldPanel
 
 
     class BlogIndexPage(Page):
@@ -282,7 +282,7 @@ Now we need a model and template for our blog posts. In ``blog/models.py``:
 
     from wagtail.models import Page
     from wagtail.fields import RichTextField
-    from wagtail.admin.edit_handlers import FieldPanel
+    from wagtail.edit_handlers import FieldPanel
     from wagtail.search import index
 
 
@@ -473,7 +473,7 @@ Add a new ``BlogPageGalleryImage`` model to ``models.py``:
 
     from wagtail.models import Page, Orderable
     from wagtail.fields import RichTextField
-    from wagtail.admin.edit_handlers import FieldPanel, InlinePanel
+    from wagtail.edit_handlers import FieldPanel, InlinePanel
     from wagtail.contrib.images.edit_handlers import ImageChooserPanel
     from wagtail.search import index
 
@@ -636,7 +636,7 @@ First, alter ``models.py`` once more:
 
     from wagtail.models import Page, Orderable
     from wagtail.fields import RichTextField
-    from wagtail.admin.edit_handlers import FieldPanel, InlinePanel, MultiFieldPanel
+    from wagtail.edit_handlers import FieldPanel, InlinePanel, MultiFieldPanel
     from wagtail.contrib.images.edit_handlers import ImageChooserPanel
     from wagtail.search import index
 
