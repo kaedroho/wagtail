@@ -4,6 +4,7 @@ import jinja2.nodes
 from jinja2.ext import Extension
 
 from .templatetags.wagtailcore_tags import pageurl, richtext, slugurl, wagtail_version
+from .templatetags.wagtailuserbar import wagtailuserbar
 
 
 class WagtailCoreExtension(Extension):
@@ -57,5 +58,15 @@ class WagtailCoreExtension(Extension):
         return jinja2.Markup(value)
 
 
+class WagtailUserbarExtension(Extension):
+    def __init__(self, environment):
+        super().__init__(environment)
+
+        self.environment.globals.update({
+            'wagtailuserbar': jinja2.contextfunction(wagtailuserbar),
+        })
+
+
 # Nicer import names
 core = WagtailCoreExtension
+userbar = WagtailUserbarExtension
