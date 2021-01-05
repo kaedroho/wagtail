@@ -24,6 +24,7 @@ from wagtail.core.models import CollectionMember
 from wagtail.core.utils import string_to_ascii
 from wagtail.images.exceptions import InvalidFilterSpecError
 from wagtail.images.rect import Rect
+from wagtail.images.image_operations import FilterOperation, TransformOperation, TransformContext
 from wagtail.search import index
 from wagtail.search.queryset import SearchableQuerySetMixin
 
@@ -407,6 +408,36 @@ class Filter:
             operations.append(op_class(*op_spec_parts))
         return operations
 
+    @property
+    def transform_operations(self):
+        return [
+            operation for operation in self.operations
+            if isinstance(operation, TransformOperation)
+        ]
+
+    @property
+    def filter_operations(self):
+        return [
+            operation for operation in self.operations
+            if isinstance(operation, FilterOperation)
+        ]
+
+    def get_transform(self, image):
+        """
+        Returns a TransformContext with all the transforms in this filter applied.
+
+        The TransformContext is an object with two attributes:
+         - .size - The size of the final image
+         - .transform_matrix - An affine transformation matrix that combines any
+           transform/scale/rotation operations that need to be applied to the image
+        """
+        context = TransformContext((image.width, image.height))
+        print(context)
+        for operation in self.transform_operations:
+            context = operation.run(context, image)
+            print(operation, context)
+        return context
+
     def run(self, image, output):
         with image.get_willow_image() as willow:
             original_format = willow.format_name
@@ -414,10 +445,15 @@ class Filter:
             # Fix orientation of image
             willow = willow.auto_orient()
 
+            # Transform the image
+            transform = self.get_transform(image)
+            willow = willow.affine_transform(transform.size, transform.transform_matrix)
+
+            # Apply filters
             env = {
                 'original-format': original_format,
             }
-            for operation in self.operations:
+            for operation in self.filter_operations:
                 willow = operation.run(willow, image, env) or willow
 
             # Find the output format to use

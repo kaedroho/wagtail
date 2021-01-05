@@ -1,8 +1,11 @@
 import inspect
 
+import numpy as np
 from wagtail.images.exceptions import InvalidFilterSpecError
 from wagtail.images.rect import Rect
 from wagtail.images.utils import parse_color_string
+from willow.plugins.pillow import PillowImage
+from willow.registry import registry
 
 
 class Operation:
@@ -25,19 +28,68 @@ class Operation:
     def construct(self, *args):
         raise NotImplementedError
 
-    def run(self, willow, image, env):
+
+# Transforms
+
+
+class TransformContext:
+    """
+    Tracks transformations that are performed on an image by the transform filters below.
+
+    This allows multiple transforms to be processed in a single operation and also
+    provides a matrix that can be used to transform the focal point of the image.
+    """
+    def __init__(self, size):
+        self._check_size(size)
+        self.size = size
+        self.transform_matrix = np.array([
+            1, 0, 0,
+            0, 1, 0,
+            0, 0 ,1
+        ])
+
+    def resize(self, size):
+        """
+        Change the image size, stretching the transform to make it fit the new size.
+        """
+        self._check_size(size)
+        scale_x = size[0] / self.size[0]
+        scale_y = size[1] / self.size[1]
+        self.transform_matrix = self.transform_matrix @ np.array([
+            scale_x, 0, 0,
+            0, scale_y, 0,
+            0, 0 ,1
+        ])
+        self.size = size
+
+    def crop(self, rect):
+        """
+        Crop the image to the specified rect
+        """
+        self._check_size(rect.size)
+        # Transform the image so the top left of the rect is at (0, 0), then set the size
+        self.transform_matrix = self.transform_matrix @ np.array([
+            1, 0, -rect.left,
+            0, 1, -rect.top,
+            0, 0 ,1
+        ])
+        self.size = rect.size
+
+    @staticmethod
+    def _check_size(size):
+        if not isinstance(size, tuple) or len(size) != 2 or int(size[0]) != size[0] or int(size[1]) != size[1]:
+            raise TypeError("Image size must be a 2-tuple of integers")
+
+        if size[0] < 1 or size[1] < 1:
+            raise ValueError("Image width and height must both be 1 or greater")
+
+
+class TransformOperation(Operation):
+    def run(self, image, context):
         raise NotImplementedError
 
 
-class DoNothingOperation(Operation):
-    def construct(self):
-        pass
-
-    def run(self, willow, image, env):
-        pass
-
-
-class FillOperation(Operation):
+class FillOperation(TransformOperation):
     vary_fields = ('focal_point_width', 'focal_point_height', 'focal_point_x', 'focal_point_y')
 
     def construct(self, size, *extra):
@@ -62,8 +114,8 @@ class FillOperation(Operation):
         if self.crop_closeness > 1:
             self.crop_closeness = 1
 
-    def run(self, willow, image, env):
-        image_width, image_height = willow.get_size()
+    def run(self, context, image):
+        image_width, image_height = context.size
         focal_point = image.get_focal_point()
 
         # Get crop aspect ratio
@@ -127,38 +179,38 @@ class FillOperation(Operation):
         rect = rect.move_to_clamp(Rect(0, 0, image_width, image_height))
 
         # Crop!
-        willow = willow.crop(rect.round())
+        context = context.crop(rect.round())
 
         # Get scale for resizing
         # The scale should be the same for both the horizontal and
         # vertical axes
-        aftercrop_width, aftercrop_height = willow.get_size()
+        aftercrop_width, aftercrop_height = context.size
         scale = self.width / aftercrop_width
 
         # Only resize if the image is too big
         if scale < 1.0:
             # Resize!
-            willow = willow.resize((self.width, self.height))
+            context = context.resize((self.width, self.height))
 
-        return willow
+        return context
 
 
-class MinMaxOperation(Operation):
+class MinMaxOperation(TransformOperation):
     def construct(self, size):
         # Get width and height
         width_str, height_str = size.split('x')
         self.width = int(width_str)
         self.height = int(height_str)
 
-    def run(self, willow, image, env):
-        image_width, image_height = willow.get_size()
+    def run(self, context, image):
+        image_width, image_height = context.size
 
         horz_scale = self.width / image_width
         vert_scale = self.height / image_height
 
         if self.method == 'min':
             if image_width <= self.width or image_height <= self.height:
-                return
+                return context
 
             if horz_scale > vert_scale:
                 width = self.width
@@ -169,7 +221,7 @@ class MinMaxOperation(Operation):
 
         elif self.method == 'max':
             if image_width <= self.width and image_height <= self.height:
-                return
+                return context
 
             if horz_scale < vert_scale:
                 width = self.width
@@ -180,25 +232,25 @@ class MinMaxOperation(Operation):
 
         else:
             # Unknown method
-            return
+            return context
 
-        # prevent zero width or height, it causes a ValueError on willow.resize
+        # prevent zero width or height, it causes a ValueError on context.resize
         width = width if width > 0 else 1
         height = height if height > 0 else 1
 
-        return willow.resize((width, height))
+        return context.resize((width, height))
 
 
-class WidthHeightOperation(Operation):
+class WidthHeightOperation(TransformOperation):
     def construct(self, size):
         self.size = int(size)
 
-    def run(self, willow, image, env):
-        image_width, image_height = willow.get_size()
+    def run(self, context, image):
+        image_width, image_height = context.size
 
         if self.method == 'width':
             if image_width <= self.size:
-                return
+                return context
 
             scale = self.size / image_width
 
@@ -207,7 +259,7 @@ class WidthHeightOperation(Operation):
 
         elif self.method == 'height':
             if image_height <= self.size:
-                return
+                return context
 
             scale = self.size / image_height
 
@@ -216,34 +268,50 @@ class WidthHeightOperation(Operation):
 
         else:
             # Unknown method
-            return
+            return context
 
-        # prevent zero width or height, it causes a ValueError on willow.resize
+        # prevent zero width or height, it causes a ValueError on context.resize
         width = width if width > 0 else 1
         height = height if height > 0 else 1
 
-        return willow.resize((width, height))
+        return context.resize((width, height))
 
 
-class ScaleOperation(Operation):
+class ScaleOperation(TransformOperation):
     def construct(self, percent):
         self.percent = float(percent)
 
-    def run(self, willow, image, env):
-        image_width, image_height = willow.get_size()
+    def run(self, context, image):
+        image_width, image_height = context.size
 
         scale = self.percent / 100
         width = int(image_width * scale)
         height = int(image_height * scale)
 
-        # prevent zero width or height, it causes a ValueError on willow.resize
+        # prevent zero width or height, it causes a ValueError on context.resize
         width = width if width > 0 else 1
         height = height if height > 0 else 1
 
-        return willow.resize((width, height))
+        return context.resize((width, height))
 
 
-class JPEGQualityOperation(Operation):
+# Filters
+
+
+class FilterOperation(Operation):
+    def run(self, willow, image, env):
+        raise NotImplementedError
+
+
+class DoNothingOperation(FilterOperation):
+    def construct(self):
+        pass
+
+    def run(self, willow, image, env):
+        return willow
+
+
+class JPEGQualityOperation(FilterOperation):
     def construct(self, quality):
         self.quality = int(quality)
 
@@ -254,7 +322,7 @@ class JPEGQualityOperation(Operation):
         env['jpeg-quality'] = self.quality
 
 
-class WebPQualityOperation(Operation):
+class WebPQualityOperation(FilterOperation):
     def construct(self, quality):
         self.quality = int(quality)
 
@@ -265,7 +333,7 @@ class WebPQualityOperation(Operation):
         env['webp-quality'] = self.quality
 
 
-class FormatOperation(Operation):
+class FormatOperation(FilterOperation):
     def construct(self, format, *options):
         self.format = format
         self.options = options
@@ -279,9 +347,18 @@ class FormatOperation(Operation):
         env['output-format-options'] = self.options
 
 
-class BackgroundColorOperation(Operation):
+class BackgroundColorOperation(FilterOperation):
     def construct(self, color_string):
         self.color = parse_color_string(color_string)
 
     def run(self, willow, image, env):
         return willow.set_background_color_rgb(self.color)
+
+
+# TEMPORARY
+def affine_transform_pillow_image(image, size, matrix):
+    from PIL import Image
+    return PillowImage(image.image.transform(size, Image.AFFINE, matrix.flatten()[:6]))
+
+
+registry.register_operation(PillowImage, 'affine_transform', affine_transform_pillow_image)
