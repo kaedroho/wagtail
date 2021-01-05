@@ -1,6 +1,5 @@
 import inspect
 
-import numpy as np
 from wagtail.images.exceptions import InvalidFilterSpecError
 from wagtail.images.rect import Rect
 from wagtail.images.utils import parse_color_string
@@ -32,6 +31,19 @@ class Operation:
 # Transforms
 
 
+def multiply_3x3_matrices(a, b):
+    # Dear future reader:
+    # If we've added numpy as a dependency of Wagtail, please replace this :)
+    c = [0] * 9
+
+    for i in range(3):
+        for j in range(3):
+            for k in range(3):
+                c[i * 3 + j] += a[i * 3 + k] * b[k * 3 + j]
+
+    return c
+
+
 class TransformContext:
     """
     Tracks transformations that are performed on an image by the transform filters below.
@@ -42,11 +54,11 @@ class TransformContext:
     def __init__(self, size):
         self._check_size(size)
         self.size = size
-        self.transform_matrix = np.array([
+        self.transform_matrix = [
             1, 0, 0,
             0, 1, 0,
             0, 0 ,1
-        ])
+        ]
 
     def resize(self, size):
         """
@@ -55,7 +67,7 @@ class TransformContext:
         self._check_size(size)
         scale_x = size[0] / self.size[0]
         scale_y = size[1] / self.size[1]
-        self.transform_matrix = self.transform_matrix @ np.array([
+        self.transform_matrix = multiply_3x3_matrices(self.transform_matrix, [
             scale_x, 0, 0,
             0, scale_y, 0,
             0, 0 ,1
@@ -68,7 +80,7 @@ class TransformContext:
         """
         self._check_size(rect.size)
         # Transform the image so the top left of the rect is at (0, 0), then set the size
-        self.transform_matrix = self.transform_matrix @ np.array([
+        self.transform_matrix = multiply_3x3_matrices(self.transform_matrix, [
             1, 0, -rect.left,
             0, 1, -rect.top,
             0, 0 ,1
