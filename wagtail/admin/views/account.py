@@ -106,12 +106,23 @@ class NameSettingsPanel(BaseSettingsPanel):
     form_class = NameForm
 
 
+class EmailSettingsPanel(BaseSettingsPanel):
+    name = 'email'
+    title = gettext_lazy('Email')
+    order = 200
+    form_class = EmailForm
+
+    def is_active(self):
+        return email_management_enabled()
+
+
 # Views
 
 def account(request):
     # Panels
     panels = [
         NameSettingsPanel(request),
+        EmailSettingsPanel(request),
     ]
     for fn in hooks.get_hooks('register_account_settings_panel'):
         panel = fn(request)
@@ -171,24 +182,6 @@ def change_password(request):
     return TemplateResponse(request, 'wagtailadmin/account/change_password.html', {
         'form': form,
         'can_change_password': can_change_password,
-    })
-
-
-def change_email(request):
-    if not email_management_enabled():
-        raise Http404
-    if request.method == 'POST':
-        form = EmailForm(request.POST, instance=request.user)
-
-        if form.is_valid():
-            form.save()
-            messages.success(request, _("Your email has been changed successfully!"))
-            return redirect('wagtailadmin_account')
-    else:
-        form = EmailForm(instance=request.user)
-
-    return TemplateResponse(request, 'wagtailadmin/account/change_email.html', {
-        'form': form,
     })
 
 
