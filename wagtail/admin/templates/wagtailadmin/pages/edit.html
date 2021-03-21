@@ -23,7 +23,7 @@
             {% include "wagtailadmin/shared/workflow_status.html" with page=page_for_status %}
             {% if page.get_latest_revision %}
             <li>
-                <a href="{% url 'wagtailadmin_pages:history' page.id %}" class="button button-small button-nobg text-notransform">
+                <a href="{% url 'wagtailadmin_pages:history' page.id %}" class="button button-small button-nobg text-notransform" target="_modal">
                     {% icon "history" class_name="default" %}
                     {% trans "History" %}
                 </a>

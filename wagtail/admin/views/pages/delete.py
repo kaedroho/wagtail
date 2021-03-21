@@ -8,8 +8,10 @@ from wagtail.admin import messages
 from wagtail.admin.views.pages.utils import get_valid_next_url_from_request
 from wagtail.core import hooks
 from wagtail.core.models import Page
+from wagtail_shell.decorators import modal_safe
 
 
+@modal_safe
 def delete(request, page_id):
     page = get_object_or_404(Page, id=page_id).specific
     if not page.permissions_for_user(request.user).can_delete():

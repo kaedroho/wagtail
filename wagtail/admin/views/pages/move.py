@@ -8,8 +8,10 @@ from django.utils.translation import gettext as _
 from wagtail.admin import messages
 from wagtail.core import hooks
 from wagtail.core.models import Page
+from wagtail_shell.decorators import modal_safe
 
 
+@modal_safe
 def move_choose_destination(request, page_to_move_id, viewed_page_id=None):
     page_to_move = get_object_or_404(Page, id=page_to_move_id)
     page_perms = page_to_move.permissions_for_user(request.user)
@@ -47,6 +49,7 @@ def move_choose_destination(request, page_to_move_id, viewed_page_id=None):
     })
 
 
+@modal_safe
 def move_confirm(request, page_to_move_id, destination_id):
     page_to_move = get_object_or_404(Page, id=page_to_move_id).specific
     # Needs .specific_deferred because the .get_admin_display_title method is called in template

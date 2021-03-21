@@ -197,7 +197,10 @@ def page_listing_more_buttons(page, page_perms, is_parent=False, next_url=None):
         yield Button(
             _('Move'),
             reverse('wagtailadmin_pages:move', args=[page.id]),
-            attrs={"aria-label": _("Move page '%(title)s'") % {'title': page.get_admin_display_title()}},
+            attrs={
+                "aria-label": _("Move page '%(title)s'") % {'title': page.get_admin_display_title()},
+                'target': '_modal'
+            },
             priority=10
         )
     if page_perms.can_copy():
@@ -208,7 +211,10 @@ def page_listing_more_buttons(page, page_perms, is_parent=False, next_url=None):
         yield Button(
             _('Copy'),
             url,
-            attrs={'aria-label': _("Copy page '%(title)s'") % {'title': page.get_admin_display_title()}},
+            attrs={
+                'aria-label': _("Copy page '%(title)s'") % {'title': page.get_admin_display_title()},
+                'target': '_modal'
+            },
             priority=20
         )
     if page_perms.can_delete():
@@ -219,7 +225,10 @@ def page_listing_more_buttons(page, page_perms, is_parent=False, next_url=None):
         yield Button(
             _('Delete'),
             url,
-            attrs={'aria-label': _("Delete page '%(title)s'") % {'title': page.get_admin_display_title()}},
+            attrs={
+                'aria-label': _("Delete page '%(title)s'") % {'title': page.get_admin_display_title()},
+                'target': '_modal'
+            },
             priority=30
         )
     if page_perms.can_unpublish():
@@ -230,7 +239,10 @@ def page_listing_more_buttons(page, page_perms, is_parent=False, next_url=None):
         yield Button(
             _('Unpublish'),
             url,
-            attrs={'aria-label': _("Unpublish page '%(title)s'") % {'title': page.get_admin_display_title()}},
+            attrs={
+                'aria-label': _("Unpublish page '%(title)s'") % {'title': page.get_admin_display_title()},
+                'target': '_modal'
+            },
             priority=40
         )
 
@@ -238,7 +250,10 @@ def page_listing_more_buttons(page, page_perms, is_parent=False, next_url=None):
         yield Button(
             _('History'),
             reverse('wagtailadmin_pages:history', args=[page.id]),
-            attrs={'aria-label': _("View page history for '%(title)s'") % {'title': page.get_admin_display_title()}},
+            attrs={
+                'aria-label': _("View page history for '%(title)s'") % {'title': page.get_admin_display_title()},
+                'target': '_modal'
+            },
             priority=50
         )
 

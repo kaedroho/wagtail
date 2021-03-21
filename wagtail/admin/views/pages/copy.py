@@ -9,8 +9,10 @@ from wagtail.admin.forms.pages import CopyForm
 from wagtail.admin.views.pages.utils import get_valid_next_url_from_request
 from wagtail.core import hooks
 from wagtail.core.models import Page
+from wagtail_shell.decorators import modal_safe
 
 
+@modal_safe
 @user_passes_test(user_has_any_page_permission)
 def copy(request, page_id):
     page = Page.objects.get(id=page_id)

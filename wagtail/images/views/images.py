@@ -23,7 +23,7 @@ from wagtail.images.models import Filter, SourceImageIOError
 from wagtail.images.permissions import permission_policy
 from wagtail.images.utils import generate_signature
 from wagtail.search import index as search_index
-
+from wagtail_shell.decorators import modal_safe
 
 permission_checker = PermissionPolicyChecker(permission_policy)
 
@@ -101,6 +101,7 @@ def index(request):
         })
 
 
+@modal_safe
 @permission_checker.require('change')
 def edit(request, image_id):
     Image = get_image_model()
@@ -247,6 +248,7 @@ def preview(request, image_id, filter_spec):
         return HttpResponse("Invalid filter spec: " + filter_spec, content_type='text/plain', status=400)
 
 
+@modal_safe
 @permission_checker.require('delete')
 def delete(request, image_id):
     image = get_object_or_404(get_image_model(), id=image_id)
