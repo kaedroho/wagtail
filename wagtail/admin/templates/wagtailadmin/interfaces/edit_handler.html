@@ -1,0 +1,4 @@
+<form action="{{ request.path}}"{% if is_multipart %} enctype="multipart/form-data"{% endif %} method="POST" novalidate>
+    {% csrf_token %}
+    {% block form %}{{ edit_handler.render_form_content }}{% endblock %}
+</form>

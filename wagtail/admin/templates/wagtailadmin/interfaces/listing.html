@@ -1,0 +1,35 @@
+{% load i18n wagtailadmin_tags %}
+
+<div class="nice-padding">
+    {% if objects %}
+        <table class="listing">
+            <thead>
+                <tr>
+                    {% for column in columns %}
+                        <th>
+                            {{ column.heading }}
+                        </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for object in objects %}
+                    <tr>
+                        {% for column in columns %}
+                            <td>
+                                {% render_listing_column object column %}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        {% url view.add_url_name as add_url %}
+        {% if showing_disabled %}
+            <p>{% blocktrans %}No tasks have been created. Why not <a href="{{ add_url }}">add one</a>?{% endblocktrans %}</p>
+        {% else %}
+            <p>{% blocktrans %}There are no enabled tasks. Why not <a href="{{ add_url }}">add one</a>?{% endblocktrans %}</p>
+        {% endif %}
+    {% endif %}
+</div>

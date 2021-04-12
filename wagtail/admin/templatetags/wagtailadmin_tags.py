@@ -645,3 +645,8 @@ def locales():
         }
         for locale in Locale.objects.all()
     ])
+
+
+@register_simple_tag
+def render_listing_column(object, column):
+    return column.value_from_object(object)
