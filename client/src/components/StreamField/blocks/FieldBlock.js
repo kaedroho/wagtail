@@ -52,6 +52,7 @@ export class FieldBlock {
       addCommentButtonElement.classList.add('button');
       addCommentButtonElement.classList.add('button-secondary');
       addCommentButtonElement.classList.add('button-small');
+      addCommentButtonElement.classList.add('u-hidden');
       addCommentButtonElement.innerHTML = '<svg class="icon icon-comment-add initial" aria-hidden="true" focusable="false"><use href="#icon-comment-add"></use></svg>';
       fieldCommentControlElement.appendChild(addCommentButtonElement);
       window.comments.initAddCommentButton(addCommentButtonElement);
