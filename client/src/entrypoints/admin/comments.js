@@ -182,6 +182,7 @@ window.comments = (() => {
         // Make the widget button clickable to add a comment
         const annotation = this.getAnnotationForComment();
         const localId = commentApp.makeComment(annotation, this.contentpath);
+        console.log(annotation, annotation.getDesiredPosition(), this.contentpath);
         annotation.subscribeToUpdates(localId);
       });
       return unsubscribeWidget; // TODO: listen for widget deletion and use this
@@ -209,7 +210,7 @@ window.comments = (() => {
 
   function initAddCommentButton(buttonElement, skipDoubleInitialisedCheck = false) {
     const widget = new FieldLevelCommentWidget({
-      fieldNode: buttonElement,
+      fieldNode: buttonElement.closest('[data-contentpath]'),
       commentAdditionNode: buttonElement,
       annotationTemplateNode: document.querySelector('#comment-icon'),
     });
