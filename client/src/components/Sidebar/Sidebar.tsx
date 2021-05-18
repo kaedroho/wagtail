@@ -30,25 +30,13 @@ export interface SidebarProps {
   onExpandCollapse?(collapsed: boolean);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const usePersistedState = <T, _>(key: string, defaultValue: T): [T, (value: T) => void]  => {
-  const value = localStorage.getItem(key);
-  const [state, setState] = React.useState(
-    value ? JSON.parse(value) : defaultValue
-  );
-  React.useEffect(() => {
-    localStorage.setItem(key, JSON.stringify(state));
-  }, [key, state]);
-  return [state, setState];
-};
-
 export const Sidebar: React.FunctionComponent<SidebarProps> = (
   { modules, currentPath, strings, navigate, onExpandCollapse }) => {
   // 'collapsed' is a persistent state that is controlled by the arrow icon at the top
   // It records the user's general preference for a collapsed/uncollapsed menu
   // This is just a hint though, and we may still collapse the menu if the screen is too small
   // Also, we may display the full menu temporarily in collapsed mode (see 'peeking' below)
-  const [collapsed, setCollapsed] = usePersistedState('wagtail-sidebar-collapsed', window.innerWidth < 800);
+  const [collapsed, setCollapsed] = React.useState(window.innerWidth < 800);
 
   // Call onExpandCollapse(true) if menu is initialised in collapsed state
   React.useEffect(() => {
