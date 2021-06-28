@@ -197,7 +197,7 @@ This adds two fields to the API (other fields omitted for brevity):
 Images in the API
 -----------------
 
-The :class:`~wagtail.images.api.fields.ImageRenditionField` serialiser
+The :class:`~wagtail.images.api.fields.ImageRenditionAPIField` serialiser
 allows you to add renditions of images into your API. It requires an image
 filter string specifying the resize operations to perform on the image. It can
 also take the ``source`` keyword argument described above.
@@ -206,7 +206,7 @@ For example:
 
 .. code-block:: python
 
-    from wagtail.images.api.fields import ImageRenditionField
+    from wagtail.images.api.fields import ImageRenditionAPIField
 
     class BlogPage(Page):
         ...
@@ -216,7 +216,7 @@ For example:
             APIField('feed_image'),
 
             # Adds a URL to a rendered thumbnail of the image to the API
-            APIField('feed_image_thumbnail', serializer=ImageRenditionField('fill-100x100', source='feed_image')),
+            ImageRenditionAPIField('feed_image_thumbnail', 'fill-100x100', source='feed_image'),
             ...
         ]
 
