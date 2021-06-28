@@ -461,6 +461,7 @@ class PagesAPIViewSet(BaseAPIViewSet):
         return queryset
 
     def get_queryset(self):
+        # TODO call select_on_queryset
         request = self.request
 
         # Allow pages to be filtered to a specific type
