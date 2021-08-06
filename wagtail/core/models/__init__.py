@@ -868,12 +868,15 @@ class Page(AbstractPage, index.Indexed, ClusterableModel, metaclass=PageBase):
             # We need to ensure comments have an id in the revision, so positions can be identified correctly
             comment.save()
 
-        # Create revision
-        revision = self.revisions.create(
-            content_json=self.to_json(),
-            user=user,
-            submitted_for_moderation=submitted_for_moderation,
-            approved_go_live_at=approved_go_live_at,
+        # Update or create draft revision
+        revision, create = self.revisions.update_or_create(
+            is_draft=True,
+            defaults={
+                'content_json': self.to_json(),
+                'user': user,
+                'submitted_for_moderation': submitted_for_moderation,
+                'approved_go_live_at': approved_go_live_at,
+            }
         )
 
         for comment in new_comments:
@@ -2413,6 +2416,12 @@ class PageRevision(models.Model):
         db_index=True
     )
 
+    # The draft revision is the latest revision that hasn't been published yet
+    # When the page is updated, this revision is updated in place.
+    # When the page is published, this revision is converted into a non-draft
+    # and a new draft revision is created on the next edit.
+    is_draft = models.BooleanField(default=False)
+
     objects = models.Manager()
     submitted_revisions = SubmittedRevisionsManager()
 
@@ -2576,6 +2585,10 @@ class PageRevision(models.Model):
             # Unset live_revision if the page is going live in the future
             page.live_revision = None
 
+        # Unmark this revision as a draft so Wagtail stops updating it
+        self.is_draft = False
+        self.save(update_fields=['is_draft'])
+
         page.save()
 
         for comment in page.comments.all().only('position'):
@@ -2653,6 +2666,10 @@ class PageRevision(models.Model):
     class Meta:
         verbose_name = _('page revision')
         verbose_name_plural = _('page revisions')
+        constraints = [
+            # Only one draft revision can exist for a page
+            models.UniqueConstraint(name='unique_draft_revision', fields=['page_id'], condition=Q(is_draft=True)),
+        ]
 
 
 class PagePatch(models.Model):
