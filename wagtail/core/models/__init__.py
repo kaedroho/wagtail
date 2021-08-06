@@ -2655,6 +2655,23 @@ class PageRevision(models.Model):
         verbose_name_plural = _('page revisions')
 
 
+class PagePatch(models.Model):
+    ACTION_PUT = 'PUT'
+    ACTION_CHOICES = [
+        (ACTION_PUT, "put")
+    ]
+
+    revision = models.ForeignKey(PageRevision, on_delete=models.CASCADE, related_name='patches')
+    action = models.CharField(max_length=255, choices = ACTION_CHOICES)
+    content_path = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name=_('user'), null=True, blank=True,
+        on_delete=models.SET_NULL
+    )
+    data = models.JSONField()
+
+
 PAGE_PERMISSION_TYPES = [
     ('add', _("Add"), _("Add/edit pages you own")),
     ('edit', _("Edit"), _("Edit any page")),
