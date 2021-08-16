@@ -1,6 +1,8 @@
+from wagtail.core.telepath import register
+
 from .struct_block import StructBlock
 from .field_block import IntegerBlock, SingleLineRichTextBlock, CharBlock, PageChooserBlock
-from .stream_block import StreamBlock
+from .stream_block import StreamBlock, StreamBlockAdapter
 from .list_block import ListBlock
 
 
@@ -24,6 +26,13 @@ class StoryBlock(StreamBlock):
     paragraph = ParagraphBlock()
     ordered_list_item = ListItemBlock()
     unordered_list_item = ListItemBlock()
+
+
+class StoryBlockAdapter(StreamBlockAdapter):
+    js_constructor = 'wagtail.blocks.StoryBlock'
+
+
+register(StoryBlockAdapter(), StoryBlock)
 
 
 block_classes = [

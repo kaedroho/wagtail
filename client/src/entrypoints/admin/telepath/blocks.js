@@ -9,6 +9,9 @@ import {
 import {
   StreamBlock, StreamBlockDefinition, StreamBlockValidationError
 } from '../../../components/StreamField/blocks/StreamBlock';
+import {
+  StoryBlock, StoryBlockDefinition
+} from '../../../components/StreamField/blocks/StoryBlock';
 
 const wagtailStreamField = window.wagtailStreamField || {};
 
@@ -30,6 +33,9 @@ wagtailStreamField.blocks = {
   StreamBlock,
   StreamBlockDefinition,
   StreamBlockValidationError,
+
+  StoryBlock,
+  StoryBlockDefinition,
 };
 
 function initBlockWidget(id) {
@@ -64,5 +70,6 @@ window.telepath.register('wagtail.blocks.ListBlock', ListBlockDefinition);
 window.telepath.register('wagtail.blocks.ListBlockValidationError', ListBlockValidationError);
 window.telepath.register('wagtail.blocks.StreamBlock', StreamBlockDefinition);
 window.telepath.register('wagtail.blocks.StreamBlockValidationError', StreamBlockValidationError);
+window.telepath.register('wagtail.blocks.StoryBlock', StoryBlockDefinition);
 
 window.wagtailStreamField = wagtailStreamField;
