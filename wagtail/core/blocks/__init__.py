@@ -5,3 +5,4 @@ from .list_block import *  # NOQA
 from .static_block import *  # NOQA
 from .stream_block import *  # NOQA
 from .struct_block import *  # NOQA
+from .story_block import *  # NOQA

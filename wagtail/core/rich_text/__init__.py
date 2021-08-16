@@ -71,6 +71,27 @@ class RichText:
         return bool(self.source)
 
 
+class SingleLineRichText:
+    """
+    A custom object used to represent a renderable rich text value.
+    Provides a 'source' property to access the original source code,
+    and renders to the front-end HTML rendering.
+    Used as the native value of a wagtailcore.blocks.field_block.SingleLineRichTextBlock.
+    """
+    def __init__(self, source, allow_newlines=True):
+        self.source = (source or '')
+        self.allow_newlines = allow_newlines
+
+    def __html__(self):
+        return render_to_string('wagtailcore/shared/richtext.html', {'html': expand_db_html(self.source)})
+
+    def __str__(self):
+        return mark_safe(self.__html__())
+
+    def __bool__(self):
+        return bool(self.source)
+
+
 class EntityHandler:
     """
     An 'entity' is a placeholder tag within the saved rich text, which needs to be rewritten

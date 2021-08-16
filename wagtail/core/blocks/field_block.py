@@ -11,7 +11,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
 from wagtail.admin.staticfiles import versioned_static
-from wagtail.core.rich_text import RichText, get_text_for_indexing
+from wagtail.core.rich_text import RichText, SingleLineRichText, get_text_for_indexing
 from wagtail.core.telepath import Adapter, register
 from wagtail.core.utils import camelcase_to_underscore, resolve_model_string
 
@@ -614,6 +614,61 @@ class RichTextBlock(FieldBlock):
         icon = "doc-full"
 
 
+class SingleLineRichTextBlock(FieldBlock):
+
+    def __init__(self, required=True, help_text=None, editor='default', features=None, validators=(), **kwargs):
+        self.field_options = {
+            'required': required,
+            'help_text': help_text,
+            'validators': validators,
+        }
+        self.editor = editor
+        self.features = features
+        super().__init__(**kwargs)
+
+    def get_default(self):
+        if isinstance(self.meta.default, SingleLineRichText):
+            return self.meta.default
+        else:
+            return SingleLineRichText(self.meta.default, allow_newlines=self.meta.allow_newlines)
+
+    def to_python(self, value):
+        # convert a source-HTML string from the JSONish representation
+        # to a SingleLineRichText object
+        return SingleLineRichText(value, allow_newlines=self.meta.allow_newlines)
+
+    def get_prep_value(self, value):
+        # convert a SingleLineRichText object back to a source-HTML string to go into
+        # the JSONish representation
+        return value.source
+
+    @cached_property
+    def field(self):
+        from wagtail.admin.rich_text import get_rich_text_editor_widget
+        return forms.CharField(
+            widget=get_rich_text_editor_widget(self.editor, features=self.features),
+            **self.field_options
+        )
+
+    def value_for_form(self, value):
+        # Rich text editors take the source-HTML string as input (and takes care
+        # of expanding it for the purposes of the editor)
+        return value.source
+
+    def value_from_form(self, value):
+        # Rich text editors return a source-HTML string; convert to a SingleLineRichText object
+        return SingleLineRichText(value, allow_newlines=self.meta.allow_newlines)
+
+    def get_searchable_content(self, value):
+        # Strip HTML tags to prevent search backend from indexing them
+        source = force_str(value.source)
+        return [get_text_for_indexing(source)]
+
+    class Meta:
+        icon = "doc-full"
+        allow_newlines = True
+
+
 class RawHTMLBlock(FieldBlock):
 
     def __init__(self, required=True, help_text=None, max_length=None, min_length=None, validators=(), **kwargs):
@@ -806,7 +861,7 @@ class PageChooserBlock(ChooserBlock):
 # Ensure that the blocks defined here get deconstructed as wagtailcore.blocks.FooBlock
 # rather than wagtailcore.blocks.field.FooBlock
 block_classes = [
-    FieldBlock, CharBlock, URLBlock, RichTextBlock, RawHTMLBlock, ChooserBlock,
+    FieldBlock, CharBlock, URLBlock, RichTextBlock, SingleLineRichTextBlock, RawHTMLBlock, ChooserBlock,
     PageChooserBlock, TextBlock, BooleanBlock, DateBlock, TimeBlock,
     DateTimeBlock, ChoiceBlock, MultipleChoiceBlock, EmailBlock, IntegerBlock, FloatBlock,
     DecimalBlock, RegexBlock, BlockQuoteBlock
