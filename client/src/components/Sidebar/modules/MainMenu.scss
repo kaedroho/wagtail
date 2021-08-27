@@ -135,11 +135,13 @@
         }
     }
 
-    @at-root .sidebar--slim #{&} {
-        width: $menu-width-slim;
+    @include media-breakpoint-up(sm) {
+        @at-root .sidebar--slim #{&} {
+            width: $menu-width-slim;
 
-        &__account em {
-            left: $menu-width-slim - $menu-width;
+            &__account em {
+                left: $menu-width-slim - $menu-width;
+            }
         }
     }
 

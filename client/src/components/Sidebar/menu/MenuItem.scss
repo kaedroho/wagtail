@@ -128,8 +128,10 @@
     }
 }
 
-.sidebar--slim {
-    .menuitem-label {
-        opacity: 0;
+@include media-breakpoint-up(sm) {
+    .sidebar--slim {
+        .menuitem-label {
+            opacity: 0;
+        }
     }
 }

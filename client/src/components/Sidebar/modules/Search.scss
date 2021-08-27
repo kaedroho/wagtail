@@ -9,8 +9,10 @@
     flex-direction: row-reverse;
     height: 42px;
 
-    .sidebar--slim & {
-        padding: 0;
+    @include media-breakpoint-up(sm) {
+        .sidebar--slim & {
+            padding: 0;
+        }
     }
 
     &__label {
@@ -31,8 +33,10 @@
         color: $color-menu-text;
         -webkit-font-smoothing: auto;
 
-        .sidebar--slim & {
-            opacity: 0;
+        @include media-breakpoint-up(sm) {
+            .sidebar--slim & {
+                opacity: 0;
+            }
         }
 
         &::placeholder {
@@ -57,16 +61,27 @@
             transition: margin-right $menu-transition-duration ease;
         }
 
-        .sidebar--slim & {
-            width: 100%;
+        @include media-breakpoint-up(sm) {
+            .sidebar--slim & {
+                width: 100%;
 
-            svg {
-                margin-right: 0;
+                svg {
+                    margin-right: 0;
+                }
             }
         }
 
         &:hover {
             background-color: transparent;
+        }
+    }
+}
+
+@include media-breakpoint-up(sm) {
+    .sidebar-search--slim.sidebar-search--visible {
+        .sidebar-search__submit,
+        input:not([type=submit]) {
+            opacity: 0;
         }
     }
 }

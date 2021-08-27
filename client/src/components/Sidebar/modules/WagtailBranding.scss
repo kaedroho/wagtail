@@ -32,9 +32,11 @@
     }
 
     // Reduce overall size when in slim mode
-    .sidebar--slim & {
-        width: 60px;
-        transform: none;
+    @include media-breakpoint-up(sm) {
+        .sidebar--slim & {
+            width: 60px;
+            transform: none;
+        }
     }
 
     // Remove background on 404 page
@@ -79,11 +81,13 @@
         border-radius: 50%;
         transition: left $menu-transition-duration ease, top $menu-transition-duration ease, width $menu-transition-duration ease, height $menu-transition-duration ease;
 
-        .sidebar--slim & {
-            left: -10px;
-            top: 10px;
-            width: 80px;
-            height: 80px;
+        @include media-breakpoint-up(sm) {
+            .sidebar--slim & {
+                left: -10px;
+                top: 10px;
+                width: 80px;
+                height: 80px;
+            }
         }
 
         .page404__bg & {
