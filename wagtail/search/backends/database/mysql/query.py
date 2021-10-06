@@ -195,10 +195,10 @@ class MatchExpression(Expression):
     filterable = True
     template = 'MATCH (%s) AGAINST (%s IN BOOLEAN MODE)'
 
-    def __init__(self, query: SearchQueryCombinable, columns: List[str] = ['title', 'body'], output_field: Field = BooleanField()) -> None:
+    def __init__(self, query: SearchQueryCombinable, columns: List[str] = None, output_field: Field = BooleanField()) -> None:
         super().__init__(output_field=output_field)
         self.query = query
-        self.columns = columns
+        self.columns = columns or ['title', 'body']
 
     def as_sql(self, compiler, connection):
         compiled_query = compiler.compile(self.query)  # Compile the query to a string
