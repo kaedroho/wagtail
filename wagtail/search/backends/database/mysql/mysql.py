@@ -408,7 +408,10 @@ class MySQLSearchQueryCompiler(BaseSearchQueryCompiler):
 
         search_query = self.build_search_query(query)
         match_expression = MatchExpression(search_query, output_field=BooleanField())  # For example: MATCH (`title`, `body`) AGAINST ('+query' IN BOOLEAN MODE)
-        score_expression = MatchExpression(search_query, output_field=FloatField())  # Same as above, but with a different output_field
+        score_expression = (
+            MatchExpression(search_query, columns=['title'], output_field=FloatField()) * F('title_norm')
+            + MatchExpression(search_query, columns=['body'], output_field=FloatField())
+        )
 
         index_entries = IndexEntry.objects.annotate(score=score_expression).filter(content_type_id__in=get_descendants_content_types_pks(self.queryset.model))
         if not negated:
