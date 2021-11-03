@@ -1,4 +1,6 @@
 import json
+from functools import reduce
+import operator
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
@@ -35,6 +37,20 @@ class TestPagePermission(TestCase):
         unpub_perms = unpublished_event_page.permissions_for_user(event_editor)
         someone_elses_event_perms = someone_elses_event_page.permissions_for_user(event_editor)
         board_meetings_perms = board_meetings_page.permissions_for_user(event_editor)
+
+        import rules
+
+        ruleset = rules.RuleSet()
+        predicates = {}
+        for permission_type, page_path in GroupPagePermission.objects.filter(group__user=event_editor).values_list('permission_type', 'page__path'):
+            if permission_type not in predicates:
+                predicates[permission_type] = []
+            predicates[permission_type].append(rules.predicate(lambda user, page: page.path.startswith(page_path)))
+
+        for permission_type, pt_predicates in predicates.items():
+            ruleset.add_rule(permission_type, reduce(operator.or_, pt_predicates))
+
+        import pdb; pdb.set_trace()
 
         self.assertFalse(homepage_perms.can_add_subpage())
         self.assertTrue(christmas_page_perms.can_add_subpage())

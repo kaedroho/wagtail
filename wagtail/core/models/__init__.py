@@ -2790,26 +2790,8 @@ class UserPagePermissionsProxy:
         return explorable_pages
 
     def editable_pages(self):
-        """Return a queryset of the pages that this user has permission to edit"""
-        # Deal with the trivial cases first...
-        if not self.user.is_active:
-            return Page.objects.none()
-        if self.user.is_superuser:
-            return Page.objects.all()
-
-        editable_pages = Page.objects.none()
-
-        for perm in self.permissions.filter(permission_type='add'):
-            # user has edit permission on any subpage of perm.page
-            # (including perm.page itself) that is owned by them
-            editable_pages |= Page.objects.descendant_of(perm.page, inclusive=True).filter(owner=self.user)
-
-        for perm in self.permissions.filter(permission_type='edit'):
-            # user has edit permission on any subpage of perm.page
-            # (including perm.page itself) regardless of owner
-            editable_pages |= Page.objects.descendant_of(perm.page, inclusive=True)
-
-        return editable_pages
+        from wagtail.core.rules import base, edit  # noqa
+        return base.get_queryset('edit', self.user)
 
     def can_edit_pages(self):
         """Return True if the user has permission to edit any pages"""
@@ -2888,27 +2870,15 @@ class PagePermissionTester:
         return self.user.is_superuser or ('add' in self.permissions)
 
     def can_edit(self):
-        if not self.user.is_active:
-            return False
+        from wagtail.core.rules import base, edit  # noqa
+        return base.test('edit', self.user, self.page)
 
-        if self.page_is_root:  # root node is not a page and can never be edited, even by superusers
-            return False
+        # current_workflow_task = self.page.current_workflow_task
+        # if current_workflow_task:
+        #     if current_workflow_task.user_can_access_editor(self.page, self.user):
+        #         return True
 
-        if self.user.is_superuser:
-            return True
-
-        if 'edit' in self.permissions:
-            return True
-
-        if 'add' in self.permissions and self.page.owner_id == self.user.pk:
-            return True
-
-        current_workflow_task = self.page.current_workflow_task
-        if current_workflow_task:
-            if current_workflow_task.user_can_access_editor(self.page, self.user):
-                return True
-
-        return False
+        # return False
 
     def can_delete(self, ignore_bulk=False):
         if not self.user.is_active:
