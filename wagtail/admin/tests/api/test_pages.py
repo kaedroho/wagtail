@@ -807,6 +807,126 @@ class TestCustomAdminDisplayTitle(AdminAPITestCase):
         self.assertEqual(matching_items[0]['admin_display_title'], "Saint Patrick (single event)")
 
 
+class TestCopyPageAction(AdminAPITestCase):
+    fixtures = ['test.json']
+
+    def get_response(self, page_id, data):
+        return self.client.post(reverse('wagtailadmin_api:pages:action', args=[page_id, 'copy']), data)
+
+    def test_copy_page(self):
+        response = self.get_response(3, {})
+
+        content = json.loads(response.content.decode('utf-8'))
+
+        new_page = Page.objects.get(id=content['id'])
+        self.assertEqual(new_page.title, "Events")
+        self.assertTrue(new_page.live)
+        self.assertFalse(new_page.get_children().exists())
+        self.assertIsNone(new_page.alias_of_id)
+
+    def test_copy_page_recursive(self):
+        response = self.get_response(3, {
+            'recursive': True,
+        })
+
+        content = json.loads(response.content.decode('utf-8'))
+
+        new_page = Page.objects.get(id=content['id'])
+        self.assertEqual(new_page.title, "Events")
+        self.assertTrue(new_page.get_children().exists())
+
+    def test_copy_page_alias(self):
+        response = self.get_response(3, {
+            'alias': True,
+        })
+
+        content = json.loads(response.content.decode('utf-8'))
+
+        new_page = Page.objects.get(id=content['id'])
+        self.assertEqual(new_page.title, "Events")
+        self.assertFalse(new_page.get_children().exists())
+        self.assertEqual(new_page.alias_of_id, 3)
+
+    def test_copy_page_recursive_alias(self):
+        response = self.get_response(3, {
+            'recursive': True,
+            'alias': True,
+        })
+
+        content = json.loads(response.content.decode('utf-8'))
+
+        new_page = Page.objects.get(id=content['id'])
+        self.assertEqual(new_page.title, "Events")
+        self.assertTrue(new_page.get_children().exists())
+        self.assertEqual(new_page.alias_of_id, 3)
+
+        # Children should be aliases too
+        self.assertEqual(new_page.get_children().get(title="Tentative Unpublished Event").alias_of_id, 5)
+
+    def test_copy_page_in_draft(self):
+        response = self.get_response(3, {
+            'keep_live': False,
+        })
+
+        content = json.loads(response.content.decode('utf-8'))
+
+        new_page = Page.objects.get(id=content['id'])
+        self.assertEqual(new_page.title, "Events")
+        self.assertFalse(new_page.live)
+
+    def test_without_publish_permissions_at_destination_with_keep_live_false(self):
+        pass
+
+    # Check errors
+
+    def test_recursively_copy_into_self(self):
+        response = self.get_response(3, {
+            'destination': 3,
+            'recursive': True,
+        })
+
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(content, {
+            'message': "a page is already using the requested slug at the destination"
+        })
+
+    def test_without_create_permissions_at_destination(self):
+        pass
+
+    def test_without_publish_permissions_at_destination(self):
+        pass
+
+    def test_respects_page_creation_rules(self):
+        # Only one homepage may exist
+        response = self.get_response(2, {})
+
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(content, {
+            'message': "pages with this type cannot be created at the destination"
+        })
+
+    def test_copy_page_slug_in_use(self):
+        response = self.get_response(3, {
+            'slug': 'events',
+        })
+
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(content, {
+            'message': "a page is already using the requested slug at the destination"
+        })
+
+    def test_copy_page_alias_in_draft(self):
+        response = self.get_response(3, {
+            'alias': True,
+            'keep_live': False,
+        })
+
+        content = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(content, {
+            'message': "keep_live cannot be false when alias is true"
+        })
+
+
 # Overwrite imported test cases do Django doesn't run them
 TestPageDetail = None
 TestPageListing = None
