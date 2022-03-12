@@ -1,0 +1,28 @@
+{% load wagtailvideos_tags wagtailadmin_tags %}
+{% load i18n %}
+{% if videos %}
+    {% if is_searching %}
+        <h2 role="alert">
+            {% blocktrans count counter=videos.paginator.count %}
+                There is {{ counter }} match
+            {% plural %}
+                There are {{ counter }} matches
+            {% endblocktrans %}
+        </h2>
+    {% else %}
+        <h2>{% trans "Latest videos" %}</h2>
+    {% endif %}
+
+    <ul class="listing horiz videos chooser">
+        {% for video in videos %}
+            <li>
+                <a class="video-choice" title="{% if collections %}{{ video.collection.name }} » {% endif %}{{ video.title }}" href="{% if will_select_format %}{% url 'wagtailvideos:chooser_select_format' video.id %}{% else %}{% url 'wagtailvideos:video_chosen' video.id %}{% endif %}">
+                    <div class="video">{% video video max-165x165 class="show-transparency" %}</div>
+                    <h3>{{ video.title|ellipsistrim:60 }}</h3>
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+
+    {% include "wagtailadmin/shared/pagination_nav.html" with items=videos linkurl='wagtailvideos:chooser_results' %}
+{% endif %}

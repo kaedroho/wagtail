@@ -1,0 +1,38 @@
+{% load wagtailvideos_tags %}
+
+{% if video_a != video_b %}
+    {% if video_a and video_b %}
+        {# Video has changed #}
+
+        <div class="preview-video deletion">
+            {% video video_a max-165x165 class="show-transparency" %}
+        </div>
+
+        <div class="preview-video addition">
+            {% video video_b max-165x165 class="show-transparency" %}
+        </div>
+
+    {% elif video_b %}
+        {# Video has been added #}
+
+        <div class="preview-video addition">
+            {% video video_b max-165x165 class="show-transparency" %}
+        </div>
+
+    {% elif video_a %}
+        {# Video has been removed #}
+
+        <div class="preview-video deletion">
+            {% video video_a max-165x165 class="show-transparency" %}
+        </div>
+
+    {% endif %}
+{% else %}
+    <div class="preview-video">
+        {% if video_a %}
+            {% video video_a max-165x165 class="show-transparency" %}
+        {% else %}
+            <img alt="">
+        {% endif %}
+    </div>
+{% endif %}

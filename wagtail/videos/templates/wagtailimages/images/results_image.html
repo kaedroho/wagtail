@@ -1,0 +1,18 @@
+{% comment %}
+ Separated out of results.html to prevent invalid videos from crashing the entire
+ videos listing. (issue #1805)
+
+ If an error is raised inside a template include, the error is caught by the
+ calling {% include %} tag and the contents blanked out.
+
+ This behaviour caused a confusing error on the videos listing view where it
+ would go blank if one of the videos was invalid.
+
+ Separating the video rendering code into this file allows us to limit Django's
+ crash/blanking behaviour to a single video so the listing can still be used when
+ the issue occurs.
+{% endcomment %}
+
+{% load wagtailvideos_tags %}
+
+<div class="video">{% video video max-165x165 class="show-transparency" alt="" %}</div>
