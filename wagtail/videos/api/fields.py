@@ -5,10 +5,10 @@ from rest_framework.fields import Field
 from ..models import SourceVideoIOError
 
 
-class VideoRenditionField(Field):
+class VideoThumbnailField(Field):
     """
-    A field that generates a rendition with the specified filter spec, and serialises
-    details of that rendition.
+    A field that generates a thumbnail with the specified filter spec, and serialises
+    details of that thumbnail.
 
     Example:
     "thumbnail": {
