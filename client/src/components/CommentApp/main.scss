@@ -11,16 +11,17 @@ $color-grey-8: #fbfbfb;
 $color-comment-separator: #e6e6e6;
 
 $color-box-background: $color-white;
-$color-box-border: $color-grey-3;
-$color-box-border-focused: $color-grey-2;
-$color-box-text: $color-black;
-$color-textarea-background: $color-grey-8;
-$color-textarea-background-focused: #f2fcfc;
+$color-box-background-focused: theme('colors.grey.50');
+$color-box-border: theme('colors.grey.50');
+$color-box-border-focused: theme('colors.grey.100');
+$color-box-text: #262626;
+$color-textarea-background: $color-white;
+$color-textarea-background-focused: $color-white;
 $color-textarea-border: #ccc;
 $color-textarea-border-focused: #00b0b1;
-$color-textarea-placeholder-text: $color-grey-2;
+$color-textarea-placeholder-text: theme('colors.grey.400');
 $box-border-radius: 5px;
-$box-padding: 10px;
+$box-padding: 20px;
 
 @mixin focus-outline {
   outline: $color-focus-outline solid 3px;
@@ -28,21 +29,24 @@ $box-padding: 10px;
 
 @mixin box {
   background-color: $color-box-background;
-  border: 1px solid $color-box-border;
   padding: $box-padding;
   font-size: 11px;
   border-radius: $box-border-radius;
   color: $color-box-text;
+  border: 1px solid $color-box-border;
 
   &--focused {
-    border-color: #bbb;
+    background-color: $color-box-background-focused;
+    border: 1px solid $color-box-border-focused;
     box-shadow: 3px 2px 3px -1px rgba(0, 0, 0, 0.1);
   }
 
   textarea {
     font-family: $font-sans;
+    font-size: 16px;
+    font-weight: 400;
     margin: 0;
-    padding: 10px;
+    padding: 12px;
     width: 100%;
     background-color: $color-textarea-background;
     border: 1px solid $color-textarea-border;
@@ -112,11 +116,11 @@ $box-padding: 10px;
   color: $color-teal;
   cursor: pointer;
   font-family: inherit;
-  font-size: 12px;
-  font-weight: bold;
-  height: 25px;
-  padding-inline-start: 5px;
-  padding-inline-end: 5px;
+  font-size: 13px;
+  font-weight: 700;
+  height: 30px;
+  padding-inline-start: 10px;
+  padding-inline-end: 10px;
 
   &--primary {
     color: $color-white;
@@ -141,7 +145,6 @@ $box-padding: 10px;
 }
 
 .comments-list {
-  width: 400px;
   position: absolute;
   top: 30px;
   // Remove once we drop support for Safari 13.
