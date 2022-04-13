@@ -143,7 +143,7 @@ $box-padding: 10px;
 .comments-list {
   width: 400px;
   position: absolute;
-  top: 30px;
+  top: 0;
   // Remove once we drop support for Safari 13.
   // stylelint-disable-next-line property-disallowed-list
   right: 30px;
