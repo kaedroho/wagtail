@@ -6,7 +6,6 @@
 {% block bodyclass %}page-editor {% if page.live %}page-is-live{% endif %} model-{{ content_type.model }} {% if page_locked %}page-locked{% endif %}{% endblock %}
 
 {% block content %}
-    <div id="comments"></div>
     {% page_permissions page as page_perms %}
 
     <div class="w-sticky w-top-0 w-z-header">

@@ -70,17 +70,39 @@ const getAuthor = (
   };
 };
 
-function renderCommentsUi(
-  store: Store,
-  layout: LayoutController,
-  comments: Comment[],
-): React.ReactElement {
+interface CommentListingProps {
+  store: Store;
+  layout: LayoutController;
+  comments: Comment[];
+}
+
+function CommentListing({
+  store,
+  layout,
+  comments,
+}: CommentListingProps): React.ReactElement {
   const state = store.getState();
-  const { commentsEnabled, user, currentTab } = state.settings;
+  const { user, currentTab } = state.settings;
   const { focusedComment, forceFocus } = state.comments;
+  const commentsListRef = React.useRef<HTMLOListElement | null>(null);
   let commentsToRender = comments;
 
-  if (!commentsEnabled || !user) {
+  // Update the position of the comments listing as the window scrolls to keep the comments in line with the content
+  React.useEffect(() => {
+    const scrollListener = () => {
+      if (commentsListRef.current instanceof HTMLOListElement) {
+        commentsListRef.current.style.top = `-${window.scrollY}px`;
+      }
+    };
+
+    document.addEventListener('scroll', scrollListener);
+
+    return () => {
+      document.removeEventListener('scroll', scrollListener);
+    };
+  }, []);
+
+  if (!user) {
     commentsToRender = [];
   }
   // Hide all resolved/deleted comments
@@ -99,7 +121,11 @@ function renderCommentsUi(
       isVisible={layout.getCommentVisible(currentTab, comment.localId)}
     />
   ));
-  return <ol className="comments-list">{commentsRendered}</ol>;
+  return (
+    <ol ref={commentsListRef} className="comments-list">
+      {commentsRendered}
+    </ol>
+  );
   /* eslint-enable react/no-danger */
 }
 
@@ -243,7 +269,11 @@ export class CommentApp {
       }
 
       ReactDOM.render(
-        renderCommentsUi(this.store, this.layout, commentList),
+        <CommentListing
+          store={this.store}
+          layout={this.layout}
+          comments={commentList}
+        />,
         element,
         () => {
           // Render again if layout has changed (eg, a comment was added, deleted or resized)
@@ -251,7 +281,11 @@ export class CommentApp {
           this.layout.refreshDesiredPositions(state.settings.currentTab);
           if (this.layout.refreshLayout()) {
             ReactDOM.render(
-              renderCommentsUi(this.store, this.layout, commentList),
+              <CommentListing
+                store={this.store}
+                layout={this.layout}
+                comments={commentList}
+              />,
               element,
             );
           }
