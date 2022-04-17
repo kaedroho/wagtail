@@ -1,7 +1,23 @@
+from django.db.models import Q
+
 from wagtail.search.backends import get_search_backend
 
 
-class SearchableQuerySetMixin:
+class FilterRecorderMixin:
+    def __init__(self, *args, **kwargs):
+        self.recorded_filters = []
+        super().__init__(*args, **kwargs)
+
+    def filter(self, *args, **kwargs):
+        self.recorded_filters.append(Q(*args, **kwargs))
+        return super().filter(*args, **kwargs)
+
+    def exclude(self, *args, **kwargs):
+        self.recorded_filters.append(~Q(*args, **kwargs))
+        return super().exclude(*args, **kwargs)
+
+
+class SearchableQuerySetMixin(FilterRecorderMixin):
     def search(
         self,
         query,

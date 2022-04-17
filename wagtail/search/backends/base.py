@@ -1,5 +1,6 @@
 from warnings import warn
 
+from django.db.models import Q
 from django.db.models.functions.datetime import Extract as ExtractDate
 from django.db.models.functions.datetime import ExtractYear
 from django.db.models.lookups import Lookup
@@ -8,6 +9,7 @@ from django.db.models.sql.where import SubqueryConstraint, WhereNode
 
 from wagtail.search.index import class_is_indexed, get_indexed_models
 from wagtail.search.query import MATCH_ALL, PlainText
+from wagtail.search.queryset import FilterRecorderMixin
 
 
 class FilterError(Exception):
@@ -161,8 +163,31 @@ class BaseSearchQueryCompiler:
                 + str(type(where_node))
             )
 
+    def _get_filters_from_q(self, q, check_only=False):
+        # If the Q object has children, traverse through until we get leaf nodes
+        if isinstance(q, Q):
+            filters = [
+                self._get_filters_from_q(child, check_only=check_only)
+                for child in q.children
+            ]
+            return self._connect_filters(filters, q.connector, q.negated)
+
+        # Convert Q object leaf nodes into Where nodes so we can process them
+        where_node, joins = self.queryset.query.build_filter(q)
+
+        # TODO: Process the joins
+
+        # Process the where nodes
+        return self._get_filters_from_where_node(where_node, check_only=check_only)
+
     def _get_filters_from_queryset(self):
-        return self._get_filters_from_where_node(self.queryset.query.where)
+        if isinstance(self.queryset, FilterRecorderMixin):
+            filters = [
+                self._get_filters_from_q(q) for q in self.queryset.recorded_filters
+            ]
+            return self._connect_filters(filters, "AND", False)
+        else:
+            return self._get_filters_from_where_node(self.queryset.query.where)
 
     def _get_order_by(self):
         if self.order_by_relevance:
