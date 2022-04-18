@@ -4,7 +4,7 @@ from wagtail.renderers import BasePageRenderer
 
 from .router import WagtailAPIRouter
 from .utils import get_base_queryset, parse_fields_parameter
-from .views import PagesAPIViewSet
+from .views import PageFieldsConfig
 
 
 class APIV2PageRenderer(BasePageRenderer):
@@ -15,7 +15,7 @@ class APIV2PageRenderer(BasePageRenderer):
     media_type = "application/json; version=2"
 
     def get_serializer_class(self, request, page, router):
-        return PagesAPIViewSet.FieldsConfig.get_serializer_class(
+        return PageFieldsConfig.get_serializer_class(
             router,
             type(page),
             parse_fields_parameter("-detail_url"),

@@ -1,8 +1,23 @@
 from wagtail.api.v2.filters import FieldsFilter, OrderingFilter, SearchFilter
-from wagtail.api.v2.views import BaseAPIViewSet
+from wagtail.api.v2.views import BaseAPIViewSet, BaseFieldsConfig
 
 from ... import get_document_model
 from .serializers import DocumentSerializer
+
+
+class DocumentFieldsConfig(BaseFieldsConfig):
+    base_serializer_class = DocumentSerializer
+    body_fields = BaseFieldsConfig.body_fields + ["title"]
+    meta_fields = BaseFieldsConfig.meta_fields + ["tags", "download_url"]
+    listing_default_fields = BaseFieldsConfig.listing_default_fields + [
+        "title",
+        "tags",
+        "download_url",
+    ]
+    nested_default_fields = BaseFieldsConfig.nested_default_fields + [
+        "title",
+        "download_url",
+    ]
 
 
 class DocumentsAPIViewSet(BaseAPIViewSet):
@@ -11,17 +26,4 @@ class DocumentsAPIViewSet(BaseAPIViewSet):
 
     name = "documents"
     model = get_document_model()
-
-    class FieldsConfig(BaseAPIViewSet.FieldsConfig):
-        base_serializer_class = DocumentSerializer
-        body_fields = BaseAPIViewSet.FieldsConfig.body_fields + ["title"]
-        meta_fields = BaseAPIViewSet.FieldsConfig.meta_fields + ["tags", "download_url"]
-        listing_default_fields = BaseAPIViewSet.FieldsConfig.listing_default_fields + [
-            "title",
-            "tags",
-            "download_url",
-        ]
-        nested_default_fields = BaseAPIViewSet.FieldsConfig.nested_default_fields + [
-            "title",
-            "download_url",
-        ]
+    fields_config_class = DocumentFieldsConfig

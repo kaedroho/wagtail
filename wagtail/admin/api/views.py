@@ -6,7 +6,7 @@ from django.urls import path
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.response import Response
 
-from wagtail.api.v2.views import PagesAPIViewSet
+from wagtail.api.v2.views import PageFieldsConfig, PagesAPIViewSet
 from wagtail.models import Page
 
 from .actions.convert_alias import ConvertAliasPageAPIAction
@@ -20,6 +20,44 @@ from .actions.revert_to_page_revision import RevertToPageRevisionAPIAction
 from .actions.unpublish import UnpublishPageAPIAction
 from .filters import ForExplorerFilter, HasChildrenFilter
 from .serializers import AdminPageSerializer
+
+
+class PageAdminFieldsConfig(PageFieldsConfig):
+    base_serializer_class = AdminPageSerializer
+
+    meta_fields = PageFieldsConfig.meta_fields + [
+        "latest_revision_created_at",
+        "status",
+        "children",
+        "descendants",
+        "parent",
+        "ancestors",
+        "translations",
+    ]
+
+    body_fields = PageFieldsConfig.body_fields + [
+        "admin_display_title",
+    ]
+
+    listing_default_fields = PageFieldsConfig.listing_default_fields + [
+        "latest_revision_created_at",
+        "status",
+        "children",
+        "admin_display_title",
+    ]
+
+    # Allow the parent field to appear on listings
+    detail_only_fields = []
+
+    @classmethod
+    def get_detail_default_fields(cls, model):
+        detail_default_fields = super().get_detail_default_fields(model)
+
+        # When i18n is disabled, remove "translations" from default fields
+        if not getattr(settings, "WAGTAIL_I18N_ENABLED", False):
+            detail_default_fields.remove("translations")
+
+        return detail_default_fields
 
 
 class PagesAdminAPIViewSet(PagesAPIViewSet):
@@ -43,42 +81,7 @@ class PagesAdminAPIViewSet(PagesAPIViewSet):
         ForExplorerFilter,
     ]
 
-    class FieldsConfig(PagesAPIViewSet.FieldsConfig):
-        base_serializer_class = AdminPageSerializer
-
-        meta_fields = PagesAPIViewSet.FieldsConfig.meta_fields + [
-            "latest_revision_created_at",
-            "status",
-            "children",
-            "descendants",
-            "parent",
-            "ancestors",
-            "translations",
-        ]
-
-        body_fields = PagesAPIViewSet.FieldsConfig.body_fields + [
-            "admin_display_title",
-        ]
-
-        listing_default_fields = PagesAPIViewSet.FieldsConfig.listing_default_fields + [
-            "latest_revision_created_at",
-            "status",
-            "children",
-            "admin_display_title",
-        ]
-
-        # Allow the parent field to appear on listings
-        detail_only_fields = []
-
-        @classmethod
-        def get_detail_default_fields(cls, model):
-            detail_default_fields = super().get_detail_default_fields(model)
-
-            # When i18n is disabled, remove "translations" from default fields
-            if not getattr(settings, "WAGTAIL_I18N_ENABLED", False):
-                detail_default_fields.remove("translations")
-
-            return detail_default_fields
+    fields_config_class = PageAdminFieldsConfig
 
     known_query_parameters = PagesAPIViewSet.known_query_parameters.union(
         ["for_explorer", "has_children"]

@@ -38,10 +38,10 @@ from .utils import (
 class BaseFieldsConfig:
     base_serializer_class = BaseSerializer
 
-    body_fields = []
-    meta_fields = []
-    listing_default_fields = []
-    nested_default_fields = []
+    body_fields = ["id"]
+    meta_fields = ["type", "detail_url"]
+    listing_default_fields = ["id", "type", "detail_url"]
+    nested_default_fields = ["id", "type", "detail_url"]
     detail_only_fields = []
 
     @classmethod
@@ -203,7 +203,7 @@ class BaseFieldsConfig:
                 )
                 child_serializer_classes[
                     field_name
-                ] = child_endpoint_class.FieldsConfig.get_serializer_class(
+                ] = child_endpoint_class.fields_config_class.get_serializer_class(
                     router, child_model, child_sub_fields, nested=True
                 )
 
@@ -238,13 +238,7 @@ class BaseAPIViewSet(GenericViewSet):
     pagination_class = WagtailPagination
     filter_backends = []
     model = None  # Set on subclass
-
-    class FieldsConfig(BaseFieldsConfig):
-        body_fields = ["id"]
-        meta_fields = ["type", "detail_url"]
-        listing_default_fields = ["id", "type", "detail_url"]
-        nested_default_fields = ["id", "type", "detail_url"]
-        detail_only_fields = []
+    fields_config_class = BaseFieldsConfig
 
     known_query_parameters = frozenset(
         [
@@ -339,7 +333,9 @@ class BaseAPIViewSet(GenericViewSet):
 
         # All query parameters must be either a database field or an operation
         allowed_query_parameters = set(
-            self.FieldsConfig.get_available_fields(queryset.model, db_fields_only=True)
+            self.fields_config_class.get_available_fields(
+                queryset.model, db_fields_only=True
+            )
         ).union(self.known_query_parameters)
         unknown_parameters = query_parameters - allowed_query_parameters
         if unknown_parameters:
@@ -373,7 +369,7 @@ class BaseAPIViewSet(GenericViewSet):
         else:
             show_details = True
 
-        return self.FieldsConfig.get_serializer_class(
+        return self.fields_config_class.get_serializer_class(
             self.request.wagtailapi_router,
             model,
             fields_config,
@@ -425,6 +421,55 @@ class BaseAPIViewSet(GenericViewSet):
         return reverse(url_name, args=(pk,))
 
 
+class PageFieldsConfig(BaseFieldsConfig):
+    base_serializer_class = PageSerializer
+
+    body_fields = BaseFieldsConfig.body_fields + [
+        "title",
+    ]
+    meta_fields = BaseFieldsConfig.meta_fields + [
+        "html_url",
+        "slug",
+        "show_in_menus",
+        "seo_title",
+        "search_description",
+        "first_published_at",
+        "alias_of",
+        "parent",
+        "locale",
+    ]
+    listing_default_fields = BaseFieldsConfig.listing_default_fields + [
+        "title",
+        "html_url",
+        "slug",
+        "first_published_at",
+    ]
+    nested_default_fields = BaseFieldsConfig.nested_default_fields + [
+        "title",
+    ]
+    detail_only_fields = ["parent"]
+
+    @classmethod
+    def get_detail_default_fields(cls, model):
+        detail_default_fields = super().get_detail_default_fields(model)
+
+        # When i18n is disabled, remove "locale" from default fields
+        if not getattr(settings, "WAGTAIL_I18N_ENABLED", False):
+            detail_default_fields.remove("locale")
+
+        return detail_default_fields
+
+    @classmethod
+    def get_listing_default_fields(cls, model):
+        listing_default_fields = super().get_listing_default_fields(model)
+
+        # When i18n is enabled, add "locale" to default fields
+        if getattr(settings, "WAGTAIL_I18N_ENABLED", False):
+            listing_default_fields.append("locale")
+
+        return listing_default_fields
+
+
 class PagesAPIViewSet(BaseAPIViewSet):
     filter_backends = [
         FieldsFilter,
@@ -448,54 +493,7 @@ class PagesAPIViewSet(BaseAPIViewSet):
     )
     name = "pages"
     model = Page
-
-    class FieldsConfig(BaseAPIViewSet.FieldsConfig):
-        base_serializer_class = PageSerializer
-
-        body_fields = BaseAPIViewSet.FieldsConfig.body_fields + [
-            "title",
-        ]
-        meta_fields = BaseAPIViewSet.FieldsConfig.meta_fields + [
-            "html_url",
-            "slug",
-            "show_in_menus",
-            "seo_title",
-            "search_description",
-            "first_published_at",
-            "alias_of",
-            "parent",
-            "locale",
-        ]
-        listing_default_fields = BaseAPIViewSet.FieldsConfig.listing_default_fields + [
-            "title",
-            "html_url",
-            "slug",
-            "first_published_at",
-        ]
-        nested_default_fields = BaseAPIViewSet.FieldsConfig.nested_default_fields + [
-            "title",
-        ]
-        detail_only_fields = ["parent"]
-
-        @classmethod
-        def get_detail_default_fields(cls, model):
-            detail_default_fields = super().get_detail_default_fields(model)
-
-            # When i18n is disabled, remove "locale" from default fields
-            if not getattr(settings, "WAGTAIL_I18N_ENABLED", False):
-                detail_default_fields.remove("locale")
-
-            return detail_default_fields
-
-        @classmethod
-        def get_listing_default_fields(cls, model):
-            listing_default_fields = super().get_listing_default_fields(model)
-
-            # When i18n is enabled, add "locale" to default fields
-            if getattr(settings, "WAGTAIL_I18N_ENABLED", False):
-                listing_default_fields.append("locale")
-
-            return listing_default_fields
+    fields_config_class = PageFieldsConfig
 
     def get_root_page(self):
         """

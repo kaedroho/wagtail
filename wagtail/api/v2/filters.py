@@ -18,7 +18,9 @@ class FieldsFilter(BaseFilterBackend):
         Eg: ?title=James Joyce
         """
         fields = set(
-            view.FieldsConfig.get_available_fields(queryset.model, db_fields_only=True)
+            view.fields_config_class.get_available_fields(
+                queryset.model, db_fields_only=True
+            )
         )
 
         # Locale is a database field, but we provide a separate filter for it
@@ -95,7 +97,9 @@ class OrderingFilter(BaseFilterBackend):
                 reverse_order = False
 
             # Add ordering
-            if order_by in view.FieldsConfig.get_available_fields(queryset.model):
+            if order_by in view.fields_config_class.get_available_fields(
+                queryset.model
+            ):
                 queryset = queryset.order_by(order_by)
             else:
                 # Unknown field
