@@ -17,7 +17,9 @@ class FieldsFilter(BaseFilterBackend):
         This performs field level filtering on the result set
         Eg: ?title=James Joyce
         """
-        fields = set(view.get_available_fields(queryset.model, db_fields_only=True))
+        fields = set(
+            view.FieldsConfig.get_available_fields(queryset.model, db_fields_only=True)
+        )
 
         # Locale is a database field, but we provide a separate filter for it
         if "locale" in fields:
@@ -93,7 +95,7 @@ class OrderingFilter(BaseFilterBackend):
                 reverse_order = False
 
             # Add ordering
-            if order_by in view.get_available_fields(queryset.model):
+            if order_by in view.FieldsConfig.get_available_fields(queryset.model):
                 queryset = queryset.order_by(order_by)
             else:
                 # Unknown field

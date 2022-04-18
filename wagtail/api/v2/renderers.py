@@ -15,7 +15,7 @@ class APIV2PageRenderer(BasePageRenderer):
     media_type = "application/json; version=2"
 
     def get_serializer_class(self, request, page, router):
-        return PagesAPIViewSet._get_serializer_class(
+        return PagesAPIViewSet.FieldsConfig.get_serializer_class(
             router,
             type(page),
             parse_fields_parameter("-detail_url"),

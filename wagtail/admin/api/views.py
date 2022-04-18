@@ -23,7 +23,6 @@ from .serializers import AdminPageSerializer
 
 
 class PagesAdminAPIViewSet(PagesAPIViewSet):
-    base_serializer_class = AdminPageSerializer
     authentication_classes = [SessionAuthentication]
 
     actions = {
@@ -44,43 +43,46 @@ class PagesAdminAPIViewSet(PagesAPIViewSet):
         ForExplorerFilter,
     ]
 
-    meta_fields = PagesAPIViewSet.meta_fields + [
-        "latest_revision_created_at",
-        "status",
-        "children",
-        "descendants",
-        "parent",
-        "ancestors",
-        "translations",
-    ]
+    class FieldsConfig(PagesAPIViewSet.FieldsConfig):
+        base_serializer_class = AdminPageSerializer
 
-    body_fields = PagesAPIViewSet.body_fields + [
-        "admin_display_title",
-    ]
+        meta_fields = PagesAPIViewSet.FieldsConfig.meta_fields + [
+            "latest_revision_created_at",
+            "status",
+            "children",
+            "descendants",
+            "parent",
+            "ancestors",
+            "translations",
+        ]
 
-    listing_default_fields = PagesAPIViewSet.listing_default_fields + [
-        "latest_revision_created_at",
-        "status",
-        "children",
-        "admin_display_title",
-    ]
+        body_fields = PagesAPIViewSet.FieldsConfig.body_fields + [
+            "admin_display_title",
+        ]
 
-    # Allow the parent field to appear on listings
-    detail_only_fields = []
+        listing_default_fields = PagesAPIViewSet.FieldsConfig.listing_default_fields + [
+            "latest_revision_created_at",
+            "status",
+            "children",
+            "admin_display_title",
+        ]
+
+        # Allow the parent field to appear on listings
+        detail_only_fields = []
+
+        @classmethod
+        def get_detail_default_fields(cls, model):
+            detail_default_fields = super().get_detail_default_fields(model)
+
+            # When i18n is disabled, remove "translations" from default fields
+            if not getattr(settings, "WAGTAIL_I18N_ENABLED", False):
+                detail_default_fields.remove("translations")
+
+            return detail_default_fields
 
     known_query_parameters = PagesAPIViewSet.known_query_parameters.union(
         ["for_explorer", "has_children"]
     )
-
-    @classmethod
-    def get_detail_default_fields(cls, model):
-        detail_default_fields = super().get_detail_default_fields(model)
-
-        # When i18n is disabled, remove "translations" from default fields
-        if not getattr(settings, "WAGTAIL_I18N_ENABLED", False):
-            detail_default_fields.remove("translations")
-
-        return detail_default_fields
 
     def get_root_page(self):
         """
