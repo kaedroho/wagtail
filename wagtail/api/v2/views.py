@@ -35,102 +35,14 @@ from .utils import (
 )
 
 
-class BaseAPIViewSet(GenericViewSet):
-    renderer_classes = [JSONRenderer, BrowsableAPIRenderer]
-
-    pagination_class = WagtailPagination
+class ModelAPIFieldsConfiguration:
     base_serializer_class = BaseSerializer
-    filter_backends = []
-    model = None  # Set on subclass
 
-    known_query_parameters = frozenset(
-        [
-            "limit",
-            "offset",
-            "fields",
-            "order",
-            "search",
-            "search_operator",
-            # Used by jQuery for cache-busting. See #1671
-            "_",
-            # Required by BrowsableAPIRenderer
-            "format",
-        ]
-    )
     body_fields = ["id"]
     meta_fields = ["type", "detail_url"]
     listing_default_fields = ["id", "type", "detail_url"]
     nested_default_fields = ["id", "type", "detail_url"]
     detail_only_fields = []
-    name = None  # Set on subclass.
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # seen_types is a mapping of type name strings (format: "app_label.ModelName")
-        # to model classes. When an object is serialised in the API, its model
-        # is added to this mapping. This is used by the Admin API which appends a
-        # summary of the used types to the response.
-        self.seen_types = OrderedDict()
-
-    def get_queryset(self):
-        return self.model.objects.all().order_by("id")
-
-    def listing_view(self, request):
-        queryset = self.get_queryset()
-        self.check_query_parameters(queryset)
-        queryset = self.filter_queryset(queryset)
-        queryset = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(queryset, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    def detail_view(self, request, pk):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
-
-    def find_view(self, request):
-        queryset = self.get_queryset()
-
-        try:
-            obj = self.find_object(queryset, request)
-
-            if obj is None:
-                raise self.model.DoesNotExist
-
-        except self.model.DoesNotExist:
-            raise Http404("not found")
-
-        # Generate redirect
-        url = get_object_detail_url(
-            self.request.wagtailapi_router, request, self.model, obj.pk
-        )
-
-        if url is None:
-            # Shouldn't happen unless this endpoint isn't actually installed in the router
-            raise Exception(
-                "Cannot generate URL to detail view. Is '{}' installed in the API router?".format(
-                    self.__class__.__name__
-                )
-            )
-
-        return redirect(url)
-
-    def find_object(self, queryset, request):
-        """
-        Override this to implement more find methods.
-        """
-        if "id" in request.GET:
-            return queryset.get(id=request.GET["id"])
-
-    def handle_exception(self, exc):
-        if isinstance(exc, Http404):
-            data = {"message": str(exc)}
-            return Response(data, status=status.HTTP_404_NOT_FOUND)
-        elif isinstance(exc, BadRequestError):
-            data = {"message": str(exc)}
-            return Response(data, status=status.HTTP_400_BAD_REQUEST)
-        return super().handle_exception(exc)
 
     @classmethod
     def _convert_api_fields(cls, fields):
@@ -204,23 +116,6 @@ class BaseAPIViewSet(GenericViewSet):
     @classmethod
     def get_nested_default_fields(cls, model):
         return cls.nested_default_fields[:]
-
-    def check_query_parameters(self, queryset):
-        """
-        Ensure that only valid query parameters are included in the URL.
-        """
-        query_parameters = set(self.request.GET.keys())
-
-        # All query parameters must be either a database field or an operation
-        allowed_query_parameters = set(
-            self.get_available_fields(queryset.model, db_fields_only=True)
-        ).union(self.known_query_parameters)
-        unknown_parameters = query_parameters - allowed_query_parameters
-        if unknown_parameters:
-            raise BadRequestError(
-                "query parameter is not an operation or a recognised field: %s"
-                % ", ".join(sorted(unknown_parameters))
-            )
 
     @classmethod
     def _get_serializer_class(
@@ -335,6 +230,116 @@ class BaseAPIViewSet(GenericViewSet):
             child_serializer_classes=child_serializer_classes,
             base=cls.base_serializer_class,
         )
+
+
+class BaseAPIViewSet(ModelAPIFieldsConfiguration, GenericViewSet):
+    renderer_classes = [JSONRenderer, BrowsableAPIRenderer]
+
+    pagination_class = WagtailPagination
+    filter_backends = []
+    model = None  # Set on subclass
+
+    known_query_parameters = frozenset(
+        [
+            "limit",
+            "offset",
+            "fields",
+            "order",
+            "search",
+            "search_operator",
+            # Used by jQuery for cache-busting. See #1671
+            "_",
+            # Required by BrowsableAPIRenderer
+            "format",
+        ]
+    )
+
+    name = None  # Set on subclass.
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # seen_types is a mapping of type name strings (format: "app_label.ModelName")
+        # to model classes. When an object is serialised in the API, its model
+        # is added to this mapping. This is used by the Admin API which appends a
+        # summary of the used types to the response.
+        self.seen_types = OrderedDict()
+
+    def get_queryset(self):
+        return self.model.objects.all().order_by("id")
+
+    def listing_view(self, request):
+        queryset = self.get_queryset()
+        self.check_query_parameters(queryset)
+        queryset = self.filter_queryset(queryset)
+        queryset = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(queryset, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    def detail_view(self, request, pk):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def find_view(self, request):
+        queryset = self.get_queryset()
+
+        try:
+            obj = self.find_object(queryset, request)
+
+            if obj is None:
+                raise self.model.DoesNotExist
+
+        except self.model.DoesNotExist:
+            raise Http404("not found")
+
+        # Generate redirect
+        url = get_object_detail_url(
+            self.request.wagtailapi_router, request, self.model, obj.pk
+        )
+
+        if url is None:
+            # Shouldn't happen unless this endpoint isn't actually installed in the router
+            raise Exception(
+                "Cannot generate URL to detail view. Is '{}' installed in the API router?".format(
+                    self.__class__.__name__
+                )
+            )
+
+        return redirect(url)
+
+    def find_object(self, queryset, request):
+        """
+        Override this to implement more find methods.
+        """
+        if "id" in request.GET:
+            return queryset.get(id=request.GET["id"])
+
+    def handle_exception(self, exc):
+        if isinstance(exc, Http404):
+            data = {"message": str(exc)}
+            return Response(data, status=status.HTTP_404_NOT_FOUND)
+        elif isinstance(exc, BadRequestError):
+            data = {"message": str(exc)}
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+        return super().handle_exception(exc)
+
+    def check_query_parameters(self, queryset):
+        """
+        Ensure that only valid query parameters are included in the URL.
+        """
+        query_parameters = set(self.request.GET.keys())
+
+        # All query parameters must be either a database field or an operation
+        allowed_query_parameters = set(
+            self.get_available_fields(queryset.model, db_fields_only=True)
+        ).union(self.known_query_parameters)
+        unknown_parameters = query_parameters - allowed_query_parameters
+        if unknown_parameters:
+            raise BadRequestError(
+                "query parameter is not an operation or a recognised field: %s"
+                % ", ".join(sorted(unknown_parameters))
+            )
 
     def get_serializer_class(self):
         request = self.request
