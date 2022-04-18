@@ -7,9 +7,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Wagtail\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-07-13 13:35+0100\n"
-"PO-Revision-Date: 2021-05-17 17:38+0000\n"
-"Last-Translator: Mitja Pagon <mitja.pagon@inueni.com>\n"
+"POT-Creation-Date: 2022-01-21 14:10+0000\n"
+"PO-Revision-Date: 2016-05-11 20:22+0000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Slovenian (http://www.transifex.com/torchbox/wagtail/language/"
 "sl/)\n"
 "MIME-Version: 1.0\n"
@@ -35,6 +35,12 @@ msgstr "Umakni iz objave"
 msgid "Copy"
 msgstr "Kopiraj"
 
+msgid "image"
+msgstr "slika"
+
+msgid "Continue"
+msgstr "Nadaljuj"
+
 msgid "Saving…"
 msgstr "Shranjevanje ..."
 
@@ -44,14 +50,29 @@ msgstr "Shrani"
 msgid "Yes, delete"
 msgstr "Da, izbriši"
 
+msgid "No, don't delete"
+msgstr "Ne, ne izbriši"
+
 msgid "Home"
 msgstr "Domov"
+
+msgid "Last updated"
+msgstr "Zadnje posodobljeno"
+
+msgid "History"
+msgstr "Zgodovina"
+
+msgid "Download XLSX"
+msgstr "Prenesi XLSX"
 
 msgid "Download CSV"
 msgstr "Prenesi CSV"
 
 msgid "Filter"
 msgstr "Filter"
+
+msgid "Pagination"
+msgstr "Paginacija"
 
 msgid "Previous"
 msgstr "Prejšnja"
@@ -64,3 +85,9 @@ msgstr "Nov"
 
 msgid "Editing"
 msgstr "Urejanje"
+
+msgid "Action"
+msgstr "Dejanje"
+
+msgid "Date"
+msgstr "Datum"

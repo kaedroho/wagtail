@@ -43,6 +43,7 @@ Want to know more about customising ``ModelAdmin``?
     :maxdepth: 1
 
     primer
+    base_url
     menu_item
     indexview
     create_edit_delete_views
@@ -82,8 +83,7 @@ to create, view, and edit ``Book`` entries.
 .. code-block:: python
 
     from django.db import models
-    from wagtail.admin.edit_handlers import FieldPanel
-    from wagtail.images.edit_handlers import ImageChooserPanel
+    from wagtail.admin.panels import FieldPanel
 
     class Book(models.Model):
         title = models.CharField(max_length=255)
@@ -98,15 +98,13 @@ to create, view, and edit ``Book`` entries.
         panels = [
             FieldPanel('title'),
             FieldPanel('author'),
-            ImageChooserPanel('cover_photo')
+            FieldPanel('cover_photo')
         ]
 
 .. tip::
 
-    You can specify ``FieldPanels`` like ``ImageChooserPanel``, ``PageChooserPanel``,
-    and ``DocumentChooserPanel`` within the ``panels`` attribute of the model.
-    This lets you use Wagtail-specific features in an otherwise traditional
-    Django model.
+    You can specify panels like ``MultiFieldPanel`` within the ``panels`` attribute of the model.
+    This lets you use Wagtail-specific layouts in an otherwise traditional Django model.
 
 
 ``wagtail_hooks.py`` in your app directory would look something like this:
@@ -120,6 +118,7 @@ to create, view, and edit ``Book`` entries.
 
     class BookAdmin(ModelAdmin):
         model = Book
+        base_url_path = 'bookadmin' # customise the URL from default to admin/bookadmin
         menu_label = 'Book'  # ditch this to use verbose_name_plural from model
         menu_icon = 'pilcrow'  # change as required
         menu_order = 200  # will put in 3rd place (000 being 1st, 100 2nd)
