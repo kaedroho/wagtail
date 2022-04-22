@@ -164,6 +164,16 @@
     &__panel {
       @apply w-hidden w-pl-2.5;
     }
+
+    &[data-current-panel='comments'] {
+      background: none;
+      border-color: rgba(255, 255, 255, 0);
+      pointer-events: none;
+
+      .form-side__close-button {
+        opacity: 0;
+      }
+    }
   }
 }
 
