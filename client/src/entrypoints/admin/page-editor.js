@@ -407,7 +407,6 @@ window.updateFooterSaveWarning = (formDirty, commentsDirty) => {
 document.addEventListener('DOMContentLoaded', () => {
   const setPanel = (panelName) => {
     const sidePanelWrapper = document.querySelector('[data-form-side]');
-    sidePanelWrapper.dataset.currentPanel = panelName;
 
     // Open / close side panel
 
@@ -420,23 +419,23 @@ document.addEventListener('DOMContentLoaded', () => {
         'aria-labelledby',
         `side-panel-${panelName}-title`,
       );
-    }
 
-    document.querySelectorAll('[data-side-panel]').forEach((panel) => {
-      if (panel.dataset.sidePanel === panelName) {
-        if (panel.hidden) {
+      sidePanelWrapper.dataset.currentPanel = panelName;
+
+      document.querySelectorAll('[data-side-panel]').forEach((panel) => {
+        if (panel.dataset.sidePanel === panelName) {
+          if (panel.hidden) {
+            // eslint-disable-next-line no-param-reassign
+            panel.hidden = false;
+            panel.dispatchEvent(new CustomEvent('show'));
+          }
+        } else if (!panel.hidden) {
           // eslint-disable-next-line no-param-reassign
-          panel.hidden = false;
-          panel.dispatchEvent(new CustomEvent('show'));
-          body.classList.add('side-panel-open');
+          panel.hidden = true;
+          panel.dispatchEvent(new CustomEvent('hide'));
         }
-      } else if (!panel.hidden) {
-        // eslint-disable-next-line no-param-reassign
-        panel.hidden = true;
-        panel.dispatchEvent(new CustomEvent('hide'));
-        body.classList.remove('side-panel-open');
-      }
-    });
+      });
+    }
 
     // Update aria-expanded attribute on the panel toggles
     document.querySelectorAll('[data-side-panel-toggle]').forEach((toggle) => {
@@ -448,9 +447,13 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const togglePanel = (panelName) => {
-    const isAlreadyOpen = !document
-      .querySelector(`[data-side-panel="${panelName}"]`)
-      .hasAttribute('hidden');
+    const isAlreadyOpen =
+      document
+        .querySelector('[data-form-side]')
+        .classList.contains('form-side--open') &&
+      !document
+        .querySelector(`[data-side-panel="${panelName}"]`)
+        .hasAttribute('hidden');
 
     if (isAlreadyOpen) {
       // Close the sidebar
