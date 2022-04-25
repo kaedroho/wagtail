@@ -406,6 +406,7 @@ window.updateFooterSaveWarning = (formDirty, commentsDirty) => {
 
 document.addEventListener('DOMContentLoaded', () => {
   const setPanel = (panelName) => {
+    console.log('SET PANEL', panelName);
     const sidePanelWrapper = document.querySelector('[data-form-side]');
 
     // Open / close side panel
@@ -445,6 +446,8 @@ document.addEventListener('DOMContentLoaded', () => {
       );
     });
   };
+
+  window.setSidePanel = setPanel;
 
   const togglePanel = (panelName) => {
     const isAlreadyOpen =

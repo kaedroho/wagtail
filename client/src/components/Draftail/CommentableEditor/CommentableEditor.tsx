@@ -355,6 +355,7 @@ function getCommentControl(
           </>
         }
         onClick={() => {
+          window.setSidePanel('comments');
           onChange(
             addNewComment(getEditorState(), fieldNode, commentApp, contentPath),
           );

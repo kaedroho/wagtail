@@ -125,6 +125,8 @@ window.comments = (() => {
 
     setOnClickHandler(localId) {
       this.node.addEventListener('click', () => {
+        window.setSidePanel('comments');
+
         commentApp.store.dispatch(
           commentApp.actions.setFocusedComment(localId, {
             updatePinnedComment: true,
@@ -200,10 +202,14 @@ window.comments = (() => {
         annotation.subscribeToUpdates(localId);
       };
       this.commentAdditionNode.addEventListener('click', () => {
+        window.setSidePanel('comments');
+
         // Make the widget button clickable to add a comment
         addComment();
       });
       this.fieldNode.addEventListener('keyup', (e) => {
+        window.setSidePanel('comments');
+
         if (currentlyEnabled && isCommentShortcut(e)) {
           if (currentComments.length === 0) {
             addComment();
@@ -326,15 +332,15 @@ window.comments = (() => {
       }
     };
 
-    if (commentsSidePanel) {
-      commentsSidePanel.addEventListener('show', () => {
-        updateCommentVisibility(true);
-      });
+    // if (commentsSidePanel) {
+    //   commentsSidePanel.addEventListener('show', () => {
+    //     updateCommentVisibility(true);
+    //   });
 
-      commentsSidePanel.addEventListener('hide', () => {
-        updateCommentVisibility(false);
-      });
-    }
+    //   commentsSidePanel.addEventListener('hide', () => {
+    //     updateCommentVisibility(false);
+    //   });
+    // }
 
     // Keep number of comments up to date with comment app
     const commentToggle = document.querySelector(
@@ -367,6 +373,8 @@ window.comments = (() => {
     };
     commentApp.store.subscribe(updateCommentCount);
     updateCommentCount();
+
+    updateCommentVisibility(true);
   }
 
   return {
