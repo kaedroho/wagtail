@@ -1,0 +1,32 @@
+{% load wagtailadmin_tags %}
+<header class="w-header">
+    <div class="row">
+        <div class="left">
+            <div class="col">
+                <h1>{% if icon_name %}{% icon name=icon_name %}{% endif %}
+                    {{ title }}{% if subtitle %} <span>{{ subtitle }}</span>{% endif %}</h1>
+            </div>
+            {% if search %}
+                <form class="col search-form" action="{{ search.action }}" method="get" novalidate role="search">
+                    <ul class="fields">
+                        {% for field in search.form %}
+                            {% include "wagtailadmin/shared/field_as_li.html" with field=field field_classes="field-small iconfield" icon="search" %}
+                        {% endfor %}
+                        {% comment %}Add an initial disabled & hidden submit button so that pressing 'enter' will not submit form. Reload not required as the content is dynamically loaded.{% endcomment %}
+                        <li class="visuallyhidden"><input disabled type="submit" aria-hidden="true"/></li>
+                        <li class="submit visuallyhidden"><input type="submit" value="Search" class="button" /></li>
+                    </ul>
+                </form>
+            {% endif %}
+        </div>
+        <div class="right">
+            {% for button in buttons %}
+                {% if button.url %}
+                    <div class="actionbutton">
+                        <a href="{{ button.url }}" class="button{% if button.icon_name %} bicolor button--icon{% endif %}">{% if button.icon_name %}{% icon name=button.icon_name wrapped=1 %} {% endif %}{{ button.text }}</a>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</header>
