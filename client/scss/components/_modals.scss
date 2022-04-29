@@ -116,7 +116,7 @@ $zindex-modal-background: 500;
   position: relative;
   padding-bottom: 2em;
 
-  header {
+  header.w-header {
     @apply w-bg-primary w-text-white;
 
     h1 {

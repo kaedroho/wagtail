@@ -14,7 +14,7 @@
     - `action_icon` - icon for the 'action' button, default is 'icon-plus'
 
 {% endcomment %}
-<header class="{% if merged %}merged{% endif %} {% if search_form %}hasform{% endif %}">
+<header class="w-header{% if merged %} merged{% endif %}{% if search_form %} hasform{% endif %}">
     {% block breadcrumb %}{% endblock %}
     <div class="row">
         <div class="left">
