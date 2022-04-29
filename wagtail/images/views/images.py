@@ -17,6 +17,7 @@ from wagtail.admin import messages
 from wagtail.admin.auth import PermissionPolicyChecker
 from wagtail.admin.forms.search import SearchForm
 from wagtail.admin.models import popular_tags_for_model
+from wagtail.admin.ui.headers import Header
 from wagtail.admin.views.pages.utils import get_valid_next_url_from_request
 from wagtail.images import get_image_model
 from wagtail.images.exceptions import InvalidFilterSpecError
@@ -115,6 +116,19 @@ class IndexView(BaseListingView):
 
         context.update(
             {
+                "header": Header(
+                    title=_("Images"),
+                    icon_name="image",
+                    search=Header.Search(
+                        action=reverse("wagtailimages:index"), form=self.form
+                    ),
+                    buttons=[
+                        Header.Button(
+                            text=_("Add an image"),
+                            url=reverse("wagtailimages:add_multiple"),
+                        )
+                    ],
+                ),
                 "search_form": self.form,
                 "popular_tags": popular_tags_for_model(get_image_model()),
                 "current_tag": self.current_tag,
