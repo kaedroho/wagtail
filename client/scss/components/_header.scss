@@ -179,7 +179,7 @@ header.w-header {
 
 // Media for Windows High Contrast
 @media (forced-colors: $media-forced-colours) {
-  header .field-content {
+  header.w-header .field-content {
     border: 0.1em solid $system-color-link-text;
   }
 }
