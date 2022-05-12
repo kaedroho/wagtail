@@ -144,6 +144,7 @@ export class CommentApp {
     selectCommentCount,
   };
   actions = commentActionFunctions;
+  activationHandlers: (() => void)[] = [];
 
   constructor() {
     this.store = createStore(reducer, {
@@ -212,6 +213,12 @@ export class CommentApp {
         commentsEnabled: visible,
       }),
     );
+  }
+  activate() {
+    this.activationHandlers.forEach((handler) => handler());
+  }
+  onActivate(handler: () => void) {
+    this.activationHandlers.push(handler);
   }
   invalidateContentPath(contentPath: string) {
     // Called when a given content path on the form is no longer valid (eg, a block has been deleted)

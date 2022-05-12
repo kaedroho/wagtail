@@ -464,6 +464,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  // Open the side panel if the 'open' custom event is triggered on the side panel
+  // This is allows panels to be opened with JavaScript without hacking the toggle
+  document.querySelectorAll('[data-side-panel]').forEach((panel) => {
+    panel.addEventListener('open', () => {
+      setPanel(panel.dataset.sidePanel);
+    });
+  });
+
+  // Toggle side panel if user clicks on the toggle
   document.querySelectorAll('[data-side-panel-toggle]').forEach((toggle) => {
     toggle.addEventListener('click', () => {
       togglePanel(toggle.dataset.sidePanelToggle);

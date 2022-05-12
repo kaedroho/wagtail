@@ -355,6 +355,9 @@ function getCommentControl(
           </>
         }
         onClick={() => {
+          // Open the comments side panel
+          commentApp.activate();
+
           onChange(
             addNewComment(getEditorState(), fieldNode, commentApp, contentPath),
           );

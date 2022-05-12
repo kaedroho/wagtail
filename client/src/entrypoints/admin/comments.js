@@ -125,6 +125,9 @@ window.comments = (() => {
 
     setOnClickHandler(localId) {
       this.node.addEventListener('click', () => {
+        // Open the comments side panel
+        commentApp.activate();
+
         commentApp.store.dispatch(
           commentApp.actions.setFocusedComment(localId, {
             updatePinnedComment: true,
@@ -200,6 +203,9 @@ window.comments = (() => {
         annotation.subscribeToUpdates(localId);
       };
       this.commentAdditionNode.addEventListener('click', () => {
+        // Open the comments side panel
+        commentApp.activate();
+
         // Make the widget button clickable to add a comment
         addComment();
       });
@@ -307,6 +313,14 @@ window.comments = (() => {
     const tabContentElement = formElement.querySelector('.tab-content');
     tabContentElement.classList.add('tab-content--comments-enabled');
     commentApp.setVisible(true);
+
+    // Open the comments panel whenever the comment app is activated by a user clicking on an "Add comment" widget on the form.
+    const commentSidePanel = document.querySelector(
+      '[data-side-panel="comments"]',
+    );
+    commentApp.onActivate(() => {
+      commentSidePanel.dispatchEvent(new Event('open'));
+    });
 
     // Keep number of comments up to date with comment app
     const commentToggle = document.querySelector(
