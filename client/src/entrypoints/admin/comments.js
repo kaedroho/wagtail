@@ -299,42 +299,14 @@ window.comments = (() => {
       });
     }
 
-    // Show/hide comments when the side panel is opened/closed
-    const commentsSidePanel = document.querySelector(
-      '[data-side-panel="comments"]',
-    );
+    // Show comments app
     const commentNotifications = formElement.querySelector(
       '[data-comment-notifications]',
     );
+    commentNotifications.hidden = false;
     const tabContentElement = formElement.querySelector('.tab-content');
-
-    const updateCommentVisibility = (visible) => {
-      // Show/hide comments
-      commentApp.setVisible(visible);
-
-      // Add/Remove tab-nav--comments-enabled class. This changes the size of streamfields
-      if (visible) {
-        tabContentElement.classList.add('tab-content--comments-enabled');
-        if (commentNotifications) {
-          commentNotifications.hidden = false;
-        }
-      } else {
-        tabContentElement.classList.remove('tab-content--comments-enabled');
-        if (commentNotifications) {
-          commentNotifications.hidden = true;
-        }
-      }
-    };
-
-    if (commentsSidePanel) {
-      commentsSidePanel.addEventListener('show', () => {
-        updateCommentVisibility(true);
-      });
-
-      commentsSidePanel.addEventListener('hide', () => {
-        updateCommentVisibility(false);
-      });
-    }
+    tabContentElement.classList.add('tab-content--comments-enabled');
+    commentApp.setVisible(true);
 
     // Keep number of comments up to date with comment app
     const commentToggle = document.querySelector(
