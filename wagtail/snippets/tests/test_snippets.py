@@ -1896,7 +1896,6 @@ class TestSnippetDelete(TestCase, WagtailTestUtils):
         # Check that the page is gone
         self.assertEqual(Advert.objects.filter(text="test_advert").count(), 0)
 
-    @override_settings(WAGTAIL_USAGE_COUNT_ENABLED=True)
     def test_usage_link(self):
         response = self.client.get(
             reverse(
@@ -2142,7 +2141,6 @@ class TestUsageCount(TestCase):
         super().setUpTestData()
         management.call_command("rebuild_references_index")
 
-    @override_settings(WAGTAIL_USAGE_COUNT_ENABLED=True)
     def test_snippet_usage_count(self):
         advert = Advert.objects.get(pk=1)
         self.assertEqual(advert.get_usage().count(), 2)
@@ -2151,7 +2149,6 @@ class TestUsageCount(TestCase):
 class TestUsedBy(TestCase):
     fixtures = ["test.json"]
 
-    @override_settings(WAGTAIL_USAGE_COUNT_ENABLED=True)
     def test_snippet_used_by(self):
         advert = Advert.objects.get(pk=1)
 
@@ -2161,7 +2158,6 @@ class TestUsedBy(TestCase):
         self.assertIsInstance(advert.get_usage()[0][1][0], ReferenceIndex)
 
 
-@override_settings(WAGTAIL_USAGE_COUNT_ENABLED=True)
 class TestSnippetUsageView(TestCase, WagtailTestUtils):
     def setUp(self):
         self.user = self.login()
@@ -3390,7 +3386,6 @@ class TestSnippetViewWithCustomPrimaryKey(TestCase, WagtailTestUtils):
             response, "wagtailsnippets/snippets/confirm_delete.html"
         )
 
-    @override_settings(WAGTAIL_USAGE_COUNT_ENABLED=True)
     def test_usage_link(self):
         response = self.client.get(
             reverse(
@@ -3425,7 +3420,6 @@ class TestSnippetViewWithCustomPrimaryKey(TestCase, WagtailTestUtils):
             status_code=301,
         )
 
-    @override_settings(WAGTAIL_USAGE_COUNT_ENABLED=True)
     def test_redirect_to_usage(self):
         response = self.client.get(
             "/admin/snippets/snippetstests/standardsnippetwithcustomprimarykey/snippet_2F01/usage/"
