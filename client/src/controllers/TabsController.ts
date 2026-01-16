@@ -433,6 +433,7 @@ export class TabsController extends Controller {
    * If state is available, add a new history item to the stack.
    */
   syncLocation() {
+    /* TODO Add support for pushState
     if (!this.useLocationValue) return null;
 
     const activePanelId = this.activePanelIdValue;
@@ -447,7 +448,7 @@ export class TabsController extends Controller {
 
       return activePanelId;
     }
-
+    */
     return null;
   }
 

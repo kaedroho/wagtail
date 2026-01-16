@@ -2,10 +2,14 @@ import functools
 
 from django.conf import settings
 from django.http import Http404
-from django.urls import include, path, re_path
+from django.template.response import TemplateResponse
+from django.urls import include, path, re_path, reverse
 from django.views.decorators.cache import never_cache
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.defaults import page_not_found
 from django.views.generic import TemplateView
+from django_bridge.conf import DjangoBridgeConfig
+from django_bridge.response import Response, process_response
 
 from wagtail import hooks
 from wagtail.admin.api import urls as api_urls
@@ -150,6 +154,13 @@ urlpatterns += [
         localized_js_catalog,
         name="wagtailadmin_javascript_catalog",
     ),
+    path(
+        "shell-frame/",
+        xframe_options_sameorigin(
+            TemplateView.as_view(template_name="wagtailadmin/shellframe.html")
+        ),
+        name="shell-frame",
+    ),
 ]
 
 
@@ -187,3 +198,45 @@ urlpatterns = decorate_urlpatterns(urlpatterns, display_custom_404)
 
 # Decorate all views with cache settings to prevent caching
 urlpatterns = decorate_urlpatterns(urlpatterns, never_cache)
+
+
+# Convert all responses into django bridge responses
+def convert_to_django_bridge(view_func):
+    @functools.wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        response = view_func(request, *args, **kwargs)
+
+        if (
+            isinstance(response, TemplateResponse)
+            and response.template_name[0] == "wagtailadmin/shellframe.html"
+        ):
+            return response
+
+        # TODO: Only wrap responses that have used the admin_base template
+        if response.status_code != 302 and response["Content-Type"].startswith(
+            "text/html"
+        ):
+            if isinstance(response, TemplateResponse):
+                html = response.render().text
+            else:
+                html = response.content
+            response = Response(
+                request,
+                "HTMLPage",
+                {"html": html, "frameUrl": reverse("shell-frame")},
+            )
+
+        # Render the response with Django bridge
+        # Note, the render_response helper acts like the django-bridge middleware
+        bridge_config = DjangoBridgeConfig(
+            bootstrap_template="wagtailadmin/shell.html",
+            framework="react",
+            entry_point="src/main.tsx",
+            vite_devserver_url="http://192.168.122.58:5173/static",
+        )
+        return process_response(request, response, bridge_config)
+
+    return wrapper
+
+
+urlpatterns = decorate_urlpatterns(urlpatterns, convert_to_django_bridge)
