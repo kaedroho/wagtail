@@ -11,6 +11,13 @@
                 document.close();
 
                 // JavaScript API
+                window.navigate = (url) => {
+                    parent.postMessage({
+                        id: event.data.frameId,
+                        type: 'navigate',
+                        url,
+                    }, "*");
+                };
                 window.openModal = (url) => {
                     parent.postMessage({
                         id: event.data.frameId,
@@ -19,77 +26,88 @@
                     }, "*");
                 };
 
+                const onClickAElement = (e) => {
+                    e.preventDefault();
+                    const link = e.currentTarget;
+                    let url;
+
+                    // Don't ajaxify download links
+                    if (link.hasAttribute('download')) {
+                        return
+                    }
+
+                    // Get href
+                    let href = link.getAttribute('href');
+                    if (href) {
+                        if (href.startsWith('#')) {
+                            // TODO
+                        }
+
+                        if (href.startsWith('?')) {
+                            url = event.data.path + href;
+                        } else {
+                            url = href;
+                        }
+                    } else {
+                        url = event.data.path;
+                    }
+
+                    if (link.target === '_modal') {
+                        window.openModal(url);
+                    } else {
+                        parent.postMessage({
+                            id: event.data.frameId,
+                            type: 'navigate',
+                            url,
+                        }, "*");
+                    }
+                };
+
+                const onSubmitFormElement = (e) => {
+                    e.preventDefault();
+                    const form = e.currentTarget;
+
+                    // Get action URL
+                    // Note: Don't use form.action here as some forms have an action field!
+                    // Note: If action is not specified, fall back to the current pathname with any existing GET parameters removed
+                    const action = form.getAttribute('action') || event.data.path.split('?')[0];
+
+                    const method = form.getAttribute('method');
+                    const isPost = method && method.toLowerCase() == 'post';
+                    const data = new FormData(form);
+
+                    // Add value of clicked submit button to form data
+                    if (e.submitter.value) {
+                        data.set(e.submitter.name, e.submitter.value);
+                    }
+
+                    parent.postMessage({
+                        id: event.data.frameId,
+                        type: 'submit-form',
+                        action,
+                        method: isPost ? 'post' : 'get',
+                        data,
+                    }, "*");
+                };
+
                 const onLoad = () => {
                     // Insert a <base target="_parent"> tag into the <head> of the iframe
                     // This makes it open all links in the main window
                     const baseElement = document.createElement('base');
                     baseElement.target = '_parent';
+                    baseElement.href = event.data.path,
                     document.head.appendChild(baseElement);
 
                     // Ajaxify links
                     const processLink = (link) => {
-                        // Don't ajaxify download links
-                        if (link.hasAttribute('download')) {
-                            return
-                        }
-
-                        // Get href
-                        const href = link.getAttribute('href');
-                        if (!href || href.startsWith('#')) {
-                            return;
-                        }
-
-                        link.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            let url;
-
-                            if (href.startsWith('?')) {
-                                url = event.data.path + href;
-                            } else {
-                                url = href;
-                            }
-
-                            if (link.target === '_modal') {
-                                window.openModal(url);
-                            } else {
-                                parent.postMessage({
-                                    id: event.data.frameId,
-                                    type: 'navigate',
-                                    url,
-                                }, "*");
-                            }
-                        });
+                        link.addEventListener('click', onClickAElement);
                     };
 
                     // Ajaxify forms
                     // Note: Some forms are submitted through ajax anyway, we don't care about those
                     // We only want to ajaxify forms that will otherwise reload the page
                     const processForm = (form) => {
-                        // Get action URL
-                        // Note: Don't use form.action here as some forms have an action field!
-                        // Note: If action is not specified, fall back to the current pathname with any existing GET parameters removed
-                        const action = form.getAttribute('action') || event.data.path.split('?')[0];
-
-                        form.addEventListener('submit', (e) => {
-                            e.preventDefault();
-
-                            const method = form.getAttribute('method');
-                            const isPost = method && method.toLowerCase() == 'post';
-                            const data = new FormData(form);
-
-                            // Add value of clicked submit button to form data
-                            if (e.submitter.value) {
-                                data.set(e.submitter.name, e.submitter.value);
-                            }
-
-                            parent.postMessage({
-                                id: event.data.frameId,
-                                type: 'submit-form',
-                                action,
-                                method: isPost ? 'post' : 'get',
-                                data,
-                            }, "*");
-                        });
+                        form.addEventListener('submit', onSubmitFormElement);
                     }
 
                     // Set up elements that are in the initial response and set them up
