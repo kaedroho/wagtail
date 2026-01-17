@@ -213,8 +213,10 @@ def convert_to_django_bridge(view_func):
             return response
 
         # TODO: Only wrap responses that have used the admin_base template
-        if response.status_code != 302 and response["Content-Type"].startswith(
-            "text/html"
+        if (
+            response.status_code != 302
+            and response["Content-Type"].startswith("text/html")
+            and not request.META.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
         ):
             if isinstance(response, TemplateResponse):
                 html = response.render().text
