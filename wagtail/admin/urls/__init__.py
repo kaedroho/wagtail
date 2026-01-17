@@ -10,6 +10,7 @@ from django.views.defaults import page_not_found
 from django.views.generic import TemplateView
 from django_bridge.conf import DjangoBridgeConfig
 from django_bridge.response import Response, process_response
+from rest_framework.response import Response as DRFResponse
 
 from wagtail import hooks
 from wagtail.admin.api import urls as api_urls
@@ -205,6 +206,10 @@ def convert_to_django_bridge(view_func):
     @functools.wraps(view_func)
     def wrapper(request, *args, **kwargs):
         response = view_func(request, *args, **kwargs)
+
+        # Ignore Django REST framework responses
+        if isinstance(response, DRFResponse):
+            return response
 
         if (
             isinstance(response, TemplateResponse)
