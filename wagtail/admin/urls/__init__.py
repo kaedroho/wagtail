@@ -226,7 +226,7 @@ def convert_to_django_bridge(view_func):
             if isinstance(response, TemplateResponse):
                 html = response.render().text
             else:
-                html = response.content
+                html = response.content.decode("utf-8")
             response = Response(
                 request,
                 "HTMLPage",
