@@ -1,5 +1,8 @@
-import { NavigationContext } from '@django-bridge/react';
-import { useContext } from 'react';
+import {
+  NavigationContext,
+  useShouldReloadCallback,
+} from '@django-bridge/react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 
 interface LoadFrameEvent {
   type: 'load';
@@ -38,67 +41,82 @@ window.addEventListener('message', (event) => {
 });
 
 interface HTMLPageProps {
-  html: string;
   frameUrl: string;
+  html: string;
 }
 
-export default function Frame({ html, frameUrl }: HTMLPageProps) {
-  const { path, frameId, navigate, submitForm } = useContext(NavigationContext);
-  const onIframeLoad = (e: React.SyntheticEvent<HTMLIFrameElement>) => {
-    if (e.target instanceof HTMLIFrameElement && e.target.contentWindow) {
-      e.target.contentWindow.postMessage(
-        {
-          html,
-          path,
-          frameId,
-        },
-        '*',
-      );
+export default function Frame({ frameUrl, html }: HTMLPageProps) {
+  const {
+    frameId: currentFrameId,
+    path,
+    navigate,
+    submitForm,
+  } = useContext(NavigationContext);
+  const [frontFrameId, setFrontFrameId] = useState(currentFrameId);
+  const [backFrameId, setBackFrameId] = useState<number | null>(currentFrameId);
 
-      frameCallbacks[frameId] = (event) => {
-        if (event.type == 'load') {
-          /*if (onLoad) {
-            onLoad(event.title);
-            }*/
-        }
+  useShouldReloadCallback(() => false, []);
 
-        if (event.type == 'navigate') {
-          navigate(event.url);
-        }
+  useEffect(() => {
+    setBackFrameId(currentFrameId);
+  }, [currentFrameId, frontFrameId]);
 
-        if (event.type == 'submit-form') {
-          if (event.method === 'get') {
-            // TODO: Make sure there are no files here
-            const dataString = Array.from(event.data.entries())
-              .map(
-                (x) =>
-                  `${encodeURIComponent(x[0])}=${encodeURIComponent(x[1] as string)}`,
-              )
-              .join('&');
+  const onIframeLoad = useCallback(
+    (frameId: number, e: React.SyntheticEvent<HTMLIFrameElement>) => {
+      if (e.target instanceof HTMLIFrameElement && e.target.contentWindow) {
+        e.target.contentWindow.postMessage(
+          {
+            html,
+            path,
+            frameId,
+          },
+          '*',
+        );
 
-            const url =
-              event.action +
-              (event.action.indexOf('?') == -1 ? '?' : '&') +
-              dataString;
-            navigate(url);
-          } else {
-            submitForm(event.action, event.data);
+        frameCallbacks[frameId] = (event) => {
+          if (event.type === 'load') {
+            setFrontFrameId(frameId);
+            if (backFrameId && backFrameId <= frameId) {
+              setBackFrameId(null);
+            }
           }
-        }
 
-        if (event.type == 'open-modal') {
-          /*
-          if (openModal) {
-            openModal(event.url);
-            }*/
-        }
-      };
-    }
-  };
+          if (event.type === 'navigate') {
+            navigate(event.url);
+          }
 
-  return (
-    <>
+          if (event.type === 'submit-form') {
+            if (event.method === 'get') {
+              // TODO: Make sure there are no files here
+              const dataString = Array.from(event.data.entries())
+                .map(
+                  (x) =>
+                    `${encodeURIComponent(x[0])}=${encodeURIComponent(x[1] as string)}`,
+                )
+                .join('&');
+
+              const url =
+                event.action +
+                (event.action.indexOf('?') === -1 ? '?' : '&') +
+                dataString;
+              navigate(url);
+            } else {
+              submitForm(event.action, event.data);
+            }
+          }
+        };
+      }
+    },
+    [backFrameId, html, path, navigate, submitForm],
+  );
+
+  const frames = [];
+
+  if (backFrameId) {
+    frames.push(
       <iframe
+        title={`Wagtail Frame ${backFrameId}`}
+        key={backFrameId}
         style={{
           border: 'none',
           width: '100%',
@@ -107,9 +125,30 @@ export default function Frame({ html, frameUrl }: HTMLPageProps) {
           top: 0,
           left: 0,
         }}
-        onLoad={onIframeLoad}
+        onLoad={(e) => onIframeLoad(backFrameId, e)}
         src={frameUrl}
-      />
-    </>
-  );
+      />,
+    );
+  }
+
+  if (frontFrameId !== backFrameId) {
+    frames.push(
+      <iframe
+        title={`Wagtail Frame ${frontFrameId}`}
+        key={frontFrameId}
+        style={{
+          border: 'none',
+          width: '100%',
+          height: '100%',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+        }}
+        onLoad={(e) => onIframeLoad(frontFrameId, e)}
+        src={frameUrl}
+      />,
+    );
+  }
+
+  return frames;
 }
