@@ -18,7 +18,7 @@ from django.urls.exceptions import NoReverseMatch
 from django.utils import timezone
 from django.utils.encoding import force_str
 from django.utils.formats import get_format
-from django.utils.html import avoid_wrapping, json_script
+from django.utils.html import avoid_wrapping
 from django.utils.safestring import mark_safe
 from django.utils.timesince import timesince
 from django.utils.translation import gettext_lazy as _
@@ -28,11 +28,8 @@ from wagtail import hooks
 from wagtail.admin.admin_url_finder import AdminURLFinder
 from wagtail.admin.icons import get_icon_sprite_url
 from wagtail.admin.localization import get_js_translation_strings
-from wagtail.admin.menu import admin_menu
 from wagtail.admin.search import admin_search_areas
 from wagtail.admin.staticfiles import versioned_static as versioned_static_func
-from wagtail.admin.telepath import JSContext
-from wagtail.admin.ui import sidebar
 from wagtail.admin.ui.menus import MenuItem
 from wagtail.admin.utils import (
     get_admin_base_url,
@@ -863,50 +860,6 @@ def locale_label_from_id(locale_id):
     Returns the Locale display name given its id.
     """
     return get_locales_display_names().get(locale_id)
-
-
-@register.simple_tag(takes_context=True)
-def sidebar_collapsed(context):
-    request = context.get("request")
-    collapsed = request.COOKIES.get("wagtail_sidebar_collapsed", "0")
-    if collapsed == "0":
-        return False
-    return True
-
-
-@register.simple_tag(takes_context=True)
-def sidebar_props(context):
-    request = context["request"]
-    search_areas = admin_search_areas.search_items_for_request(request)
-    if search_areas:
-        search_area = search_areas[0]
-    else:
-        search_area = None
-
-    account_menu = [
-        sidebar.LinkMenuItem(
-            "account", _("Account"), reverse("wagtailadmin_account"), icon_name="user"
-        ),
-        sidebar.ActionMenuItem(
-            "logout", _("Log out"), reverse("wagtailadmin_logout"), icon_name="logout"
-        ),
-    ]
-
-    modules = [
-        sidebar.WagtailBrandingModule(),
-        sidebar.SearchModule(search_area) if search_area else None,
-        sidebar.MainMenuModule(
-            admin_menu.render_component(request), account_menu, request.user
-        ),
-    ]
-    modules = [module for module in modules if module is not None]
-
-    return json_script(
-        {
-            "modules": JSContext().pack(modules),
-        },
-        element_id="wagtail-sidebar-props",
-    )
 
 
 @register.simple_tag

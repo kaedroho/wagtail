@@ -22,7 +22,7 @@ def register(*args, **kwargs):
     return registry.register(*args, **kwargs)
 
 
-def adapter(js_constructor, base=Adapter):
+def adapter(js_constructor, base=Adapter, registry=None):
     """
     Allows a class to implement its adapting logic with a `js_args()` method on the class itself.
     This just helps reduce the amount of code you have to write.
@@ -63,7 +63,10 @@ def adapter(js_constructor, base=Adapter):
             },
         )
 
-        register(ClassAdapter(), cls)
+        if registry is not None:
+            registry.register(ClassAdapter(), cls)
+        else:
+            register(ClassAdapter(), cls)
 
         return cls
 

@@ -16,4 +16,12 @@ export default defineConfig({
       origin: 'http://192.168.122.58:8000',
     },
   },
+  resolve: {
+    alias: {
+      '@django-bridge/react':
+        '/home/karl/projects/wagtaildev/django-bridge/packages/react/src/index.tsx',
+      '@common':
+        '/home/karl/projects/wagtaildev/django-bridge/packages/common/index.ts',
+    },
+  },
 });

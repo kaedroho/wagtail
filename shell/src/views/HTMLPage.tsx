@@ -3,6 +3,7 @@ import {
   useShouldReloadCallback,
 } from '@django-bridge/react';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
+import Layout from '../components/Layout';
 
 interface LoadFrameEvent {
   type: 'load';
@@ -150,5 +151,5 @@ export default function Frame({ frameUrl, html }: HTMLPageProps) {
     );
   }
 
-  return frames;
+  return <Layout>{frames}</Layout>;
 }

@@ -4,6 +4,7 @@ from typing import Any
 from django import forms
 from django.urls import reverse
 from django.utils.functional import cached_property
+from django_bridge.adapters.registry import registry
 
 from wagtail.admin.staticfiles import versioned_static
 from wagtail.admin.telepath import Adapter, adapter
@@ -49,7 +50,7 @@ class MenuItem:
         ]
 
 
-@adapter("wagtail.sidebar.LinkMenuItem", base=BaseSidebarAdapter)
+@adapter("wagtail.sidebar.LinkMenuItem", base=BaseSidebarAdapter, registry=registry)
 class LinkMenuItem(MenuItem):
     def __init__(
         self,
@@ -86,7 +87,7 @@ class LinkMenuItem(MenuItem):
         )
 
 
-@adapter("wagtail.sidebar.ActionMenuItem", base=BaseSidebarAdapter)
+@adapter("wagtail.sidebar.ActionMenuItem", base=BaseSidebarAdapter, registry=registry)
 class ActionMenuItem(MenuItem):
     def __init__(
         self,
@@ -127,7 +128,7 @@ class ActionMenuItem(MenuItem):
         )
 
 
-@adapter("wagtail.sidebar.SubMenuItem", base=BaseSidebarAdapter)
+@adapter("wagtail.sidebar.SubMenuItem", base=BaseSidebarAdapter, registry=registry)
 class SubMenuItem(MenuItem):
     def __init__(
         self,
@@ -168,7 +169,9 @@ class SubMenuItem(MenuItem):
         )
 
 
-@adapter("wagtail.sidebar.PageExplorerMenuItem", base=BaseSidebarAdapter)
+@adapter(
+    "wagtail.sidebar.PageExplorerMenuItem", base=BaseSidebarAdapter, registry=registry
+)
 class PageExplorerMenuItem(LinkMenuItem):
     def __init__(
         self,
@@ -211,7 +214,9 @@ class PageExplorerMenuItem(LinkMenuItem):
 # Modules
 
 
-@adapter("wagtail.sidebar.WagtailBrandingModule", base=BaseSidebarAdapter)
+@adapter(
+    "wagtail.sidebar.WagtailBrandingModule", base=BaseSidebarAdapter, registry=registry
+)
 class WagtailBrandingModule:
     def js_args(self):
         return [
@@ -219,7 +224,7 @@ class WagtailBrandingModule:
         ]
 
 
-@adapter("wagtail.sidebar.SearchModule", base=BaseSidebarAdapter)
+@adapter("wagtail.sidebar.SearchModule", base=BaseSidebarAdapter, registry=registry)
 class SearchModule:
     def __init__(self, search_area):
         self.search_area = search_area
@@ -228,7 +233,7 @@ class SearchModule:
         return [self.search_area.url]
 
 
-@adapter("wagtail.sidebar.MainMenuModule", base=BaseSidebarAdapter)
+@adapter("wagtail.sidebar.MainMenuModule", base=BaseSidebarAdapter, registry=registry)
 class MainMenuModule:
     def __init__(
         self, menu_items: list[MenuItem], account_menu_items: list[MenuItem], user

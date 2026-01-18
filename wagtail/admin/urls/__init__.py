@@ -15,6 +15,7 @@ from rest_framework.response import Response as DRFResponse
 from wagtail import hooks
 from wagtail.admin.api import urls as api_urls
 from wagtail.admin.auth import require_admin_access
+from wagtail.admin.context_providers import sidebar_props
 from wagtail.admin.urls import collections as wagtailadmin_collections_urls
 from wagtail.admin.urls import editing_sessions as wagtailadmin_editing_sessions_urls
 from wagtail.admin.urls import pages as wagtailadmin_pages_urls
@@ -240,6 +241,7 @@ def convert_to_django_bridge(view_func):
             framework="react",
             entry_point="src/main.tsx",
             vite_devserver_url="http://192.168.122.58:5173/static",
+            context_providers={"sidebar": sidebar_props},
         )
         return process_response(request, response, bridge_config)
 

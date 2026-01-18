@@ -15,9 +15,8 @@
 
         {% block branding_favicon %}{% endblock %}
     </head>
-    {% sidebar_collapsed as sidebar_collapsed %}
     {% fragment as bodyclass %}{% block bodyclass %}{% endblock %}{% endfragment %}
-    <body id="wagtail" class="{% classnames bodyclass sidebar_collapsed|yesno:"sidebar-collapsed," messages|yesno:"has-messages," %}" data-controller="w-init" data-w-init-ready-class="ready">
+    <body id="wagtail" class="{% classnames bodyclass messages|yesno:"has-messages," %}" data-controller="w-init" data-w-init-ready-class="ready">
         {% block icons_sprite %}
             <div data-sprite></div>
 
