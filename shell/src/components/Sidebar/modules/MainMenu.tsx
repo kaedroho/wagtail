@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { styled } from '@linaria/react';
 
 import Tippy from '@tippyjs/react';
 import { gettext } from '../../../utils/gettext';
@@ -8,7 +9,6 @@ import { LinkMenuItemDefinition } from '../menu/LinkMenuItem';
 import { MenuItemDefinition } from '../menu/MenuItem';
 import { SubMenuItemDefinition } from '../menu/SubMenuItem';
 import { ModuleDefinition } from '../Sidebar';
-//import { updateDismissibles } from '../../../controllers/DismissibleController';
 
 export function renderMenu(
   path: string,
@@ -139,6 +139,173 @@ function getInitialDismissibleState(menuItems: MenuItemDefinition[]) {
   return result;
 }
 
+// Styled components
+
+interface MainMenuNavProps {
+  accountSettingsOpen: boolean;
+}
+
+const MainMenuNav = styled.nav<MainMenuNavProps>`
+  overflow: auto;
+  overflow-x: hidden;
+
+  /* Thin scrollbar */
+  scrollbar-width: thin;
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+  }
+
+  *:focus {
+    outline: 2px solid var(--w-color-focus, #00b0b1);
+    outline-offset: -2px;
+  }
+
+  .icon--submenu-header {
+    display: block;
+    width: 4rem;
+    height: 4rem;
+    margin: 0 auto 0.8em;
+    opacity: 0.15;
+  }
+
+  > ul > li > a {
+    transition: padding var(--sidebar-transition-duration) ease-in-out !important;
+  }
+
+  .menuitem-label {
+    transition: opacity var(--sidebar-transition-duration) ease-in-out;
+  }
+`;
+
+const MainMenuList = styled.ul`
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+`;
+
+interface SidebarFooterProps {
+  isOpen: boolean;
+  isVisible: boolean;
+}
+
+const SidebarFooter = styled.div<SidebarFooterProps>`
+  background-color: rgb(46, 31, 94);
+  margin-top: auto;
+  transition: width var(--sidebar-transition-duration) ease-in-out !important;
+
+  > ul,
+  ul > li {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+  }
+
+  ul > li {
+    position: relative;
+  }
+
+  > ul {
+    transition: max-height var(--sidebar-transition-duration) ease-in-out;
+    visibility: hidden;
+    max-height: 0;
+
+    a {
+      border-inline-start: 3px solid transparent;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  ${(props) =>
+    props.isOpen
+      ? `
+    > ul {
+      max-height: 85px;
+      visibility: visible;
+    }
+  `
+      : ''}
+`;
+
+interface AccountButtonProps {
+  slim: boolean;
+}
+
+const AccountButton = styled.button<AccountButtonProps>`
+  background-color: var(--sidebar-background-color);
+  color: rgba(255, 255, 255, 0.8));
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 100%;
+  appearance: none;
+  border: 0;
+  overflow: hidden;
+  padding: 0.75rem ${(props) => (props.slim ? '1rem' : '1.25rem')};
+  transition: background-color var(--sidebar-transition-duration) ease-in-out;
+  cursor: pointer;
+
+  &:hover,
+  &:focus {
+    background-color: rgba(0, 0, 0, 0.2);
+  }
+
+  &:focus {
+    outline: 2px solid var(--w-color-focus, #00b0b1);
+    outline-offset: -2px;
+  }
+`;
+
+interface AccountToggleProps {
+  slim: boolean;
+}
+
+const AccountToggle = styled.div<AccountToggleProps>`
+  padding-left: 0.5rem;
+  display: ${(props) => (props.slim ? 'none' : 'inline-flex')};
+  justify-content: space-between;
+  width: 100%;
+  transform: translateX(0);
+  transition: all var(--sidebar-transition-duration) ease-in-out;
+  min-width: 0;
+
+  .icon {
+    flex-shrink: 0;
+  }
+`;
+
+const AccountLabel = styled.div`
+  color: var(--w-color-text-label-menus-default, rgba(255, 255, 255, 0.8));
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.875rem;
+  line-height: 1.25;
+`;
+
+const Avatar = styled.div`
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
 interface MenuProps {
   menuItems: MenuItemDefinition[];
   accountMenuItems: MenuItemDefinition[];
@@ -151,7 +318,7 @@ interface MenuProps {
   navigate(url: string): Promise<void>;
 }
 
-export const Menu: React.FunctionComponent<MenuProps> = ({
+export function Menu({
   menuItems,
   accountMenuItems,
   user,
@@ -160,7 +327,7 @@ export const Menu: React.FunctionComponent<MenuProps> = ({
   slim,
   currentPath,
   navigate,
-}) => {
+}: MenuProps) {
   // navigationPath and activePath are two dot-delimited path's referencing a menu item
   // They are created by concatenating the name fields of all the menu/sub-menu items leading to the relevant one.
   // For example, the "Users" item in the "Settings" sub-menu would have the path 'settings.users'
@@ -274,74 +441,47 @@ export const Menu: React.FunctionComponent<MenuProps> = ({
     }
   };
 
-  const className =
-    'sidebar-main-menu w-scrollbar-thin' +
-    (accountSettingsOpen ? ' sidebar-main-menu--open-footer' : '');
-
   return (
     <>
-      <nav className={className} aria-label={gettext('Main menu')}>
-        <ul className="sidebar-main-menu__list">
-          {renderMenu('', menuItems, slim, state, dispatch, navigate)}
-        </ul>
-      </nav>
-      <div
-        className={
-          'sidebar-footer' +
-          (accountSettingsOpen ? ' sidebar-footer--open' : '') +
-          (isVisible ? ' sidebar-footer--visible' : '')
-        }
+      <MainMenuNav
+        accountSettingsOpen={accountSettingsOpen}
+        aria-label={gettext('Main menu')}
       >
+        <MainMenuList>
+          {renderMenu('', menuItems, slim, state, dispatch, navigate)}
+        </MainMenuList>
+      </MainMenuNav>
+      <SidebarFooter isOpen={accountSettingsOpen} isVisible={isVisible}>
         <Tippy disabled={!slim} content={user.name} placement="right">
-          <button
-            className={`
-            ${slim ? 'w-px-4' : 'w-px-5'}
-            sidebar-footer__account
-            w-bg-surface-menus
-            w-text-text-label-menus-default
-            w-flex
-            w-items-center
-            w-relative
-            w-w-full
-            w-appearance-none
-            w-border-0
-            w-overflow-hidden
-            w-py-3
-            hover:w-bg-surface-menu-item-active
-            focus:w-bg-surface-menu-item-active
-            w-transition`}
+          <AccountButton
+            slim={slim}
             onClick={onClickAccountSettings}
             aria-haspopup="menu"
             aria-expanded={accountSettingsOpen ? 'true' : 'false'}
             type="button"
           >
-            <div className="avatar avatar-on-dark w-flex-shrink-0 !w-w-[28px] !w-h-[28px]">
+            <Avatar>
               <img
                 src={user.avatarUrl}
                 alt=""
                 decoding="async"
                 loading="lazy"
               />
-            </div>
-            <div className="sidebar-footer__account-toggle">
-              <div className="sidebar-footer__account-label w-label-3">
-                {user.name}
-              </div>
-              <Icon
-                className="w-w-4 w-h-4 w-text-text-label-menus-default"
-                name={accountSettingsOpen ? 'arrow-down' : 'arrow-up'}
-              />
-            </div>
-          </button>
+            </Avatar>
+            <AccountToggle slim={slim}>
+              <AccountLabel>{user.name}</AccountLabel>
+              <Icon name={accountSettingsOpen ? 'arrow-down' : 'arrow-up'} />
+            </AccountToggle>
+          </AccountButton>
         </Tippy>
 
         <ul>
           {renderMenu('', accountMenuItems, slim, state, dispatch, navigate)}
         </ul>
-      </div>
+      </SidebarFooter>
     </>
   );
-};
+}
 
 export class MainMenuModuleDefinition implements ModuleDefinition {
   menuItems: MenuItemDefinition[];

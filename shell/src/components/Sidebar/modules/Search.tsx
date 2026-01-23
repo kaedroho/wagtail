@@ -1,10 +1,100 @@
 import * as React from 'react';
+import { styled } from '@linaria/react';
 
 import Tippy from '@tippyjs/react';
 import { gettext } from '../../../utils/gettext';
 import Icon from '../../Icon/Icon';
 import { ModuleDefinition, SIDEBAR_TRANSITION_DURATION } from '../Sidebar';
-//import { KeyboardAction } from '../../../controllers/KeyboardController';
+
+const SearchForm = styled.form`
+  height: 42px;
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-direction: row;
+  flex-shrink: 0;
+`;
+
+const SearchInner = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 100%;
+`;
+
+interface SearchButtonProps {
+  slim: boolean;
+}
+
+const SearchButton = styled.button<SearchButtonProps>`
+  width: 100%;
+  padding-left: 23px;
+  padding-right: ${(props) => (props.slim ? '18px' : '0')};
+  height: 35px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  color: rgba(255, 255, 255, 0.8);
+  z-index: 10;
+  cursor: pointer;
+
+  &:hover,
+  &:focus {
+    color: white;
+    background: transparent;
+  }
+
+  &:focus {
+    outline: 2px solid #00b0b1;
+    outline-offset: -2px;
+  }
+`;
+
+interface SearchInputProps {
+  isHidden: boolean;
+}
+
+const SearchInputField = styled.input<SearchInputProps>`
+  display: ${(props) => (props.isHidden ? 'none' : 'block')};
+  padding-left: 55px;
+  padding-top: 13px;
+  padding-bottom: 13px;
+  -webkit-font-smoothing: subpixel-antialiased;
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-weight: 400;
+  font-size: 0.875rem;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1;
+  width: 100%;
+
+  &:focus {
+    outline: 2px solid #00b0b1;
+    outline-offset: -2px;
+  }
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.8);
+  }
+`;
+
+const ScreenReaderLabel = styled.label`
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+`;
 
 interface SearchInputProps {
   slim: boolean;
@@ -14,13 +104,13 @@ interface SearchInputProps {
   navigate(url: string): void;
 }
 
-export const SearchInput: React.FunctionComponent<SearchInputProps> = ({
+export function SearchInput({
   slim,
   expandingOrCollapsing,
   onSearchClick,
   searchUrl,
   navigate,
-}) => {
+}: SearchInputProps) {
   const isVisible = !slim || expandingOrCollapsing;
   const searchInput = React.useRef<HTMLInputElement>(null);
 
@@ -40,45 +130,23 @@ export const SearchInput: React.FunctionComponent<SearchInputProps> = ({
   };
 
   return (
-    <form
+    <SearchForm
       role="search"
-      className="w-h-[42px] w-relative w-box-border w-flex w-items-center w-justify-start w-flex-row w-flex-shrink-0"
       action={searchUrl}
       aria-keyshortcuts="/"
       method="get"
       onSubmit={onSubmitForm}
-      data-controller="w-kbd"
-      // when in slim mode trigger the click action so the sidebar expands and focuses on the input,
-      // otherwise simply focus on the input as it will be visible.
-      /* data-w-kbd-action-value={
-        slim ? KeyboardAction.CLICK : KeyboardAction.FOCUS
-      }*/
     >
-      <div className="w-flex w-flex-row w-items-center w-h-full">
+      <SearchInner>
         <Tippy
           disabled={isVisible || !slim}
           content={gettext('Search')}
           placement="right"
         >
-          {/* Use padding left 23px to align icon in slim mode and padding right 18px to ensure focus is full width */}
-          <button
-            className={`
-          ${slim ? 'w-pr-[18px]' : 'w-pr-0'}
-          w-w-full
-          w-pl-[23px]
-          w-h-[35px]
-          w-bg-transparent
-          w-outline-offset-inside
-          w-border-0
-          w-rounded-none
-          w-text-text-label-menus-default
-          w-z-10
-          hover:w-text-text-label-menus-active
-          focus:w-text-text-label-menus-active
-          hover:w-bg-transparent`}
+          <SearchButton
+            slim={slim}
             type="submit"
             aria-label={gettext('Search')}
-            data-w-kbd-target={slim ? 'element' : undefined}
             onClick={(e) => {
               if (slim) {
                 e.preventDefault();
@@ -94,43 +162,25 @@ export const SearchInput: React.FunctionComponent<SearchInputProps> = ({
             }}
           >
             <Icon className="icon--menuitem" name="search" />
-          </button>
+          </SearchButton>
         </Tippy>
 
-        <label className="w-sr-only" htmlFor="menu-search-q">
+        <ScreenReaderLabel htmlFor="menu-search-q">
           {gettext('Search')}
-        </label>
+        </ScreenReaderLabel>
 
-        {/* Classes marked important to trump the base input styling set in _forms.scss */}
-        <input
-          className={`
-            ${slim || !isVisible ? 'w-hidden' : ''}
-            !w-pl-[55px]
-            !w-py-[13px]
-            !w-subpixel-antialiased
-            !w-absolute
-            !w-left-0
-            !w-font-normal
-            !w-top-0
-            !w-text-14
-            !w-bg-transparent
-            !w-border-0
-            !w-rounded-none
-            !w-text-text-label-menus-default
-            !w-outline-offset-inside
-            !w-leading-none
-            placeholder:!w-text-text-label-menus-default`}
+        <SearchInputField
+          isHidden={slim || !isVisible}
           type="text"
           id="menu-search-q"
           name="q"
           placeholder={gettext('Search')}
           ref={searchInput}
-          data-w-kbd-target={slim ? undefined : 'element'}
         />
-      </div>
-    </form>
+      </SearchInner>
+    </SearchForm>
   );
-};
+}
 
 export class SearchModuleDefinition implements ModuleDefinition {
   searchUrl: string;

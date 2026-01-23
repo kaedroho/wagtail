@@ -2,13 +2,25 @@ import * as React from 'react';
 
 import Tippy from '@tippyjs/react';
 import Icon from '../../Icon/Icon';
-import { MenuItemDefinition, MenuItemProps } from './MenuItem';
+import {
+  MenuItemDefinition,
+  MenuItemProps,
+  MenuItemWrapper,
+  MenuItemLink,
+  MenuItem,
+  MenuItemLabel,
+} from './MenuItem';
 import { gettext } from '../../../utils/gettext';
 import { isDismissed } from '../modules/MainMenu';
 
-export const LinkMenuItem: React.FunctionComponent<
-  MenuItemProps<LinkMenuItemDefinition>
-> = ({ item, slim, path, state, dispatch, navigate }) => {
+export function LinkMenuItem({
+  item,
+  slim,
+  path,
+  state,
+  dispatch,
+  navigate,
+}: MenuItemProps<LinkMenuItemDefinition>) {
   const isCurrent = state.activePath === path;
   const isActive = state.activePath.startsWith(path);
   const isInSubMenu = path.split('.').length > 2;
@@ -48,41 +60,34 @@ export const LinkMenuItem: React.FunctionComponent<
     });
   };
 
-  const className =
-    'sidebar-menu-item' +
-    (isActive ? ' sidebar-menu-item--active' : '') +
-    (isInSubMenu ? ' sidebar-menu-item--in-sub-menu' : '');
-
   return (
-    <li className={className}>
+    <MenuItemWrapper isActive={isActive} isInSubMenu={isInSubMenu} slim={slim}>
       <Tippy
         disabled={!slim || isInSubMenu}
         content={item.label}
         placement="right"
       >
-        <a
+        <MenuItemLink
           {...item.attrs}
           href={item.url}
           aria-current={isCurrent ? 'page' : undefined}
           onClick={onClick}
-          className={`sidebar-menu-item__link ${item.classNames}`}
+          isInSubMenu={isInSubMenu}
+          slim={slim}
         >
           {item.iconName && (
             <Icon name={item.iconName} className="icon--menuitem" />
           )}
-          <div className="menuitem">
-            <span className="menuitem-label">{item.label}</span>
-            {!isDismissed(item, state) && (
-              <span className="w-dismissible-badge">
-                <span className="w-sr-only">{gettext('(New)')}</span>
-              </span>
-            )}
-          </div>
-        </a>
+          <MenuItem>
+            <MenuItemLabel slim={slim} isInSubMenu={isInSubMenu}>
+              {item.label}
+            </MenuItemLabel>
+          </MenuItem>
+        </MenuItemLink>
       </Tippy>
-    </li>
+    </MenuItemWrapper>
   );
-};
+}
 
 export class LinkMenuItemDefinition implements MenuItemDefinition {
   name: string;

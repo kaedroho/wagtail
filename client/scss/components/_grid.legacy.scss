@@ -8,11 +8,6 @@
 
   @include media-breakpoint-up(sm) {
     transform: none;
-    padding-inline-start: $menu-width;
-
-    .sidebar-collapsed & {
-      padding-inline-start: $menu-width-slim;
-    }
   }
 }
 

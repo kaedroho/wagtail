@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
+import wyw from '@wyw-in-js/vite';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -10,7 +11,14 @@ export default defineConfig({
       input: '/src/main.tsx',
     },
   },
-  plugins: [react()],
+  plugins: [
+    react(),
+    wyw({
+      babelOptions: {
+        presets: ['@babel/preset-typescript'],
+      },
+    }),
+  ],
   server: {
     cors: {
       origin: 'http://192.168.122.58:8000',

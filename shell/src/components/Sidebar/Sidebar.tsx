@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { useContext } from 'react';
+import { styled } from '@linaria/react';
 
 import { gettext } from '../../utils/gettext';
 import Icon from '../Icon/Icon';
 import { SidebarContext } from '../../contexts';
 
-// Please keep in sync with $menu-transition-duration variable in `client/scss/settings/_variables.scss`
 export const SIDEBAR_TRANSITION_DURATION = 150;
 
 export interface ModuleRenderContext {
@@ -22,17 +22,175 @@ export interface ModuleDefinition {
   render(context: ModuleRenderContext): React.ReactFragment;
 }
 
+const SIDEBAR_TOGGLE_SPACING = '12px';
+
+interface WrapperProps {
+  slim: boolean;
+  isMobile: boolean;
+  hidden: boolean;
+  closed: boolean;
+}
+
+const Wrapper = styled.aside<WrapperProps>`
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  width: var(--sidebar-width);
+  height: 100%;
+  inset-inline-start: 0;
+  z-index: 90; /* sidebar z-index */
+  transition:
+    width var(--sidebar-transition-duration) ease-in-out,
+    inset-inline-start var(--sidebar-transition-duration) ease-in-out;
+  background-color: var(--sidebar-background-color);
+
+  @media (forced-colors: active) {
+    border-inline-end: 1px solid transparent;
+  }
+
+  .icon--menuitem {
+    width: 1rem;
+    height: 1rem;
+    min-width: 1rem;
+    margin: 0.046875rem 0;
+  }
+
+  ${(props) =>
+    props.hidden
+      ? `
+    inset-inline-start: calc(var(--sidebar-width) * -1);
+  `
+      : ''}
+
+  ${(props) =>
+    props.closed
+      ? `
+    display: none;
+  `
+      : ''}
+`;
+
+const SidebarInner = styled.div`
+  height: 100%;
+  background-color: var(--w-color-surface-menus, rgb(46, 31, 94));
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+`;
+
+interface CollapseToggleProps {
+  slim: boolean;
+}
+
+const CollapseToggle = styled.button<CollapseToggleProps>`
+  transition: background-color var(--sidebar-transition-duration) ease-in-out;
+  position: static;
+  color: rgba(255, 255, 255, 0.8);
+  width: 35px;
+  height: 35px;
+  background: transparent;
+  place-items: center;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: ${(props) => (props.slim ? '0' : '1rem')};
+
+  svg {
+    width: 15px;
+    height: 16px;
+  }
+
+  &:hover {
+    background-color: var(
+      --w-color-surface-menu-item-active,
+      rgba(0, 0, 0, 0.2)
+    );
+    color: white;
+    opacity: 1;
+  }
+`;
+
+interface NavToggleProps {
+  isMobile: boolean;
+  isOpen: boolean;
+}
+
+const NavToggle = styled.button<NavToggleProps>`
+  transition: background-color var(--sidebar-toggle-duration) ease-in-out;
+  position: absolute;
+  top: 12px;
+  inset-inline-start: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  width: 35px;
+  height: 35px;
+  background: transparent;
+  place-items: center;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  z-index: 91; /* above sidebar */
+  display: none;
+
+  svg {
+    width: 15px;
+    height: 16px;
+  }
+
+  ${(props) =>
+    props.isMobile
+      ? `
+    display: grid;
+    background-color: var(--sidebar-background-color);
+    top: 0;
+    left: 0;
+    height: 50px;
+    width: 50px;
+    border-radius: 0;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.2);
+    }
+  `
+      : ''}
+
+  ${(props) =>
+    props.isOpen
+      ? `
+    position: fixed;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.2);
+      color: white;
+    }
+  `
+      : ''}
+`;
+
+const CollapseToggleWrapper = styled.div<{ slim: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: ${(props) => (props.slim ? 'center' : 'flex-end')};
+  margin-top: 0.5rem;
+
+  @media (min-width: 800px) {
+    margin-top: 0.5rem;
+  }
+`;
+
 export interface SidebarProps {
   currentPath: string;
   navigate(url: string): Promise<void>;
-  onExpandCollapse?(collapsed: boolean);
+  onExpandCollapse(collapsed: boolean): void;
 }
 
-export const Sidebar: React.FunctionComponent<SidebarProps> = ({
+export default function Sidebar({
   currentPath,
   navigate,
   onExpandCollapse,
-}) => {
+}: SidebarProps) {
   const { modules, collapsed: collapsedOnLoad } = useContext(SidebarContext);
 
   // 'collapsed' is a persistent state that is controlled by the arrow icon at the top
@@ -182,72 +340,50 @@ export const Sidebar: React.FunctionComponent<SidebarProps> = ({
 
   return (
     <>
-      <button
+      <NavToggle
         onClick={onClickOpenCloseToggle}
         aria-expanded={visibleOnMobile ? 'true' : 'false'}
         aria-keyshortcuts="["
         aria-label={gettext('Toggle sidebar')}
-        className={
-          'button sidebar-nav-toggle' +
-          (isMobile ? ' sidebar-nav-toggle--mobile' : '') +
-          (visibleOnMobile ? ' sidebar-nav-toggle--open' : '')
-        }
         type="button"
         ref={mobileNavToggleRef}
+        isMobile={isMobile}
+        isOpen={visibleOnMobile}
         data-w-kbd-target={isMobile ? 'element' : undefined}
       >
         {visibleOnMobile ? <Icon name="cross" /> : <Icon name="bars" />}
-      </button>
-      <div
-        className={
-          'sidebar' +
-          (slim ? ' sidebar--slim' : '') +
-          (isMobile ? ' sidebar--mobile' : '') +
-          (isMobile && !visibleOnMobile ? ' sidebar--hidden' : '') +
-          (isMobile && !visibleOnMobile && closedOnMobile
-            ? ' sidebar--closed'
-            : '')
-        }
+      </NavToggle>
+      <Wrapper
+        slim={slim}
+        isMobile={isMobile}
+        hidden={isMobile && !visibleOnMobile}
+        closed={isMobile && !visibleOnMobile && closedOnMobile}
       >
-        <div
-          className="sidebar__inner"
-          onFocus={onFocusHandler}
-          onBlur={onBlurHandler}
-        >
-          <div
-            className={`sm:w-mt-2 ${
-              slim ? 'w-justify-center' : 'w-justify-end'
-            } w-flex  w-items-center`}
-          >
-            <button
-              onClick={onClickCollapseToggle}
-              aria-expanded={slim ? 'false' : 'true'}
-              aria-keyshortcuts="["
-              aria-label={gettext('Toggle sidebar')}
-              type="button"
-              className={`${!slim ? 'w-mr-4' : ''}
-                button
-                sidebar__collapse-toggle
-                w-flex
-                w-justify-center
-                w-items-center
-                hover:w-bg-surface-menu-item-active
-                hover:text-white
-                hover:opacity-100
-                more-contrast:w-border-border-interactive-more-contrast-dark-bg
-                hover:more-contrast:w-border-border-interactive-more-contrast-dark-bg-hover`}
-              data-w-kbd-target={!isMobile ? 'element' : undefined}
-            >
-              <Icon
-                name="expand-right"
-                className={!collapsed ? '-w-rotate-180' : ''}
-              />
-            </button>
-          </div>
+        <SidebarInner onFocus={onFocusHandler} onBlur={onBlurHandler}>
+          {!isMobile && (
+            <CollapseToggleWrapper slim={slim}>
+              <CollapseToggle
+                onClick={onClickCollapseToggle}
+                aria-expanded={slim ? 'false' : 'true'}
+                aria-keyshortcuts="["
+                aria-label={gettext('Toggle sidebar')}
+                type="button"
+                slim={slim}
+                data-w-kbd-target="element"
+              >
+                <Icon
+                  name="expand-right"
+                  style={{
+                    transform: !collapsed ? 'rotate(-180deg)' : undefined,
+                  }}
+                />
+              </CollapseToggle>
+            </CollapseToggleWrapper>
+          )}
 
           {renderedModules}
-        </div>
-      </div>
+        </SidebarInner>
+      </Wrapper>
     </>
   );
-};
+}

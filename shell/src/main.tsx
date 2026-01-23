@@ -18,6 +18,8 @@ import {
   UrlsContext,
 } from './contexts';
 
+import './normalize.css';
+
 const config = new DjangoBridge.Config();
 
 config.addView('HTMLPage', HTMLPageView);

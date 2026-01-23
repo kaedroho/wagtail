@@ -3,14 +3,25 @@ import { useContext } from 'react';
 
 import Tippy from '@tippyjs/react';
 import Icon from '../../Icon/Icon';
-import { MenuItemDefinition, MenuItemProps } from './MenuItem';
+import {
+  MenuItemDefinition,
+  MenuItemProps,
+  MenuItemWrapper,
+  MenuItemButton,
+  MenuItem,
+  MenuItemLabel,
+} from './MenuItem';
 import { gettext } from '../../../utils/gettext';
 import { isDismissed } from '../modules/MainMenu';
 import { CsrfTokenContext } from '../../../contexts';
 
-export const ActionMenuItem: React.FunctionComponent<
-  MenuItemProps<ActionMenuItemDefinition>
-> = ({ item, slim, path, state, dispatch }) => {
+export function ActionMenuItem({
+  item,
+  slim,
+  path,
+  state,
+  dispatch,
+}: MenuItemProps<ActionMenuItemDefinition>) {
   const csrfToken = useContext(CsrfTokenContext);
   const isActive = state.activePath.startsWith(path);
   const isInSubMenu = path.split('.').length > 2;
@@ -29,13 +40,8 @@ export const ActionMenuItem: React.FunctionComponent<
     }
   };
 
-  const className =
-    'sidebar-menu-item' +
-    (isActive ? ' sidebar-menu-item--active' : '') +
-    (isInSubMenu ? ' sidebar-menu-item--in-sub-menu' : '');
-
   return (
-    <li className={className}>
+    <MenuItemWrapper isActive={isActive} isInSubMenu={isInSubMenu} slim={slim}>
       <Tippy
         disabled={!slim || isInSubMenu}
         content={item.label}
@@ -43,28 +49,26 @@ export const ActionMenuItem: React.FunctionComponent<
       >
         <form {...item.attrs} method={item.method} action={item.action}>
           <input type="hidden" name="csrfmiddlewaretoken" value={csrfToken} />
-          <button
+          <MenuItemButton
             type="submit"
-            className={`sidebar-menu-item__link ${item.classNames}`}
             onClick={onClick}
+            isInSubMenu={isInSubMenu}
+            slim={slim}
           >
             {item.iconName && (
               <Icon name={item.iconName} className="icon--menuitem" />
             )}
-            <span className="menuitem">
-              <span className="menuitem-label">{item.label}</span>
-              {!isDismissed(item, state) && (
-                <span className="w-dismissible-badge">
-                  <span className="w-sr-only">{gettext('(New)')}</span>
-                </span>
-              )}
-            </span>
-          </button>
+            <MenuItem as="span">
+              <MenuItemLabel slim={slim} isInSubMenu={isInSubMenu}>
+                {item.label}
+              </MenuItemLabel>
+            </MenuItem>
+          </MenuItemButton>
         </form>
       </Tippy>
-    </li>
+    </MenuItemWrapper>
   );
-};
+}
 
 export class ActionMenuItemDefinition implements MenuItemDefinition {
   name: string;

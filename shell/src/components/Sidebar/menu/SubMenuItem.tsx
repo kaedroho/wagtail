@@ -1,27 +1,139 @@
 import * as React from 'react';
+import { styled } from '@linaria/react';
 
 import Tippy from '@tippyjs/react';
 import Icon from '../../Icon/Icon';
 
 import { isDismissed, renderMenu } from '../modules/MainMenu';
-import { SidebarPanel } from '../SidebarPanel';
+import SidebarPanel from '../SidebarPanel';
 import { SIDEBAR_TRANSITION_DURATION } from '../Sidebar';
-import { MenuItemDefinition, MenuItemProps } from './MenuItem';
+import {
+  MenuItemDefinition,
+  MenuItemProps,
+  MenuItemWrapper,
+  MenuItemButton,
+  MenuItemLabel,
+} from './MenuItem';
 import { gettext } from '../../../utils/gettext';
 import SubMenuCloseButton from './SubMenuCloseButton';
 
-interface SubMenuItemProps extends MenuItemProps<SubMenuItemDefinition> {
+interface SubMenuItemWrapperProps {
+  isActive: boolean;
+  isInSubMenu: boolean;
+  slim: boolean;
+  isOpen: boolean;
+}
+
+const SubMenuItemWrapper = styled(MenuItemWrapper)<SubMenuItemWrapperProps>`
+  ${(props) =>
+    props.isOpen
+      ? `
+    border-inline-start: 2px solid #00b0b1;
+
+    > button {
+      text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.35);
+    }
+  `
+      : ''}
+`;
+
+interface TriggerIconProps {
+  isOpen: boolean;
   slim: boolean;
 }
 
-export const SubMenuItem: React.FunctionComponent<SubMenuItemProps> = ({
+const TriggerIcon = styled(Icon)<TriggerIconProps>`
+  transition:
+    transform var(--sidebar-transition-duration) ease-in-out,
+    width var(--sidebar-transition-duration) ease-in-out,
+    height var(--sidebar-transition-duration) ease-in-out;
+  display: block;
+  width: 1rem;
+  height: 1rem;
+  inset-inline-end: 15px;
+  margin-inline-start: auto;
+
+  ${(props) =>
+    props.isOpen
+      ? `
+    transform-origin: 50% 50%;
+    transform: rotate(180deg);
+  `
+      : ''}
+
+  ${(props) =>
+    props.slim
+      ? `
+    width: 1rem;
+    height: 1rem;
+    position: absolute;
+    inset-inline-end: 0;
+  `
+      : ''}
+`;
+
+const SubMenuPanel = styled.div`
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(0, 0, 0, 0.2);
+  height: 100vh;
+  width: var(--sidebar-subpanel-width);
+  transition:
+    transform var(--sidebar-transition-duration) ease-in-out,
+    visibility var(--sidebar-transition-duration) ease-in-out;
+
+  > h2 {
+    min-height: 180px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    box-sizing: border-box;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 0;
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: var(--sidebar-subpanel-width);
+    transition:
+      transform var(--sidebar-transition-duration) ease-in-out,
+      visibility var(--sidebar-transition-duration) ease-in-out;
+  }
+
+  > ul {
+    flex-grow: 1;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+
+    > li {
+      transition: border-color var(--sidebar-transition-duration) ease-in-out;
+      position: relative;
+    }
+  }
+`;
+
+const SubMenuPanelFooter = styled.p`
+  margin: 0;
+  padding: 0.9em 1.7em;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+`;
+
+interface SubMenuItemProps extends MenuItemProps<SubMenuItemDefinition> {
+  slim: boolean;
+  isMobile?: boolean;
+}
+
+export function SubMenuItem({
   path,
   item,
   slim,
   state,
   dispatch,
   navigate,
-}) => {
+  isMobile = false,
+}: SubMenuItemProps) {
   const isOpen = state.navigationPath.startsWith(path);
   const isActive = isOpen || state.activePath.startsWith(path);
   const depth = path.split('.').length;
@@ -84,30 +196,31 @@ export const SubMenuItem: React.FunctionComponent<SubMenuItemProps> = ({
     }
   };
 
-  const className =
-    'sidebar-menu-item sidebar-sub-menu-item' +
-    (isActive ? ' sidebar-menu-item--active' : '') +
-    (isOpen ? ' sidebar-sub-menu-item--open' : '');
-
-  const sidebarTriggerIconClassName =
-    'sidebar-sub-menu-trigger-icon' +
-    (isOpen ? ' sidebar-sub-menu-trigger-icon--open' : '');
+  const isInSubMenu = depth > 2;
 
   return (
-    <li className={className}>
+    <SubMenuItemWrapper
+      isActive={isActive}
+      isInSubMenu={isInSubMenu}
+      slim={slim}
+      isOpen={isOpen}
+    >
       <Tippy disabled={isOpen || !slim} content={item.label} placement="right">
-        <button
+        <MenuItemButton
           {...item.attrs}
           onClick={onClick}
-          className={`sidebar-menu-item__link ${item.classNames}`}
           aria-haspopup="menu"
           aria-expanded={isOpen ? 'true' : 'false'}
           type="button"
+          isInSubMenu={isInSubMenu}
+          slim={slim}
         >
           {item.iconName && (
             <Icon name={item.iconName} className="icon--menuitem" />
           )}
-          <span className="menuitem-label">{item.label}</span>
+          <MenuItemLabel slim={slim} isInSubMenu={isInSubMenu}>
+            {item.label}
+          </MenuItemLabel>
 
           {
             // Only show the dismissible badge if the menu item has not been
@@ -126,15 +239,21 @@ export const SubMenuItem: React.FunctionComponent<SubMenuItemProps> = ({
               </span>
             </span>
           )}
-          <Icon className={sidebarTriggerIconClassName} name="arrow-right" />
-        </button>
+          <TriggerIcon name="arrow-right" isOpen={isOpen} slim={slim} />
+        </MenuItemButton>
       </Tippy>
-      <SidebarPanel isVisible={isVisible} isOpen={isOpen} depth={depth}>
-        <div className="sidebar-sub-menu-panel">
+      <SidebarPanel
+        isVisible={isVisible}
+        isOpen={isOpen}
+        depth={depth}
+        slim={slim}
+        isMobile={isMobile}
+      >
+        <SubMenuPanel>
           <SubMenuCloseButton isVisible={isVisible} dispatch={dispatch} />
           <h2
             id={`wagtail-sidebar-submenu${path.split('.').join('-')}-title`}
-            className={`${item.classNames} w-h4`}
+            className={item.classNames}
           >
             {item.iconName && (
               <Icon name={item.iconName} className="icon--submenu-header" />
@@ -149,13 +268,13 @@ export const SubMenuItem: React.FunctionComponent<SubMenuItemProps> = ({
             {renderMenu(path, item.menuItems, slim, state, dispatch, navigate)}
           </ul>
           {item.footerText && (
-            <p className="sidebar-sub-menu-panel__footer">{item.footerText}</p>
+            <SubMenuPanelFooter>{item.footerText}</SubMenuPanelFooter>
           )}
-        </div>
+        </SubMenuPanel>
       </SidebarPanel>
-    </li>
+    </SubMenuItemWrapper>
   );
-};
+}
 
 export class SubMenuItemDefinition implements MenuItemDefinition {
   name: string;

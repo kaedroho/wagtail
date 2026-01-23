@@ -1,37 +1,67 @@
 import React from 'react';
+import { styled } from '@linaria/react';
+
+import { SIDEBAR_TRANSITION_DURATION } from '../Sidebar';
+
+interface LogoSvgProps {
+  slim: boolean;
+}
+
+const LogoSvg = styled.svg<LogoSvgProps>`
+  overflow: visible !important;
+  color: rgb(46, 31, 94);
+  z-index: 10;
+  position: absolute;
+  transition: all var(--sidebar-transition-duration) ease-in-out;
+  left: ${(props) => (props.slim ? '-1.125rem' : '-1.75rem')};
+  width: ${(props) => (props.slim ? '58px' : '120px')};
+  height: ${(props) => (props.slim ? '57px' : '200px')};
+  top: ${(props) => (props.slim ? '0.5rem' : '-0.25rem')};
+
+  &:hover {
+    transform: scale(0.85) rotate(5deg);
+    ${(props) =>
+      props.slim
+        ? 'translate: 0.25rem -0.25rem;'
+        : 'translate: 0.5rem -0.75rem;'}
+  }
+`;
+
+const FeatherPath = styled.path`
+  transition: all var(--sidebar-transition-duration) ease-in-out;
+
+  ${LogoSvg}:hover & {
+    color: black;
+  }
+`;
+
+const EyeClosedPath = styled.path`
+  display: none;
+  transition: all var(--sidebar-transition-duration) ease-in-out;
+
+  ${LogoSvg}:hover & {
+    color: black;
+  }
+`;
+
+const EyeOpenPath = styled.path`
+  transition: all var(--sidebar-transition-duration) ease-in-out;
+
+  ${LogoSvg}:hover & {
+    color: black;
+  }
+`;
 
 interface WagtailLogoProps {
   className?: string;
   slim: boolean;
 }
 
-const WagtailLogo = ({ className, slim }: WagtailLogoProps) => {
-  const feathersClasses =
-    'group-hover:w-text-black w-transition-all w-duration-150';
-
+export default function WagtailLogo({ className, slim }: WagtailLogoProps) {
   return (
-    <svg
-      style={{
-        left: slim ? '-1.125rem' : '-1.75rem',
-      }}
-      className={`
-         sidebar-wagtail-branding__icon
-         !w-overflow-visible
-         w-group
-         w-text-surface-menus
-         w-z-10
-         w-absolute
-         w-transition-all
-         w-duration-150
-         hover:w-scale-[0.85]
-         hover:w-rotate-[5deg]
-         ${className || ''}
-         ${
-           slim
-             ? 'w-w-[58px] w-h-[57px] w-top-2 hover:w-translate-x-1 hover:-w-translate-y-1'
-             : 'w-w-[120px] w-h-[200px] -w-top-1  hover:w-translate-x-2 hover:-w-translate-y-3'
-         }
-      `}
+    <LogoSvg
+      slim={slim}
+      className={className}
       width="225"
       height="274"
       viewBox="0 0 225 274"
@@ -47,8 +77,7 @@ const WagtailLogo = ({ className, slim }: WagtailLogoProps) => {
           13.325-30.792 29.918-30.792 4.274 0 8.046.776 11.565 2.328 1.746-2.566 3.491-5.64 5.236-9.476 7.108 4.095 19.786 14.99 21.26
           33.397L190.72 61.88l4.177 17.612Z"
         />
-        <path
-          className={`w-hidden ${feathersClasses}`}
+        <EyeClosedPath
           data-part="eye--closed"
           d="M183.083 36.4189C181.131 37.0166 179.364 38.6306 178.317 40.5186C178.048 41.0035 177.464 41.2495 176.954 41.0359L173.968
           39.7874C173.46 39.5751 173.217 38.9905 173.464 38.498C175.023 35.3889 177.903 32.5075 181.558 31.388C185.602 30.1494 190.075
@@ -56,14 +85,12 @@ const WagtailLogo = ({ className, slim }: WagtailLogoProps) => {
           38.8094C187.354 36.0624 184.921 35.8559 183.083 36.4189Z"
           fill="currentColor"
         />
-        <path
-          className={feathersClasses}
+        <EyeOpenPath
           data-part="eye--open"
           fill="currentColor"
           d="M185.54 42.697c3.332 0 6.034-2.781 6.034-6.211s-2.702-6.21-6.034-6.21c-3.333 0-6.034 2.78-6.034 6.21s2.701 6.21 6.034 6.21Z"
         />
-        <path
-          className={feathersClasses}
+        <FeatherPath
           data-part="body"
           fill="currentColor"
           d="m21.867 193.558 92.839-164.565C122.124 11.853 138.827 0 158.135 0c9.302 0 18.102 2.588 25.393 7.504-1.76 3.882-3.52 6.987-5.28
@@ -72,14 +99,12 @@ const WagtailLogo = ({ className, slim }: WagtailLogoProps) => {
           2.717-.189.906-.377 1.811-.503 2.717v.259c-17.487 91.789-126.812 89.821-143.747 89.031l.112-.386-1.743-30.679-6.872 12.197-27.513 7.208Z"
         />
 
-        <path
-          className={feathersClasses}
+        <FeatherPath
           data-part="body-tail-connector"
           fill="currentColor"
           d="m49.277 186.425 8.718 18.407-1.743-30.679-6.975 12.272Z"
         />
-        <path
-          className={feathersClasses}
+        <FeatherPath
           data-part="beak"
           fill="currentColor"
           d="m204.648 41.144-11.817 18.114h31.93l-20.113-18.114Z"
@@ -90,14 +115,11 @@ const WagtailLogo = ({ className, slim }: WagtailLogoProps) => {
           d="m99.304 170.528-2.012 1.552s66.877-11.127 77.437-67.797l-10.56 3.623s-2.765 43.99-64.865 62.622Z"
         />
       </g>
-      <path
-        className={feathersClasses}
+      <FeatherPath
         data-part="tail"
         fill="currentColor"
         d="M56.252 174.153.456 273.202l41.847-14.025 15.692-54.345-1.743-30.679Z"
       />
-    </svg>
+    </LogoSvg>
   );
-};
-
-export default WagtailLogo;
+}
