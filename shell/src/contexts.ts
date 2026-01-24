@@ -15,6 +15,7 @@ export interface AdminApiConfig {
 }
 
 export interface SidebarConfig {
+  enabled: boolean;
   collapsed: boolean;
   modules: ModuleDefinition[];
 }
@@ -30,6 +31,7 @@ export const AdminApiConfigContext = React.createContext<AdminApiConfig>({
 });
 
 export const SidebarContext = React.createContext<SidebarConfig>({
+  enabled: false,
   collapsed: false,
   modules: [],
 });

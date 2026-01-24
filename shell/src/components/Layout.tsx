@@ -4,6 +4,7 @@ import { styled } from '@linaria/react';
 import { NavigationContext } from '@django-bridge/react';
 
 import Sidebar from './Sidebar/Sidebar';
+import { SidebarContext } from '../contexts';
 
 export const globals = css`
   :global() {
@@ -20,14 +21,19 @@ export const globals = css`
   }
 `;
 
-const Wrapper = styled.div<{ sidebarCollapsed: boolean }>`
+const Wrapper = styled.div<{
+  sidebarEnabled: boolean;
+  sidebarCollapsed: boolean;
+}>`
   --sidebar-direction-factor: 1;
   --sidebar-full-width: 200px;
   --sidebar-slim-width: 60px;
   --sidebar-width: ${(props) =>
-    props.sidebarCollapsed
-      ? 'var(--sidebar-slim-width)'
-      : 'var(--sidebar-full-width)'};
+    props.sidebarEnabled
+      ? props.sidebarCollapsed
+        ? 'var(--sidebar-slim-width)'
+        : 'var(--sidebar-full-width)'
+      : '0px'};
   --sidebar-subpanel-width: 200px;
   --sidebar-transition-duration: 150ms;
   --sidebar-background-color: rgb(46, 31, 94);
@@ -49,15 +55,21 @@ const MainContentWrapper = styled.div`
 
 export default function Layout({ children }: PropsWithChildren) {
   const { navigate, path } = useContext(NavigationContext);
+  const { enabled: sidebarEnabled } = useContext(SidebarContext);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
-    <Wrapper sidebarCollapsed={sidebarCollapsed}>
-      <Sidebar
-        currentPath={path}
-        navigate={navigate}
-        onExpandCollapse={setSidebarCollapsed}
-      />
+    <Wrapper
+      sidebarEnabled={sidebarEnabled}
+      sidebarCollapsed={sidebarCollapsed}
+    >
+      {sidebarEnabled && (
+        <Sidebar
+          currentPath={path}
+          navigate={navigate}
+          onExpandCollapse={setSidebarCollapsed}
+        />
+      )}
       <MainContentWrapper>{children}</MainContentWrapper>
     </Wrapper>
   );
