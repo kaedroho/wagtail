@@ -2,7 +2,6 @@ import { css } from '@linaria/core';
 import { styled } from '@linaria/react';
 
 import { MenuAction, MenuState } from '../modules/MainMenu';
-import { SIDEBAR_TRANSITION_DURATION } from '../Sidebar';
 
 export interface MenuItemRenderContext {
   path: string;
@@ -41,19 +40,18 @@ interface MenuItemWrapperProps {
 export const MenuItemWrapper = styled.li<MenuItemWrapperProps>`
   transition: border-color var(--sidebar-transition-duration) ease;
   position: relative;
+  background-color: ${(props) =>
+    props.isActive ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0)'};
+  text-shadow: ${(props) =>
+    props.isActive ? '-1px -1px 0 rgba(0, 0, 0, 0.35)' : 'none'};
+  border-inline-start: ${(props) =>
+    props.isActive ? '2px solid #00b0b1' : '2px solid transparent'};
 
-  ${(props) =>
-    props.isActive
-      ? `
-    background-color: rgba(0, 0, 0, 0.2);
-    text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.35);
-    border-inline-start-color: #00b0b1;
-
-    > a, > form button {
-      color: white;
-    }
-  `
-      : ''}
+  > a,
+  > form button {
+    color: ${(props) =>
+      props.isActive ? 'white' : 'rgba(255, 255, 255, 0.8)'};
+  }
 `;
 
 interface MenuItemLinkProps {
@@ -63,10 +61,9 @@ interface MenuItemLinkProps {
 
 const commonMenuItemStyles = `
   font-size: 0.875rem;
-  line-height: 1;
   transition:
-    border-color ${SIDEBAR_TRANSITION_DURATION}ms ease,
-    background-color ${SIDEBAR_TRANSITION_DURATION}ms ease;
+    border-color var(--sidebar-transition-duration) ease-in-out,
+    background-color var(--sidebar-transition-duration) ease-in-out;
   position: relative;
   display: flex;
   justify-content: flex-start;
@@ -77,7 +74,7 @@ const commonMenuItemStyles = `
   background: transparent;
   text-align: start;
   color: rgba(255, 255, 255, 0.8);
-  padding: 13px 15px 13px 20px;
+  padding: 12px 15px 12px 20px;
   font-weight: 400;
   overflow: visible;
   -webkit-font-smoothing: auto;
@@ -93,64 +90,10 @@ const commonMenuItemStyles = `
 
 export const MenuItemLink = styled.a<MenuItemLinkProps>`
   ${commonMenuItemStyles}
-  ${(props) =>
-    props.isInSubMenu
-      ? `
-      line-height: 1.25;
-      white-space: normal;
-      align-items: flex-start;
-    `
-      : ''}
-
-  ${(props) =>
-    props.slim && !props.isInSubMenu
-      ? `
-      margin-inline-start: auto;
-      display: inline-flex;
-
-      .sidebar-sub-menu-trigger-icon {
-        margin-inline-start: 0;
-      }
-    `
-      : ''}
-
-    ${(props) =>
-    props.slim && props.isInSubMenu
-      ? `
-      justify-content: flex-start;
-    `
-      : ''}
 `;
 
 export const MenuItemButton = styled.button<MenuItemLinkProps>`
   ${commonMenuItemStyles}
-  ${(props) =>
-    props.isInSubMenu
-      ? `
-        line-height: 1.25;
-        white-space: normal;
-        align-items: flex-start;
-      `
-      : ''}
-
-  ${(props) =>
-    props.slim && !props.isInSubMenu
-      ? `
-        margin-inline-start: auto;
-        display: inline-flex;
-
-        .sidebar-sub-menu-trigger-icon {
-          margin-inline-start: 0;
-        }
-      `
-      : ''}
-
-      ${(props) =>
-    props.slim && props.isInSubMenu
-      ? `
-        justify-content: flex-start;
-      `
-      : ''}
 `;
 
 export const MenuItem = styled.div`
@@ -165,40 +108,9 @@ interface MenuItemLabelProps {
 }
 
 export const MenuItemLabel = styled.span<MenuItemLabelProps>`
-  transition: opacity ${SIDEBAR_TRANSITION_DURATION}ms ease;
+  transition: opacity var(--sidebar-transition-duration) ease-in-out;
+  opacity: ${(props) => (props.slim && !props.isInSubMenu ? '0' : '1')};
+  line-height: 1.5;
+  white-space: normal;
   margin-inline-start: 0.875rem;
-  line-height: 1.25;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-
-  ${(props) =>
-    props.slim && !props.isInSubMenu
-      ? `
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  `
-      : ''}
-
-  ${(props) =>
-    props.slim && props.isInSubMenu
-      ? `
-    position: static;
-    width: auto;
-    height: auto;
-    padding: 0;
-    margin: 0;
-    margin-inline-start: 1rem;
-    overflow: visible;
-    clip: auto;
-    white-space: normal;
-  `
-      : ''}
 `;

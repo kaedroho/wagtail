@@ -1,4 +1,22 @@
 import * as React from 'react';
+import { styled } from '@linaria/react';
+
+const IconSVG = styled.svg`
+  fill: currentColor;
+`;
+
+// TODO: move to a common styles library
+const ScreenReaderOnly = styled.span`
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+`;
 
 export interface IconProps extends React.SVGProps<SVGSVGElement> {
   /** Optional svg `path` instead of the `use` based on the icon name. */
@@ -19,7 +37,7 @@ const Icon: React.FunctionComponent<IconProps> = ({
   ...props
 }) => (
   <>
-    <svg
+    <IconSVG
       {...props}
       className={['icon', `icon-${name}`, className || '']
         .filter(Boolean)
@@ -27,8 +45,8 @@ const Icon: React.FunctionComponent<IconProps> = ({
       aria-hidden="true"
     >
       {children || <use href={`#icon-${name}`} />}
-    </svg>
-    {title && <span className="w-sr-only">{title}</span>}
+    </IconSVG>
+    {title && <ScreenReaderOnly>{title}</ScreenReaderOnly>}
   </>
 );
 

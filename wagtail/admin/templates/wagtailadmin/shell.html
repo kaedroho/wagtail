@@ -1,4 +1,4 @@
-<!DOCTYPE html>{% load static %}{% load i18n %}
+<!DOCTYPE html>{% load static %}{% load i18n %}{% load wagtailadmin_tags %}
 {% get_current_language as LANGUAGE_CODE %}
 <html lang="{{ LANGUAGE_CODE }}">
 
@@ -96,6 +96,9 @@
   {{ initial_response|json_script:"initial-response" }}
 
   <div id="root"></div>
+
+  <div data-sprite></div>
+  <script src="{% versioned_static 'wagtailadmin/js/icons.js' %}" data-icon-url="{% icon_sprite_url %}"></script>
 
   {% if vite_react_refresh_runtime %}
   <script type="module">

@@ -40,6 +40,11 @@ const SearchButton = styled.button<SearchButtonProps>`
   z-index: 10;
   cursor: pointer;
 
+  // Centre the icon
+  svg {
+    transform: translateX(-3px) translateY(4px);
+  }
+
   &:hover,
   &:focus {
     color: white;
@@ -57,9 +62,10 @@ interface SearchInputProps {
 }
 
 const SearchInputField = styled.input<SearchInputProps>`
-  display: ${(props) => (props.isHidden ? 'none' : 'block')};
-  padding-left: 55px;
-  padding-top: 13px;
+  transition: opacity var(--sidebar-transition-duration) ease-in-out;
+  opacity: ${(props) => (props.isHidden ? '0' : '1')};
+  padding-left: 51px;
+  padding-top: 15px;
   padding-bottom: 13px;
   -webkit-font-smoothing: subpixel-antialiased;
   position: absolute;

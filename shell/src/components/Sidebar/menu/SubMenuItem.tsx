@@ -24,18 +24,7 @@ interface SubMenuItemWrapperProps {
   isOpen: boolean;
 }
 
-const SubMenuItemWrapper = styled(MenuItemWrapper)<SubMenuItemWrapperProps>`
-  ${(props) =>
-    props.isOpen
-      ? `
-    border-inline-start: 2px solid #00b0b1;
-
-    > button {
-      text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.35);
-    }
-  `
-      : ''}
-`;
+const SubMenuItemWrapper = styled(MenuItemWrapper)<SubMenuItemWrapperProps>``;
 
 interface TriggerIconProps {
   isOpen: boolean;
@@ -50,26 +39,10 @@ const TriggerIcon = styled(Icon)<TriggerIconProps>`
   display: block;
   width: 1rem;
   height: 1rem;
-  inset-inline-end: 15px;
   margin-inline-start: auto;
-
-  ${(props) =>
-    props.isOpen
-      ? `
-    transform-origin: 50% 50%;
-    transform: rotate(180deg);
-  `
-      : ''}
-
-  ${(props) =>
-    props.slim
-      ? `
-    width: 1rem;
-    height: 1rem;
-    position: absolute;
-    inset-inline-end: 0;
-  `
-      : ''}
+  transform-origin: 50% 50%;
+  transform: ${(props) => (props.isOpen ? 'rotate(180deg)' : 'rotate(0deg)')};
+  inset-inline-end: ${(props) => (props.slim ? '0' : '15px')};
 `;
 
 const SubMenuPanel = styled.div`
@@ -95,6 +68,7 @@ const SubMenuPanel = styled.div`
     justify-content: center;
     align-items: center;
     width: var(--sidebar-subpanel-width);
+    font-size: 1.125rem;
     transition:
       transform var(--sidebar-transition-duration) ease-in-out,
       visibility var(--sidebar-transition-duration) ease-in-out;
@@ -135,7 +109,7 @@ export function SubMenuItem({
   isMobile = false,
 }: SubMenuItemProps) {
   const isOpen = state.navigationPath.startsWith(path);
-  const isActive = isOpen || state.activePath.startsWith(path);
+  const isActive = state.activePath.startsWith(path);
   const depth = path.split('.').length;
   const [isVisible, setIsVisible] = React.useState(false);
   const [hasBeenOpened, setHasBeenOpened] = React.useState(false);

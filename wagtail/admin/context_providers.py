@@ -31,6 +31,5 @@ def sidebar_props(request):
     ]
     return {
         "enabled": request.user.is_authenticated,
-        "collapsed": not (request.COOKIES.get("wagtail_sidebar_collapsed", "0") == "0"),
         "modules": [module for module in modules if module is not None],
     }

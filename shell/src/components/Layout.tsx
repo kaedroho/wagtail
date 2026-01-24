@@ -17,6 +17,13 @@ export const globals = css`
 
     body {
       font-family: var(--font-sans);
+      font-size: 85%;
+      line-height: 1.5em;
+      box-sizing: border-box;
+    }
+
+    * {
+      box-sizing: inherit;
     }
   }
 `;

@@ -162,10 +162,10 @@ const MainMenuNav = styled.nav<MainMenuNavProps>`
     border-radius: 3px;
   }
 
-  *:focus {
-    outline: 2px solid var(--w-color-focus, #00b0b1);
-    outline-offset: -2px;
-  }
+  //*:focus {
+  //  outline: 2px solid var(--w-color-focus, #00b0b1);
+  //  outline-offset: -2px;
+  //}
 
   .icon--submenu-header {
     display: block;
@@ -213,8 +213,7 @@ const SidebarFooter = styled.div<SidebarFooterProps>`
 
   > ul {
     transition: max-height var(--sidebar-transition-duration) ease-in-out;
-    visibility: hidden;
-    max-height: 0;
+    max-height: ${(props) => (props.isOpen ? '85px' : '0px')};
 
     a {
       border-inline-start: 3px solid transparent;
@@ -223,16 +222,6 @@ const SidebarFooter = styled.div<SidebarFooterProps>`
       white-space: nowrap;
     }
   }
-
-  ${(props) =>
-    props.isOpen
-      ? `
-    > ul {
-      max-height: 85px;
-      visibility: visible;
-    }
-  `
-      : ''}
 `;
 
 interface AccountButtonProps {
@@ -277,8 +266,11 @@ const AccountToggle = styled.div<AccountToggleProps>`
   transition: all var(--sidebar-transition-duration) ease-in-out;
   min-width: 0;
 
-  .icon {
+  svg {
+    width: 1rem;
+    height: 1rem;
     flex-shrink: 0;
+    color: #fffc;
   }
 `;
 

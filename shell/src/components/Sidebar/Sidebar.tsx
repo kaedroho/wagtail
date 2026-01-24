@@ -191,12 +191,12 @@ export default function Sidebar({
   navigate,
   onExpandCollapse,
 }: SidebarProps) {
-  const { modules, collapsed: collapsedOnLoad } = useContext(SidebarContext);
+  const { modules } = useContext(SidebarContext);
 
   // 'collapsed' is a persistent state that is controlled by the arrow icon at the top
   // It records the user's general preference for a collapsed/uncollapsed menu
   // This is just a hint though, and we may still collapse the menu if the screen is too small
-  const [collapsed, setCollapsed] = React.useState(collapsedOnLoad);
+  const [collapsed, setCollapsed] = React.useState(false);
   const mobileNavToggleRef = React.useRef<HTMLButtonElement>(null);
 
   // Call onExpandCollapse(true) if menu is initialised in collapsed state
@@ -358,6 +358,7 @@ export default function Sidebar({
         isMobile={isMobile}
         hidden={isMobile && !visibleOnMobile}
         closed={isMobile && !visibleOnMobile && closedOnMobile}
+        data-wagtail-sidebar
       >
         <SidebarInner onFocus={onFocusHandler} onBlur={onBlurHandler}>
           {!isMobile && (

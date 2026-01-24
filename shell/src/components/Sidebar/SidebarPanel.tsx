@@ -1,9 +1,6 @@
 import * as React from 'react';
 import { styled } from '@linaria/react';
 
-const MENU_WIDTH = '200px';
-const MENU_WIDTH_SLIM = '70px';
-
 interface PanelWrapperProps {
   isVisible: boolean;
   isOpen: boolean;
@@ -15,10 +12,14 @@ interface PanelWrapperProps {
 }
 
 const PanelWrapper = styled.div<PanelWrapperProps>`
-  --width: ${(props) => (props.widthPx ? `${props.widthPx}px` : MENU_WIDTH)};
-  --w-direction-factor: 1;
+  --sidebar-subpanel-width: ${(props) =>
+    props.widthPx ? `${props.widthPx}px` : '200px'};
 
-  transform: translateX(calc(var(--sidebar-direction-factor) * -100%));
+  background-color: var(--sidebar-background-color);
+  transform: ${(props) =>
+    props.isOpen
+      ? 'translateX(0)'
+      : 'translateX(calc(var(--sidebar-direction-factor) * -100%))'};
   position: fixed;
   height: 100vh;
   padding: 0;
@@ -29,8 +30,11 @@ const PanelWrapper = styled.div<PanelWrapperProps>`
   flex-direction: column;
   transition:
     transform var(--sidebar-transition-duration) ease-in-out,
-    inset-inline-start var(--sidebar-transition-duration) ease-in-out,
-    visibility var(--sidebar-transition-duration) ease-in-out;
+    inset-inline-start var(--sidebar-transition-duration) ease-in-out;
+  box-shadow: ${(props) =>
+    props.isOpen ? '2px 0 2px rgba(0, 0, 0, 0.35)' : 'none'};
+  visibility: ${(props) => (props.isVisible ? 'visible' : 'hidden')};
+  inset-inline-start: var(--sidebar-width);
 
   @media (forced-colors: active) {
     border-inline-start: 1px solid transparent;
@@ -40,59 +44,7 @@ const PanelWrapper = styled.div<PanelWrapperProps>`
   /* Desktop styles */
   @media (min-width: 800px) {
     z-index: ${(props) => props.zIndex};
-    width: var(--width);
-  }
-
-  /* Visible state */
-  ${(props) =>
-    props.isVisible
-      ? `
-    visibility: visible;
-    box-shadow: 2px 0 2px rgba(0, 0, 0, 0.35);
-  `
-      : 'visibility: hidden;'}
-
-  /* Mobile open state */
-  ${(props) =>
-    props.isMobile && props.isOpen
-      ? `
-    transform: translateX(0);
-  `
-      : ''}
-
-  /* Desktop: slim sidebar positioning (only for top-level panels) */
-  @media (min-width: 800px) {
-    ${(props) =>
-      props.slim && !props.isNested
-        ? `
-      inset-inline-start: ${MENU_WIDTH_SLIM};
-    `
-        : ''}
-
-    /* Desktop: nested panels in slim mode */
-    ${(props) =>
-      props.slim && props.isNested
-        ? `
-      inset-inline-start: 0;
-    `
-        : ''}
-
-    /* Desktop: open state */
-    ${(props) =>
-      !props.isMobile && props.isOpen
-        ? `
-      transform: translateX(0);
-      inset-inline-start: ${props.isNested ? (props.slim ? MENU_WIDTH_SLIM : '0') : MENU_WIDTH};
-    `
-        : ''}
-
-    /* Desktop: open state in slim mode (top-level) */
-    ${(props) =>
-      !props.isMobile && props.isOpen && props.slim && !props.isNested
-        ? `
-      inset-inline-start: ${MENU_WIDTH_SLIM};
-    `
-        : ''}
+    width: var(--sidebar-subpanel-width);
   }
 `;
 
