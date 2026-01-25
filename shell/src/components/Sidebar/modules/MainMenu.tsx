@@ -163,7 +163,7 @@ const MainMenuNav = styled.nav<MainMenuNavProps>`
   }
 
   //*:focus {
-  //  outline: 2px solid var(--w-color-focus, #00b0b1);
+  //  outline: 2px solid #00b0b1;
   //  outline-offset: -2px;
   //}
 
@@ -196,7 +196,7 @@ interface SidebarFooterProps {
 }
 
 const SidebarFooter = styled.div<SidebarFooterProps>`
-  background-color: rgb(46, 31, 94);
+  background-color: var(--sidebar-background-color);
   margin-top: auto;
   transition: width var(--sidebar-transition-duration) ease-in-out !important;
 
@@ -248,7 +248,7 @@ const AccountButton = styled.button<AccountButtonProps>`
   }
 
   &:focus {
-    outline: 2px solid var(--w-color-focus, #00b0b1);
+    outline: 2px solid #00b0b1;
     outline-offset: -2px;
   }
 `;
@@ -275,7 +275,7 @@ const AccountToggle = styled.div<AccountToggleProps>`
 `;
 
 const AccountLabel = styled.div`
-  color: var(--w-color-text-label-menus-default, rgba(255, 255, 255, 0.8));
+  color: rgba(255, 255, 255, 0.8);
   text-align: left;
   overflow: hidden;
   white-space: nowrap;

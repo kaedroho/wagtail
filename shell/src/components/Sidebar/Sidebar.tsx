@@ -22,8 +22,6 @@ export interface ModuleDefinition {
   render(context: ModuleRenderContext): React.ReactFragment;
 }
 
-const SIDEBAR_TOGGLE_SPACING = '12px';
-
 interface WrapperProps {
   slim: boolean;
   isMobile: boolean;
@@ -54,25 +52,11 @@ const Wrapper = styled.aside<WrapperProps>`
     min-width: 1rem;
     margin: 0.046875rem 0;
   }
-
-  ${(props) =>
-    props.hidden
-      ? `
-    inset-inline-start: calc(var(--sidebar-width) * -1);
-  `
-      : ''}
-
-  ${(props) =>
-    props.closed
-      ? `
-    display: none;
-  `
-      : ''}
 `;
 
 const SidebarInner = styled.div`
   height: 100%;
-  background-color: var(--w-color-surface-menus, rgb(46, 31, 94));
+  background-color: var(--sidebar-background-color);
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
@@ -96,7 +80,8 @@ const CollapseToggle = styled.button<CollapseToggleProps>`
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-right: ${(props) => (props.slim ? '0' : '1rem')};
+  margin-right: ${(props) => (props.slim ? '10px' : '1rem')};
+  cursor: pointer;
 
   svg {
     width: 15px;
@@ -104,10 +89,7 @@ const CollapseToggle = styled.button<CollapseToggleProps>`
   }
 
   &:hover {
-    background-color: var(
-      --w-color-surface-menu-item-active,
-      rgba(0, 0, 0, 0.2)
-    );
+    background-color: rgba(0, 0, 0, 0.2);
     color: white;
     opacity: 1;
   }
@@ -172,7 +154,7 @@ const NavToggle = styled.button<NavToggleProps>`
 const CollapseToggleWrapper = styled.div<{ slim: boolean }>`
   display: flex;
   align-items: center;
-  justify-content: ${(props) => (props.slim ? 'center' : 'flex-end')};
+  justify-content: flex-end;
   margin-top: 0.5rem;
 
   @media (min-width: 800px) {
@@ -183,28 +165,19 @@ const CollapseToggleWrapper = styled.div<{ slim: boolean }>`
 export interface SidebarProps {
   currentPath: string;
   navigate(url: string): Promise<void>;
-  onExpandCollapse(collapsed: boolean): void;
+  collapsed: boolean;
+  setCollapsed(collapsed: boolean): void;
 }
 
 export default function Sidebar({
   currentPath,
   navigate,
-  onExpandCollapse,
+  collapsed,
+  setCollapsed,
 }: SidebarProps) {
   const { modules } = useContext(SidebarContext);
 
-  // 'collapsed' is a persistent state that is controlled by the arrow icon at the top
-  // It records the user's general preference for a collapsed/uncollapsed menu
-  // This is just a hint though, and we may still collapse the menu if the screen is too small
-  const [collapsed, setCollapsed] = React.useState(false);
   const mobileNavToggleRef = React.useRef<HTMLButtonElement>(null);
-
-  // Call onExpandCollapse(true) if menu is initialised in collapsed state
-  React.useEffect(() => {
-    if (collapsed && onExpandCollapse) {
-      onExpandCollapse(true);
-    }
-  }, []);
 
   // 'visibleOnMobile' indicates whether the sidebar is currently visible on mobile
   // On mobile, the sidebar is completely hidden by default and must be opened manually
@@ -262,10 +235,6 @@ export default function Sidebar({
 
   const onClickCollapseToggle = () => {
     setCollapsed(!collapsed);
-
-    if (onExpandCollapse) {
-      onExpandCollapse(!collapsed);
-    }
   };
 
   const onClickOpenCloseToggle = () => {
@@ -349,7 +318,6 @@ export default function Sidebar({
         ref={mobileNavToggleRef}
         isMobile={isMobile}
         isOpen={visibleOnMobile}
-        data-w-kbd-target={isMobile ? 'element' : undefined}
       >
         {visibleOnMobile ? <Icon name="cross" /> : <Icon name="bars" />}
       </NavToggle>
@@ -370,7 +338,6 @@ export default function Sidebar({
                 aria-label={gettext('Toggle sidebar')}
                 type="button"
                 slim={slim}
-                data-w-kbd-target="element"
               >
                 <Icon
                   name="expand-right"

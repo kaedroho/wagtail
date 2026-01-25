@@ -24,7 +24,12 @@ interface SubMenuItemWrapperProps {
   isOpen: boolean;
 }
 
-const SubMenuItemWrapper = styled(MenuItemWrapper)<SubMenuItemWrapperProps>``;
+const SubMenuItemWrapper = styled(MenuItemWrapper)<SubMenuItemWrapperProps>`
+  > button {
+    text-shadow: ${(props) =>
+      props.isOpen ? '-1px -1px 0 rgba(0, 0, 0, 0.35)' : 'none'};
+  }
+`;
 
 interface TriggerIconProps {
   isOpen: boolean;

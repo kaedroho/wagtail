@@ -9,7 +9,7 @@ interface LogoSvgProps {
 
 const LogoSvg = styled.svg<LogoSvgProps>`
   overflow: visible !important;
-  color: rgb(46, 31, 94);
+  color: var(--sidebar-background-color);
   z-index: 10;
   position: absolute;
   transition: all var(--sidebar-transition-duration) ease-in-out;

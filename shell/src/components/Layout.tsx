@@ -1,10 +1,11 @@
-import React, { PropsWithChildren, useContext, useState } from 'react';
+import React, { PropsWithChildren, useContext } from 'react';
 import { css } from '@linaria/core';
 import { styled } from '@linaria/react';
 import { NavigationContext } from '@django-bridge/react';
 
 import Sidebar from './Sidebar/Sidebar';
 import { SidebarContext } from '../contexts';
+import { useLocalStorage } from '../utils/hooks';
 
 export const globals = css`
   :global() {
@@ -63,7 +64,13 @@ const MainContentWrapper = styled.div`
 export default function Layout({ children }: PropsWithChildren) {
   const { navigate, path } = useContext(NavigationContext);
   const { enabled: sidebarEnabled } = useContext(SidebarContext);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  // 'collapsed' is a persistent state that is controlled by the arrow icon at the top
+  // It records the user's general preference for a collapsed/uncollapsed menu
+  // This is just a hint though, and we may still collapse the menu if the screen is too small
+  const [sidebarCollapsed, setSidebarCollapsed] = useLocalStorage(
+    'wagtail-sidebar-collapsed',
+    false,
+  );
 
   return (
     <Wrapper
@@ -74,7 +81,8 @@ export default function Layout({ children }: PropsWithChildren) {
         <Sidebar
           currentPath={path}
           navigate={navigate}
-          onExpandCollapse={setSidebarCollapsed}
+          collapsed={sidebarCollapsed}
+          setCollapsed={setSidebarCollapsed}
         />
       )}
       <MainContentWrapper>{children}</MainContentWrapper>

@@ -14,7 +14,7 @@ const CloseButton = styled.button`
   z-index: 91; /* sidebar toggle z-index */
   border: 1px solid transparent;
   position: fixed;
-  background-color: rgb(46, 31, 94);
+  background-color: var(--sidebar-background-color);
   top: 0;
   left: 0;
   height: 50px;
