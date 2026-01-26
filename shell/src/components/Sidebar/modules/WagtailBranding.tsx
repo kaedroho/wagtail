@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { styled } from '@linaria/react';
-import { css } from '@linaria/core';
 
 import { gettext } from '../../../utils/gettext';
 import { ModuleDefinition } from '../Sidebar';
@@ -8,21 +7,8 @@ import WagtailLogo from './WagtailLogo';
 
 const LOGO_SIZE = '110px';
 
-// Tail wagging animation
-const tailWagKeyframes = css`
-  @keyframes tail-wag {
-    from {
-      transform: rotate(-3deg);
-    }
-    to {
-      transform: rotate(20deg) translate(30%, -25%) scale(1.1);
-    }
-  }
-`;
-
 interface BrandingLinkProps {
   slim: boolean;
-  isWagging: boolean;
 }
 
 const BrandingLink = styled.a<BrandingLinkProps>`
@@ -45,37 +31,31 @@ const BrandingLink = styled.a<BrandingLinkProps>`
     margin-top: 0.5rem;
   }
 
-  ${(props) =>
-    props.slim
-      ? `
-    &:focus {
-      outline: 2px solid #00b0b1;
-      outline-offset: -2px;
+  @keyframes tailWag {
+    from {
+      transform: rotate(-3deg);
     }
-  `
-      : ''}
-
-  ${(props) =>
-    props.isWagging
-      ? `
-    &:hover {
-      transition: transform 1.2s ease;
-
-      [data-part='tail'] {
-        animation: tail-wag 0.1s alternate;
-        animation-iteration-count: infinite;
-      }
-
-      [data-part='eye--open'] {
-        display: none !important;
-      }
-
-      [data-part='eye--closed'] {
-        display: inline !important;
-      }
+    to {
+      transform: rotate(20deg) translate(30%, -25%) scale(1.1);
     }
-  `
-      : ''}
+  }
+
+  &.wagging&:hover {
+    transition: transform 1.2s ease;
+
+    [data-part='tail'] {
+      animation: tailWag 0.1s alternate;
+      animation-iteration-count: infinite;
+    }
+
+    [data-part='eye--open'] {
+      display: none !important;
+    }
+
+    [data-part='eye--closed'] {
+      display: inline !important;
+    }
+  }
 `;
 
 interface IconWrapperProps {
@@ -86,11 +66,11 @@ const IconWrapper = styled.div<IconWrapperProps>`
   background-color: rgba(255, 255, 255, 0.15);
   position: relative;
   overflow: hidden;
-  margin: auto;
   width: ${(props) => (props.slim ? '40px' : LOGO_SIZE)};
   height: ${(props) => (props.slim ? '40px' : LOGO_SIZE)};
   border-radius: 50%;
   transition: all var(--sidebar-transition-duration) ease-in-out;
+  margin-top: ${(props) => (props.slim ? '20px' : '0px')};
 
   &:hover {
     overflow: visible;
@@ -194,7 +174,7 @@ export function WagtailBranding({
 
   return (
     <BrandingLink
-      className={tailWagKeyframes}
+      className={`${isWagging && ' wagging'}`}
       href={homeUrl}
       aria-label={gettext('Dashboard')}
       aria-current={currentPath === homeUrl ? 'page' : undefined}
@@ -202,7 +182,6 @@ export function WagtailBranding({
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
       slim={slim}
-      isWagging={isWagging}
     >
       <IconWrapper slim={slim}>
         <WagtailLogo slim={slim} />

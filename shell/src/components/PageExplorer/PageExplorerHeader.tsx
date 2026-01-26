@@ -4,7 +4,7 @@ import { gettext } from '../../utils/gettext';
 import Link from '../Link/Link';
 import Icon from '../Icon/Icon';
 import { PageState } from './reducers/nodes';
-import { UrlsContext } from '../../contexts';
+import { LocalesContext, UrlsContext } from '../../contexts';
 
 interface SelectLocaleProps {
   locale?: string;
@@ -17,14 +17,15 @@ const SelectLocale: React.FunctionComponent<SelectLocaleProps> = ({
   translations,
   gotoPage,
 }) => {
+  const locales = useContext(LocalesContext);
   /* eslint-disable camelcase */
-  const options = wagtailConfig.LOCALES.filter(
-    ({ code }) => code === locale || translations.get(code),
-  ).map(({ code, display_name }) => (
-    <option key={code} value={code}>
-      {display_name}
-    </option>
-  ));
+  const options = locales
+    .filter(({ code }) => code === locale || translations.get(code))
+    .map(({ code, display_name }) => (
+      <option key={code} value={code}>
+        {display_name}
+      </option>
+    ));
   /* eslint-enable camelcase */
 
   const onChange = (e) => {

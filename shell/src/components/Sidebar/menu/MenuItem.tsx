@@ -38,7 +38,9 @@ interface MenuItemWrapperProps {
 }
 
 export const MenuItemWrapper = styled.li<MenuItemWrapperProps>`
-  transition: border-color var(--sidebar-transition-duration) ease;
+  transition:
+    border-color var(--sidebar-transition-duration) ease-in-out,
+    background-color var(--sidebar-transition-duration) ease-in-out;
   position: relative;
   background-color: ${(props) =>
     props.isActive ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0)'};

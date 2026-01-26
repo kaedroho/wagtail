@@ -67,7 +67,7 @@ interface CollapseToggleProps {
 }
 
 const CollapseToggle = styled.button<CollapseToggleProps>`
-  transition: background-color var(--sidebar-transition-duration) ease-in-out;
+  transition: margin-right var(--sidebar-transition-duration) ease-in-out;
   position: static;
   color: rgba(255, 255, 255, 0.8);
   width: 35px;
@@ -342,7 +342,9 @@ export default function Sidebar({
                 <Icon
                   name="expand-right"
                   style={{
-                    transform: !collapsed ? 'rotate(-180deg)' : undefined,
+                    transform: !collapsed ? 'scaleX(-1)' : 'scaleX(1)',
+                    transition:
+                      'transform var(--sidebar-transition-duration) ease-in-out',
                   }}
                 />
               </CollapseToggle>
