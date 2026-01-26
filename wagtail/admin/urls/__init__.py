@@ -2,8 +2,10 @@ import functools
 
 from django.conf import settings
 from django.http import Http404
+from django.middleware.csrf import get_token
 from django.template.response import TemplateResponse
 from django.urls import include, path, re_path, reverse
+from django.utils.encoding import force_str
 from django.views.decorators.cache import never_cache
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.defaults import page_not_found
@@ -13,9 +15,9 @@ from django_bridge.response import Response, process_response
 from rest_framework.response import Response as DRFResponse
 
 from wagtail import hooks
+from wagtail.admin import context_providers
 from wagtail.admin.api import urls as api_urls
 from wagtail.admin.auth import require_admin_access
-from wagtail.admin.context_providers import sidebar_props
 from wagtail.admin.urls import collections as wagtailadmin_collections_urls
 from wagtail.admin.urls import editing_sessions as wagtailadmin_editing_sessions_urls
 from wagtail.admin.urls import pages as wagtailadmin_pages_urls
@@ -241,7 +243,13 @@ def convert_to_django_bridge(view_func):
             framework="react",
             entry_point="src/main.tsx",
             vite_devserver_url="http://192.168.122.58:5173/static",
-            context_providers={"sidebar": sidebar_props},
+            context_providers={
+                "csrf_token": get_token,
+                "urls": context_providers.urls,
+                "locales": context_providers.locales,
+                "admin_api": context_providers.admin_api,
+                "sidebar": context_providers.sidebar_props,
+            },
         )
         return process_response(request, response, bridge_config)
 

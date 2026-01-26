@@ -1,5 +1,6 @@
-import React from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import FocusTrap from 'focus-trap-react';
+import { styled } from '@linaria/react';
 
 import { gettext } from '../../utils/gettext';
 
@@ -8,11 +9,52 @@ import Transition, { PUSH, POP } from '../Transition/Transition';
 import PageExplorerHeader from './PageExplorerHeader';
 import PageExplorerItem from './PageExplorerItem';
 import PageCount from './PageCount';
-import { State as NodeState, PageState } from './reducers/nodes';
-import { MAX_EXPLORER_PAGES } from './constants';
+import { NodesState, PageState } from './types';
+import { MAX_EXPLORER_PAGES } from './PageExplorer';
+
+const ExplorerWrapper = styled.div`
+  background-color: var(--w-color-surface-menu-item-active);
+  max-width: 485px;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  flex: 1;
+
+  *:focus {
+    outline: var(--w-color-focus) solid 3px;
+    outline-offset: -3px;
+  }
+
+  @media (min-width: 640px) {
+    width: 485px;
+    box-shadow: 2px 2px 5px var(--w-color-black-50);
+  }
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    z-index: 350;
+  }
+`;
+
+const Drawer = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+`;
+
+const Placeholder = styled.div`
+  padding: 1em;
+  color: var(--w-color-text-label-menus-default);
+
+  @media (min-width: 640px) {
+    padding: 1em 1.75em;
+  }
+`;
 
 interface PageExplorerPanelProps {
-  nodes: NodeState;
+  nodes: NodesState;
   depth: number;
   page: PageState;
   onClose(): void;
@@ -20,70 +62,51 @@ interface PageExplorerPanelProps {
   navigate(url: string): Promise<void>;
 }
 
-interface PageExplorerPanelState {
-  transition: typeof PUSH | typeof POP;
-}
+export default function PageExplorerPanel({
+  nodes,
+  depth,
+  page,
+  onClose,
+  gotoPage,
+  navigate,
+}: PageExplorerPanelProps) {
+  const [transition, setTransition] = useState<typeof PUSH | typeof POP>(PUSH);
+  const [prevDepth, setPrevDepth] = useState(depth);
 
-/**
- * The main panel of the page explorer menu, with heading,
- * menu items, and special states.
- */
-class PageExplorerPanel extends React.Component<
-  PageExplorerPanelProps,
-  PageExplorerPanelState
-> {
-  constructor(props) {
-    super(props);
+  useEffect(() => {
+    if (depth !== prevDepth) {
+      setTransition(depth > prevDepth ? PUSH : POP);
+      setPrevDepth(depth);
+    }
+  }, [depth, prevDepth]);
 
-    this.state = {
-      transition: PUSH,
-    };
-
-    this.onItemClick = this.onItemClick.bind(this);
-    this.onHeaderClick = this.onHeaderClick.bind(this);
-  }
-
-  componentWillReceiveProps(newProps) {
-    const { depth } = this.props;
-    const isPush = newProps.depth > depth;
-
-    this.setState({
-      transition: isPush ? PUSH : POP,
-    });
-  }
-
-  onItemClick(id, e) {
-    const { gotoPage } = this.props;
-
-    e.preventDefault();
-    e.stopPropagation();
-
-    gotoPage(id, 1);
-  }
-
-  onHeaderClick(e) {
-    const { page, depth, gotoPage } = this.props;
-    const parent = page.meta.parent?.id;
-
-    // Note: Checking depth as well in case the user started deep in the tree
-    if (depth > 0 && parent) {
+  const onItemClick = useCallback(
+    (id: number, e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
+      gotoPage(id, 1);
+    },
+    [gotoPage],
+  );
 
-      gotoPage(parent, -1);
-    }
-  }
+  const onHeaderClick = useCallback(
+    (e: React.MouseEvent) => {
+      const parent = page.meta.parent?.id;
 
-  renderChildren() {
-    const { page, nodes } = this.props;
+      if (depth > 0 && parent) {
+        e.preventDefault();
+        e.stopPropagation();
+        gotoPage(parent, -1);
+      }
+    },
+    [page, depth, gotoPage],
+  );
+
+  const renderChildren = () => {
     let children;
 
     if (!page.isFetchingChildren && !page.children.items) {
-      children = (
-        <div key="empty" className="c-page-explorer__placeholder">
-          {gettext('No results')}
-        </div>
-      );
+      children = <Placeholder key="empty">{gettext('No results')}</Placeholder>;
     } else {
       children = (
         <div key="children">
@@ -91,8 +114,8 @@ class PageExplorerPanel extends React.Component<
             <PageExplorerItem
               key={id}
               item={nodes[id]}
-              onClick={this.onItemClick.bind(null, id)}
-              navigate={this.props.navigate}
+              onClick={(e) => onItemClick(id, e)}
+              navigate={navigate}
             />
           ))}
         </div>
@@ -100,59 +123,52 @@ class PageExplorerPanel extends React.Component<
     }
 
     return (
-      <div className="c-page-explorer__drawer">
+      <Drawer>
         {children}
         {page.isFetchingChildren || page.isFetchingTranslations ? (
-          <div key="fetching" className="c-page-explorer__placeholder">
+          <Placeholder key="fetching">
             <LoadingSpinner />
-          </div>
+          </Placeholder>
         ) : null}
         {page.isError ? (
-          <div key="error" className="c-page-explorer__placeholder">
-            {gettext('Server Error')}
-          </div>
+          <Placeholder key="error">{gettext('Server Error')}</Placeholder>
         ) : null}
-      </div>
+      </Drawer>
     );
-  }
+  };
 
-  render() {
-    const { page, depth, gotoPage, onClose } = this.props;
-    const { transition } = this.state;
+  return (
+    /*<FocusTrap
+      paused={!page || page.isFetchingChildren || page.isFetchingTranslations}
+      focusTrapOptions={{
+        onDeactivate: onClose,
+        clickOutsideDeactivates: false,
+        allowOutsideClick: true,
+      }}
+    >*/
+    <div role="dialog" aria-label={gettext('Page explorer')}>
+      <ExplorerWrapper>
+        <Transition name={transition}>
+          <div key={depth}>
+            <PageExplorerHeader
+              depth={depth}
+              page={page}
+              onClick={onHeaderClick}
+              gotoPage={gotoPage}
+              navigate={navigate}
+            />
 
-    return (
-      <FocusTrap
-        paused={!page || page.isFetchingChildren || page.isFetchingTranslations}
-        focusTrapOptions={{
-          onDeactivate: onClose,
-          clickOutsideDeactivates: false,
-          allowOutsideClick: true,
-        }}
-      >
-        <div role="dialog" aria-label={gettext('Page explorer')}>
-          <Transition name={transition} className="c-page-explorer">
-            <div key={depth} className="w-transition-group">
-              <PageExplorerHeader
-                depth={depth}
-                page={page}
-                onClick={this.onHeaderClick}
-                gotoPage={gotoPage}
-                navigate={this.props.navigate}
-              />
+            {renderChildren()}
 
-              {this.renderChildren()}
-
-              {page.isError ||
-              (page.children.items &&
-                page.children.count > MAX_EXPLORER_PAGES) ? (
-                <PageCount page={page} />
-              ) : null}
-            </div>
-          </Transition>
-        </div>
-      </FocusTrap>
-    );
-  }
+            {page.isError ||
+            (page.children.items &&
+              page.children.count > MAX_EXPLORER_PAGES) ? (
+              <PageCount page={page} />
+            ) : null}
+          </div>
+        </Transition>
+      </ExplorerWrapper>
+    </div>
+    /*</FocusTrap>*/
+  );
 }
-
-export default PageExplorerPanel;

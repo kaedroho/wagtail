@@ -1,16 +1,11 @@
 import * as React from 'react';
 import { styled } from '@linaria/react';
 
-import { Provider } from 'react-redux';
 import Tippy from '@tippyjs/react';
 import Icon from '../../Icon/Icon';
 import { MenuItemProps } from './MenuItem';
 import { LinkMenuItemDefinition } from './LinkMenuItem';
-import PageExplorer, { initPageExplorerStore } from '../../PageExplorer';
-import {
-  openPageExplorer,
-  closePageExplorer,
-} from '../../PageExplorer/actions';
+import PageExplorer from '../../PageExplorer/PageExplorer';
 import SidebarPanel from '../SidebarPanel';
 import { SIDEBAR_TRANSITION_DURATION } from '../Sidebar';
 import { MenuItemWrapper, MenuItemButton, MenuItemLabel } from './MenuItem';
@@ -93,19 +88,11 @@ export function PageExplorerMenuItem({
   const isInSubMenu = path.split('.').length > 2;
   const [isVisible, setIsVisible] = React.useState(false);
 
-  const store = React.useRef<any>(null);
-  if (!store.current) {
-    store.current = initPageExplorerStore();
-  }
-
   const onCloseExplorer = () => {
     // When a submenu is closed, we have to wait for the close animation
     // to finish before making it invisible
     setTimeout(() => {
       setIsVisible(false);
-      if (store.current) {
-        store.current.dispatch(closePageExplorer());
-      }
     }, SIDEBAR_TRANSITION_DURATION);
   };
 
@@ -113,14 +100,10 @@ export function PageExplorerMenuItem({
     if (isOpen) {
       // isOpen is set at the moment the user clicks the menu item
       setIsVisible(true);
-
-      if (store.current) {
-        store.current.dispatch(openPageExplorer(item.startPageId));
-      }
     } else if (!isOpen && isVisible) {
       onCloseExplorer();
     }
-  }, [isOpen]);
+  }, [isOpen, isVisible]);
 
   const onClick = () => {
     // Open/close explorer
@@ -160,27 +143,30 @@ export function PageExplorerMenuItem({
           <TriggerIcon name="arrow-right" isOpen={isOpen} slim={slim} />
         </MenuItemButton>
       </Tippy>
-      <div>
-        <SidebarPanel
+      <SidebarPanel
+        isVisible={isVisible}
+        isOpen={isOpen}
+        depth={depth}
+        widthPx={485}
+        slim={slim}
+        isMobile={isMobile}
+      >
+        <SubMenuCloseButton isVisible={isVisible} dispatch={dispatch} />
+        <PageExplorer
           isVisible={isVisible}
-          isOpen={isOpen}
-          depth={depth}
-          widthPx={485}
-          slim={slim}
-          isMobile={isMobile}
-        >
-          <SubMenuCloseButton isVisible={isVisible} dispatch={dispatch} />
-          {store.current && (
-            <Provider store={store.current}>
-              <PageExplorer
-                isVisible={isVisible}
-                navigate={navigate}
-                onClose={onCloseExplorer}
-              />
-            </Provider>
-          )}
-        </SidebarPanel>
-      </div>
+          startPageId={item.startPageId}
+          navigate={(url: string) =>
+            navigate(url).then(() => {
+              // Reset navigation path to close any open submenus
+              dispatch({
+                type: 'set-navigation-path',
+                path: '',
+              });
+            })
+          }
+          onClose={onCloseExplorer}
+        />
+      </SidebarPanel>
     </PageExplorerItemWrapper>
   );
 }
