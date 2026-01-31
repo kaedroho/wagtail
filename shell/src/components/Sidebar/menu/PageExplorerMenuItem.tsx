@@ -48,24 +48,8 @@ const TriggerIcon = styled(Icon)<TriggerIconProps>`
   height: 1rem;
   inset-inline-end: 15px;
   margin-inline-start: auto;
-
-  ${(props) =>
-    props.isOpen
-      ? `
-    transform-origin: 50% 50%;
-    transform: rotate(180deg);
-  `
-      : ''}
-
-  ${(props) =>
-    props.slim
-      ? `
-    width: 1rem;
-    height: 1rem;
-    position: absolute;
-    inset-inline-end: 0;
-  `
-      : ''}
+  transform-origin: 50% 50%;
+  transform: ${(props) => (props.isOpen ? 'rotate(180deg)' : 'rotate(0deg)')};
 `;
 
 interface PageExplorerMenuItemProps
@@ -83,7 +67,7 @@ export function PageExplorerMenuItem({
   isMobile = false,
 }: PageExplorerMenuItemProps) {
   const isOpen = state.navigationPath.startsWith(path);
-  const isActive = isOpen || state.activePath.startsWith(path);
+  const isActive = state.activePath.startsWith(path);
   const depth = path.split('.').length;
   const isInSubMenu = path.split('.').length > 2;
   const [isVisible, setIsVisible] = React.useState(false);

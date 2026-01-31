@@ -45,13 +45,6 @@ const Wrapper = styled.aside<WrapperProps>`
   @media (forced-colors: active) {
     border-inline-end: 1px solid transparent;
   }
-
-  .icon--menuitem {
-    width: 1rem;
-    height: 1rem;
-    min-width: 1rem;
-    margin: 0.046875rem 0;
-  }
 `;
 
 const SidebarInner = styled.div`

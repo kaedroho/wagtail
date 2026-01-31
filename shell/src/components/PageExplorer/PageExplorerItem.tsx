@@ -30,8 +30,8 @@ const ItemLink = styled(Link)`
   cursor: pointer;
   gap: 0.25rem;
   transition:
-    background-color 150ms ease,
-    color 150ms ease;
+    background-color 150ms ease-in-out,
+    color 150ms ease-in-out;
   padding: 1.45em 1em;
   color: var(--w-color-text-label-menus-default);
 
@@ -41,26 +41,22 @@ const ItemLink = styled(Link)`
     color: var(--w-color-text-label-menus-active);
   }
 
-  .icon {
-    color: var(--w-color-text-label-menus-default);
-    width: 2em;
-    height: 2em;
-    margin-inline-end: 0.75rem;
-  }
-
   @media (min-width: 640px) {
     align-items: center;
     padding: 1.45em 1.75em;
   }
 `;
 
-const ItemTitle = styled.h3`
+const ItemTitle = styled.h3<{ hasChildren: boolean }>`
   margin: 0;
   color: var(--w-color-text-label-menus-default);
   display: inline-block;
+  font-weight: 400;
+  line-height: 1.3;
+  margin-left: ${(props) => (props.hasChildren ? '0.2em' : '0em')};
 `;
 
-const ItemAction = styled(Link)<{ small?: boolean }>`
+const ItemAction = styled(Link)`
   color: var(--w-color-text-label-menus-default);
   transition:
     background-color 150ms ease,
@@ -70,20 +66,19 @@ const ItemAction = styled(Link)<{ small?: boolean }>`
   justify-content: center;
   flex-shrink: 0;
   width: 50px;
-  padding: 0 0.5em;
+  padding: 0 0.4em;
   line-height: 1;
-  font-size: ${(props) => (props.small ? '1.2em' : '2em')};
+  font-size: 2em;
   cursor: pointer;
+
+  &.small {
+    font-size: 1.2em;
+  }
 
   &:hover,
   &:focus {
     background-color: var(--w-color-surface-menus);
     color: var(--w-color-text-label-menus-active);
-  }
-
-  .icon {
-    width: 1em;
-    height: 1em;
   }
 `;
 
@@ -126,7 +121,7 @@ export default function PageExplorerItem({
     <ItemWrapper>
       <ItemLink href={`${urls.pages}${id}/`} navigate={navigate}>
         {hasChildren ? childrenIcon : null}
-        <ItemTitle>{title}</ItemTitle>
+        <ItemTitle hasChildren={hasChildren}>{title}</ItemTitle>
 
         {(!isPublished || localeName) && (
           <MetaWrapper>
@@ -138,7 +133,7 @@ export default function PageExplorerItem({
       <ItemAction
         href={`${urls.pages}${id}/edit/`}
         navigate={navigate}
-        small
+        className="small"
       >
         <Icon
           name="edit"
@@ -146,9 +141,14 @@ export default function PageExplorerItem({
         />
       </ItemAction>
       {hasChildren ? (
-        <ItemAction onClick={onClick} href={`${urls.pages}${id}/`} navigate={navigate}>
+        <ItemAction
+          onClick={onClick}
+          href={`${urls.pages}${id}/`}
+          navigate={navigate}
+        >
           <Icon
             name="arrow-right"
+            className="icon--item-action"
             title={gettext("View child pages of '%(title)s'").replace(
               '%(title)s',
               title || '',

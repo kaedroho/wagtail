@@ -167,14 +167,6 @@ const MainMenuNav = styled.nav<MainMenuNavProps>`
   //  outline-offset: -2px;
   //}
 
-  .icon--submenu-header {
-    display: block;
-    width: 4rem;
-    height: 4rem;
-    margin: 0 auto 0.8em;
-    opacity: 0.15;
-  }
-
   > ul > li > a {
     transition: padding var(--sidebar-transition-duration) ease-in-out !important;
   }

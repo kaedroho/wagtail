@@ -6,7 +6,9 @@ import Icon from '../Icon/Icon';
 import { UrlsContext } from '../../contexts';
 
 const SeeMoreLink = styled.a`
-  display: block;
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
   padding: 1em;
   background: var(--w-color-black-35);
   color: var(--w-color-text-label-menus-default);
@@ -40,14 +42,13 @@ export default function PageCount({ page }: PageCountProps) {
   const urls = useContext(UrlsContext);
   const count = page.children.count;
 
+  if (!count) {
+    return <></>;
+  }
+
   return (
     <SeeMoreLink href={`${urls.pages}${page.id}/`}>
-      {gettext('See all')}
-      <span>{` ${count} ${
-        count === 1
-          ? gettext('Page').toLowerCase()
-          : gettext('Pages').toLowerCase()
-      }`}</span>
+      {gettext('See all {} pages').replace('{}', count.toString())}
       <Icon name="arrow-right" />
     </SeeMoreLink>
   );

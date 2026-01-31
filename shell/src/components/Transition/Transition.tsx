@@ -1,7 +1,14 @@
-import { useState, useEffect, useRef, Children, cloneElement, isValidElement } from 'react';
+import {
+  useState,
+  useEffect,
+  useRef,
+  Children,
+  cloneElement,
+  isValidElement,
+} from 'react';
 import { styled } from '@linaria/react';
 
-const TRANSITION_DURATION = 210;
+const TRANSITION_DURATION = 150;
 
 export const PUSH = 'push';
 export const POP = 'pop';
@@ -23,7 +30,7 @@ const TransitionWrapper = styled.div`
 
   .w-transition-push-enter-active {
     transform: translateX(0);
-    transition: transform 200ms ease;
+    transition: transform 150ms ease-in-out;
   }
 
   .w-transition-push-leave {
@@ -32,7 +39,7 @@ const TransitionWrapper = styled.div`
 
   .w-transition-push-leave-active {
     transform: translateX(-100%);
-    transition: transform 200ms ease;
+    transition: transform 150ms ease-in-out;
   }
 
   /* Pop transition */
@@ -42,7 +49,7 @@ const TransitionWrapper = styled.div`
 
   .w-transition-pop-enter-active {
     transform: translateX(0);
-    transition: transform 200ms ease;
+    transition: transform 150ms ease-in-out;
   }
 
   .w-transition-pop-leave {
@@ -51,7 +58,7 @@ const TransitionWrapper = styled.div`
 
   .w-transition-pop-leave-active {
     transform: translateX(100%);
-    transition: transform 200ms ease;
+    transition: transform 150ms ease-in-out;
   }
 `;
 
@@ -74,11 +81,27 @@ export default function Transition({
   duration = TRANSITION_DURATION,
   children,
 }: TransitionProps) {
-  const [items, setItems] = useState<TransitionChild[]>([]);
+  const [items, setItems] = useState<TransitionChild[]>(() => {
+    const childArray = Children.toArray(children).filter(
+      isValidElement,
+    ) as React.ReactElement[];
+    const currentChild = childArray[0];
+    const currentKey = currentChild?.key ?? 'default';
+
+    return [
+      {
+        key: currentKey,
+        element: currentChild,
+        state: 'entered',
+      },
+    ];
+  });
   const timeoutsRef = useRef<Map<string | number, NodeJS.Timeout>>(new Map());
 
   useEffect(() => {
-    const childArray = Children.toArray(children).filter(isValidElement) as React.ReactElement[];
+    const childArray = Children.toArray(children).filter(
+      isValidElement,
+    ) as React.ReactElement[];
     const currentChild = childArray[0];
     const currentKey = currentChild?.key ?? 'default';
 
@@ -156,7 +179,8 @@ export default function Transition({
 
         return cloneElement(item.element, {
           key: item.key,
-          className: `${item.element.props.className || ''} ${itemClassName}`.trim(),
+          className:
+            `${item.element.props.className || ''} ${itemClassName}`.trim(),
         });
       })}
     </TransitionWrapper>

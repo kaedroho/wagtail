@@ -35,25 +35,12 @@ const HeaderTitle = styled(Link)`
 
 const HeaderTitleInner = styled.div`
   display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
   padding: 1em 10px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-
-  .icon {
-    color: var(--w-color-text-label-menus-default);
-    margin-inline-end: 0.25rem;
-    font-size: 1rem;
-  }
-
-  .icon--explorer-header {
-    color: var(--w-color-text-label-menus-default);
-    margin-right: 0.5rem;
-    width: 1.25em;
-    height: 1.25em;
-    margin-inline-end: 0.25rem;
-    vertical-align: text-top;
-  }
 
   @media (min-width: 640px) {
     padding: 1em 1.5em;
