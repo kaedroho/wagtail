@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import FocusTrap from 'focus-trap-react';
+//import FocusTrap from 'focus-trap-react';
 import { styled } from '@linaria/react';
 
 import { gettext } from '../../utils/gettext';
@@ -66,7 +66,6 @@ export default function PageExplorerPanel({
   nodes,
   depth,
   page,
-  onClose,
   gotoPage,
   navigate,
 }: PageExplorerPanelProps) {

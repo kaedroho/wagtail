@@ -1,4 +1,4 @@
-import React, { PropsWithChildren, useContext } from 'react';
+import { PropsWithChildren, useContext } from 'react';
 import { css } from '@linaria/core';
 import { styled } from '@linaria/react';
 import {

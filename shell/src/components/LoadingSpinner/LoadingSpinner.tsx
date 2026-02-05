@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { gettext } from '../../utils/gettext';
 import Icon from '../Icon/Icon';
 

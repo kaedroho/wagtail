@@ -109,13 +109,22 @@ export default function PageExplorerItem({
 }: PageExplorerItemProps) {
   const urls = useContext(UrlsContext);
   const locales = useContext(LocalesContext);
+
+  const localeNames = locales.reduce(
+    (locales, { code, display_name: displayName }) => {
+      locales.set(code, displayName);
+      return locales;
+    },
+    new Map<string, string>(),
+  );
+
   const { id, admin_display_title: title, meta } = item;
   const hasChildren = meta.children.count > 0;
   const isPublished = meta.status.live && !meta.status.has_unpublished_changes;
   const localeName =
     meta.parent?.id === 1 &&
     meta.locale &&
-    (locales.get(meta.locale)?.name || meta.locale);
+    (localeNames.get(meta.locale) || meta.locale);
 
   return (
     <ItemWrapper>

@@ -8,7 +8,7 @@ import Icon from '../../Icon/Icon';
 import { LinkMenuItemDefinition } from '../menu/LinkMenuItem';
 import { MenuItemDefinition } from '../menu/MenuItem';
 import { SubMenuItemDefinition } from '../menu/SubMenuItem';
-import { ModuleDefinition } from '../Sidebar';
+import { ModuleDefinition, ModuleRenderContext } from '../Sidebar';
 
 export function renderMenu(
   path: string,
@@ -492,7 +492,7 @@ export class MainMenuModuleDefinition implements ModuleDefinition {
     key,
     currentPath,
     navigate,
-  }) {
+  }: ModuleRenderContext): React.ReactElement {
     return (
       <Menu
         menuItems={this.menuItems}

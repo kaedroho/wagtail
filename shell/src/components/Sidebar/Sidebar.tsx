@@ -19,7 +19,7 @@ export interface ModuleRenderContext {
 }
 
 export interface ModuleDefinition {
-  render(context: ModuleRenderContext): React.ReactFragment;
+  render(context: ModuleRenderContext): React.ReactElement;
 }
 
 interface WrapperProps {

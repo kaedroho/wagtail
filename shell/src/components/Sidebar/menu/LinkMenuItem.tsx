@@ -9,8 +9,8 @@ import {
   MenuItemLink,
   MenuItem,
   MenuItemLabel,
+  MenuItemRenderContext,
 } from './MenuItem';
-import { gettext } from '../../../utils/gettext';
 import { isDismissed } from '../modules/MainMenu';
 
 export function LinkMenuItem({
@@ -104,6 +104,13 @@ export class LinkMenuItemDefinition implements MenuItemDefinition {
     attrs = {},
     icon_name: iconName = null as string | null,
     classname = undefined as string | undefined,
+  }: {
+    name: string;
+    label: string;
+    url: string;
+    attrs?: { [k: string]: string };
+    icon_name?: string | null;
+    classname?: string;
   }) {
     this.name = name;
     this.label = label;
@@ -113,7 +120,13 @@ export class LinkMenuItemDefinition implements MenuItemDefinition {
     this.classNames = classname;
   }
 
-  render({ path, slim, state, dispatch, navigate }) {
+  render({
+    path,
+    slim,
+    state,
+    dispatch,
+    navigate,
+  }: MenuItemRenderContext): React.ReactElement {
     return (
       <LinkMenuItem
         key={this.name}

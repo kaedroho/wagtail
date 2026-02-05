@@ -6,7 +6,8 @@ export interface Urls {
 }
 
 export interface Locale {
-  name: string;
+  code: string;
+  display_name: string;
 }
 
 export interface AdminApiConfig {

@@ -22,7 +22,7 @@ import './normalize.css';
 
 const config = new DjangoBridge.Config();
 
-config.addView('HTMLPage', HTMLPageView);
+config.addView('HTMLPage', HTMLPageView as React.FunctionComponent<{}>);
 
 config.addContextProvider('csrf_token', CsrfTokenContext);
 config.addContextProvider('urls', UrlsContext);

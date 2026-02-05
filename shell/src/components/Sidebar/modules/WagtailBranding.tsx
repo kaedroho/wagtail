@@ -2,7 +2,7 @@ import * as React from 'react';
 import { styled } from '@linaria/react';
 
 import { gettext } from '../../../utils/gettext';
-import { ModuleDefinition } from '../Sidebar';
+import { ModuleDefinition, ModuleRenderContext } from '../Sidebar';
 import WagtailLogo from './WagtailLogo';
 
 const LOGO_SIZE = '110px';
@@ -197,7 +197,12 @@ export class WagtailBrandingModuleDefinition implements ModuleDefinition {
     this.homeUrl = homeUrl;
   }
 
-  render({ slim, key, navigate, currentPath }) {
+  render({
+    slim,
+    key,
+    navigate,
+    currentPath,
+  }: ModuleRenderContext): React.ReactElement {
     return (
       <WagtailBranding
         key={key}

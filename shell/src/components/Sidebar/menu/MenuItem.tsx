@@ -1,4 +1,3 @@
-import { css } from '@linaria/core';
 import { styled } from '@linaria/react';
 
 import { MenuAction, MenuState } from '../modules/MainMenu';
@@ -17,7 +16,7 @@ export interface MenuItemDefinition {
   attrs: { [key: string]: any };
   iconName: string | null;
   classNames?: string;
-  render(context: MenuItemRenderContext): React.ReactFragment;
+  render(context: MenuItemRenderContext): React.ReactElement;
 }
 
 export interface MenuItemProps<T> {

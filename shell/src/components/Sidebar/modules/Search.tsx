@@ -4,7 +4,11 @@ import { styled } from '@linaria/react';
 import Tippy from '@tippyjs/react';
 import { gettext } from '../../../utils/gettext';
 import Icon from '../../Icon/Icon';
-import { ModuleDefinition, SIDEBAR_TRANSITION_DURATION } from '../Sidebar';
+import {
+  ModuleDefinition,
+  ModuleRenderContext,
+  SIDEBAR_TRANSITION_DURATION,
+} from '../Sidebar';
 
 const SearchForm = styled.form`
   height: 42px;
@@ -57,11 +61,7 @@ const SearchButton = styled.button<SearchButtonProps>`
   }
 `;
 
-interface SearchInputProps {
-  isHidden: boolean;
-}
-
-const SearchInputField = styled.input<SearchInputProps>`
+const SearchInputField = styled.input<{ isHidden: boolean }>`
   transition: opacity var(--sidebar-transition-duration) ease-in-out;
   opacity: ${(props) => (props.isHidden ? '0' : '1')};
   padding-left: 51px;
@@ -195,7 +195,13 @@ export class SearchModuleDefinition implements ModuleDefinition {
     this.searchUrl = searchUrl;
   }
 
-  render({ slim, key, expandingOrCollapsing, onSearchClick, navigate }) {
+  render({
+    slim,
+    key,
+    expandingOrCollapsing,
+    onSearchClick,
+    navigate,
+  }: ModuleRenderContext): React.ReactElement {
     return (
       <SearchInput
         searchUrl={this.searchUrl}

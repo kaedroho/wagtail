@@ -1,7 +1,4 @@
-import React from 'react';
 import { styled } from '@linaria/react';
-
-import { SIDEBAR_TRANSITION_DURATION } from '../Sidebar';
 
 interface LogoSvgProps {
   slim: boolean;

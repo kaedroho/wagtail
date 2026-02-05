@@ -3,7 +3,7 @@ import { styled } from '@linaria/react';
 
 import Tippy from '@tippyjs/react';
 import Icon from '../../Icon/Icon';
-import { MenuItemProps } from './MenuItem';
+import { MenuItemProps, MenuItemRenderContext } from './MenuItem';
 import { LinkMenuItemDefinition } from './LinkMenuItem';
 import PageExplorer from '../../PageExplorer/PageExplorer';
 import SidebarPanel from '../SidebarPanel';
@@ -52,8 +52,7 @@ const TriggerIcon = styled(Icon)<TriggerIconProps>`
   transform: ${(props) => (props.isOpen ? 'rotate(180deg)' : 'rotate(0deg)')};
 `;
 
-interface PageExplorerMenuItemProps
-  extends MenuItemProps<PageExplorerMenuItemDefinition> {
+interface PageExplorerMenuItemProps extends MenuItemProps<PageExplorerMenuItemDefinition> {
   isMobile?: boolean;
 }
 
@@ -166,6 +165,13 @@ export class PageExplorerMenuItemDefinition extends LinkMenuItemDefinition {
       attrs = {},
       icon_name: iconName = null as string | null,
       classname = undefined as string | undefined,
+    }: {
+      name: string;
+      label: string;
+      url: string;
+      attrs?: { [k: string]: string };
+      icon_name?: string | null;
+      classname?: string;
     },
     startPageId: number,
   ) {
@@ -173,7 +179,13 @@ export class PageExplorerMenuItemDefinition extends LinkMenuItemDefinition {
     this.startPageId = startPageId;
   }
 
-  render({ path, slim, state, dispatch, navigate }) {
+  render({
+    path,
+    slim,
+    state,
+    dispatch,
+    navigate,
+  }: MenuItemRenderContext): React.ReactElement {
     return (
       <PageExplorerMenuItem
         key={this.name}

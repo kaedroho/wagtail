@@ -10,8 +10,8 @@ import {
   MenuItemButton,
   MenuItem,
   MenuItemLabel,
+  MenuItemRenderContext,
 } from './MenuItem';
-import { gettext } from '../../../utils/gettext';
 import { isDismissed } from '../modules/MainMenu';
 import { CsrfTokenContext } from '../../../contexts';
 
@@ -87,6 +87,15 @@ export class ActionMenuItemDefinition implements MenuItemDefinition {
     icon_name: iconName = null,
     classname = undefined,
     method = 'POST',
+  }: {
+    name: string;
+    label: string;
+    action: string;
+    url: string;
+    attrs?: { [k: string]: string };
+    icon_name?: string | null;
+    classname?: string;
+    method?: string;
   }) {
     this.name = name;
     this.label = label;
@@ -97,7 +106,13 @@ export class ActionMenuItemDefinition implements MenuItemDefinition {
     this.method = method;
   }
 
-  render({ path, slim, state, dispatch, navigate }) {
+  render({
+    path,
+    slim,
+    state,
+    dispatch,
+    navigate,
+  }: MenuItemRenderContext): React.ReactElement {
     return (
       <ActionMenuItem
         key={this.name}

@@ -4,7 +4,7 @@ const handleClick = (
   href: string,
   onClick: ((e: React.MouseEvent) => void) | undefined,
   preventDefault: boolean,
-  navigate: (url: string) => Promise<void>,
+  navigate: ((url: string) => Promise<void>) | undefined,
   e: React.MouseEvent,
 ) => {
   if (preventDefault && href === '#') {
@@ -41,7 +41,7 @@ interface LinkProps {
 /**
  * A reusable button. Uses a <a> tag underneath.
  */
-const Link: React.FunctionComponent<LinkProps> = ({
+function Link({
   className = '',
   children,
   accessibleLabel,
@@ -50,7 +50,7 @@ const Link: React.FunctionComponent<LinkProps> = ({
   preventDefault = true,
   onClick,
   navigate,
-}) => {
+}: React.PropsWithChildren<LinkProps>) {
   const hasText = React.Children.count(children) > 0;
   const accessibleElt = accessibleLabel ? (
     <span className="w-sr-only">{accessibleLabel}</span>
@@ -67,6 +67,6 @@ const Link: React.FunctionComponent<LinkProps> = ({
       {hasText ? children : accessibleElt}
     </a>
   );
-};
+}
 
 export default Link;

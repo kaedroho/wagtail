@@ -13,6 +13,7 @@ import {
   MenuItemWrapper,
   MenuItemButton,
   MenuItemLabel,
+  MenuItemRenderContext,
 } from './MenuItem';
 import { gettext } from '../../../utils/gettext';
 import SubMenuCloseButton from './SubMenuCloseButton';
@@ -272,7 +273,15 @@ export class SubMenuItemDefinition implements MenuItemDefinition {
       icon_name: iconName = null,
       classname = undefined,
       footer_text: footerText = '',
-    }: any,
+    }: {
+      name: string;
+      label: string;
+      url: string;
+      attrs?: { [k: string]: string };
+      icon_name?: string | null;
+      classname?: string;
+      footer_text?: string;
+    },
     menuItems: MenuItemDefinition[],
   ) {
     this.name = name;
@@ -284,7 +293,13 @@ export class SubMenuItemDefinition implements MenuItemDefinition {
     this.footerText = footerText;
   }
 
-  render({ path, slim, state, dispatch, navigate }) {
+  render({
+    path,
+    slim,
+    state,
+    dispatch,
+    navigate,
+  }: MenuItemRenderContext): React.ReactElement {
     return (
       <SubMenuItem
         key={this.name}
