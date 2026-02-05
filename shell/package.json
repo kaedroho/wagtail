@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@django-bridge/react": "^0.5.0",
+    "@django-bridge/react": "^0.6.0-rc.1",
     "@linaria/core": "^6.3.0",
     "@linaria/react": "^6.3.0",
     "@tippyjs/react": "^4.2.6",
